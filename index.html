@@ -25,30 +25,45 @@
       --aktor-red: #e0283b;
       --algo-blue: #0070c9;
       --card-bg: #ffffff;
-      --page-bg: #f3f4f6; /* page background colour – change here if you like */
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html,
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
-      background: var(--page-bg);
-      color: #111827;
+      padding: 0;
+      height: 100%;
     }
 
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      color: #111827;
+      /* === BACKGROUND IMAGE HERE === */
+      background: #020617 url("bg-image.jpg") no-repeat center top fixed;
+      background-size: cover;
+    }
+
+    /* semi-transparent overlay so content stays readable */
     .page {
-      max-width: 100%;      /* use full width */
-      margin: 0 auto;
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(15, 23, 42, 0.3),
+        rgba(15, 23, 42, 0.7)
+      );
     }
 
     header {
+      width: 100%;
       background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(8px);
-      border-bottom: 3px solid rgba(224, 40, 59, 0.8);
+      border-bottom: 3px solid rgba(224, 40, 59, 0.9);
       padding: 10px 24px;
       display: flex;
       align-items: center;
@@ -97,6 +112,7 @@
       margin-top: 4px;
     }
 
+    /* MAIN GRID – FULL WIDTH */
     .container {
       padding: 12px 16px 20px;
       display: grid;
@@ -115,7 +131,7 @@
       background: var(--card-bg);
       border-radius: 12px;
       padding: 10px 14px;
-      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 3px 12px rgba(15, 23, 42, 0.35);
     }
 
     .card-title {
@@ -134,7 +150,7 @@
 
     .card-sub {
       font-size: 11px;
-      color: #6b7280;
+      color: #e5e7eb;
       margin-top: 4px;
     }
 
@@ -194,6 +210,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
+      font-size: 10px;
     }
 
     .filter-chip {
@@ -204,7 +221,6 @@
       border-radius: 999px;
       background: rgba(0, 112, 201, 0.12);
       color: #1d4ed8;
-      font-size: 10px;
     }
 
     .filter-chip button {
@@ -334,6 +350,7 @@
       margin-top: 6px;
     }
 
+    /* Junction list filters */
     .table-controls {
       display: flex;
       justify-content: space-between;
@@ -388,6 +405,7 @@
   <div class="page">
     <header>
       <div class="header-left">
+        <!-- use your AKTOR logo filename here -->
         <img src="aktor-logo.png" alt="AKTOR Qatar" class="logo-img" />
       </div>
 
@@ -400,6 +418,7 @@
       </div>
 
       <div class="header-right">
+        <!-- use your ALGOSYSTEMS logo filename here -->
         <img src="algosystems-logo.png" alt="ALGOSYSTEMS Qatar" class="logo-img logo-img-small" />
       </div>
     </header>
@@ -478,7 +497,7 @@
 
       <!-- RIGHT COLUMN -->
       <div class="right-col">
-        <!-- FILTERS -->
+        <!-- GLOBAL FILTERS -->
         <div class="card">
           <div class="filters-row-title">Filters</div>
           <div class="filters">
@@ -513,7 +532,7 @@
           </button>
         </div>
 
-        <!-- TABLE -->
+        <!-- JUNCTION LIST WITH FILTERING -->
         <div class="card">
           <div class="card-title">Junction List</div>
           <div class="table-controls">
@@ -562,11 +581,10 @@
   ></script>
 
   <script>
-    // Google Sheet CSV URL
+    /* ===== DATA CONFIG ===== */
     const SHEET_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vS5pFct4J8nDgw7VLuUJpfVgxewoZSkjh-cNxjgtOOZcjEM5Hx0xyJsziL9MUrEmK6wuls0C2Ffd1ku/pub?gid=1921347271&single=true&output=csv";
 
-    // Column names in your sheet
     const COLS = {
       junctNo: "Junct No",
       street: "Street Details",
@@ -606,13 +624,15 @@
     let scopeChart = null;
     let tableSearchTerm = "";
 
+    /* ===== MAP ===== */
+
     function initMap() {
-      map = L.map("map").setView([25.3, 51.4], 9); // Qatar
+      map = L.map("map").setView([25.3, 51.4], 9);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18,
         attribution: "&copy; OpenStreetMap contributors",
       }).addTo(map);
-      // featureGroup so getBounds() works
+
       markersLayer = L.featureGroup().addTo(map);
     }
 
@@ -657,6 +677,8 @@
       }
     }
 
+    /* ===== KPIs ===== */
+
     function updateKPIs(data) {
       const total = data.length;
       let om = 0,
@@ -696,6 +718,8 @@
       }
     }
 
+    /* ===== FILTER DROPDOWN OPTIONS ===== */
+
     function updateZoneFilter(data) {
       const select = document.getElementById("filter-zone");
       const zones = Array.from(
@@ -715,6 +739,8 @@
         select.appendChild(opt);
       });
     }
+
+    /* ===== TABLE + JUNCTION LIST FILTER ===== */
 
     function renderTable(data) {
       const tbody = document.getElementById("junction-table-body");
@@ -764,6 +790,8 @@
         tbody.appendChild(tr);
       });
     }
+
+    /* ===== CHARTS ===== */
 
     function buildZoneChart(data) {
       const zoneMap = new Map();
@@ -879,6 +907,8 @@
       });
     }
 
+    /* ===== AI-STYLE INSIGHTS ===== */
+
     function updateInsights(data) {
       const el = document.getElementById("attention-list");
       if (!el) return;
@@ -939,6 +969,8 @@
       });
     }
 
+    /* ===== FILTER TAGS ===== */
+
     function updateFilterTags() {
       const zoneVal = document.getElementById("filter-zone").value;
       const surveyVal = document.getElementById("filter-survey").value;
@@ -968,8 +1000,7 @@
 
       if (filters.length === 0) {
         container.textContent = "No filters applied.";
-        container.style.fontSize = "10px";
-        container.style.color = "#6b7280";
+        container.style.color = "#e5e7eb";
         return;
       }
 
@@ -990,6 +1021,8 @@
         container.appendChild(chip);
       });
     }
+
+    /* ===== APPLY GLOBAL FILTERS ===== */
 
     function applyFilters() {
       const zoneVal = document.getElementById("filter-zone").value;
@@ -1025,20 +1058,7 @@
       updateFilterTags();
     }
 
-    function setLastUpdated() {
-      const el = document.getElementById("lastUpdated");
-      if (!el) return;
-      const now = new Date();
-      el.textContent =
-        "Last loaded: " +
-        now.toLocaleString(undefined, {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-    }
+    /* ===== EXPORT ===== */
 
     function exportCurrentView() {
       const rows = currentFiltered.length > 0 ? currentFiltered : allData;
@@ -1086,6 +1106,23 @@
       URL.revokeObjectURL(url);
     }
 
+    /* ===== LOAD DATA (WITH AUTO REFRESH) ===== */
+
+    function setLastUpdated() {
+      const el = document.getElementById("lastUpdated");
+      if (!el) return;
+      const now = new Date();
+      el.textContent =
+        "Last loaded: " +
+        now.toLocaleString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+    }
+
     function loadData() {
       Papa.parse(SHEET_CSV_URL, {
         download: true,
@@ -1111,6 +1148,8 @@
       });
     }
 
+    /* ===== HEADER DATE/TIME ===== */
+
     function updateCurrentDateTime() {
       const el = document.getElementById("currentDateTime");
       if (!el) return;
@@ -1124,6 +1163,8 @@
         minute: "2-digit",
       });
     }
+
+    /* ===== INIT ===== */
 
     document.addEventListener("DOMContentLoaded", function () {
       initMap();
