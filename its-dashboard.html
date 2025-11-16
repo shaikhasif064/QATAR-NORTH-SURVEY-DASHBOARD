@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Qatar North ITS Survey Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    :root {
+      --aktor-blue: #111827;
+      --aktor-red: #e0283b;
+      --algo-blue: #0070c9;
+      --card-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      color: #111827;
+      background: #020617 url("bg-image.png") no-repeat center top fixed;
+      background-size: cover;
+    }
+
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(15, 23, 42, 0.3),
+        rgba(15, 23, 42, 0.7)
+      );
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      width: 100%;
+      background: linear-gradient(90deg, #020617, #111827);
+      backdrop-filter: blur(8px);
+      border-bottom: 3px solid rgba(224, 40, 59, 0.9);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .header-left,
+    .header-right {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-center {
+      flex: 1 1 auto;
+      text-align: center;
+    }
+
+    .logo-img {
+      max-height: 56px;
+      height: auto;
+    }
+
+    .logo-img-small {
+      max-height: 42px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: #f9fafb;
+    }
+
+    header .subtitle {
+      font-size: 11px;
+      color: #e5e7eb;
+      margin-top: 2px;
+    }
+
+    .subtitle a {
+      color: #93c5fd;
+      text-decoration: none;
+    }
+
+    .subtitle a:hover {
+      text-decoration: underline;
+    }
+
+    .datetime-header {
+      font-size: 11px;
+      color: #cbd5ff;
+      margin-top: 4px;
+    }
+
+    /* ===== MAIN GRID ===== */
+    .container {
+      padding: 12px 16px 20px;
+      display: grid;
+      grid-template-columns: 1.55fr 1.15fr;
+      grid-gap: 16px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      grid-gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 3px 12px rgba(15, 23, 42, 0.35);
+    }
+
+    .card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .card-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .card-sub {
+      font-size: 11px;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .map-card {
+      margin-bottom: 12px;
+    }
+
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .filters-row-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-start;
+      margin-top: 4px;
+    }
+
+    .filters label {
+      font-size: 11px;
+      color: #374151;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .filters select {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 11px;
+      min-width: 110px;
+      background: #f9fafb;
+    }
+
+    .filters select:focus {
+      outline: none;
+      border-color: var(--algo-blue);
+      box-shadow: 0 0 0 1px rgba(0, 112, 201, 0.3);
+    }
+
+    .active-filters {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-size: 10px;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(0, 112, 201, 0.12);
+      color: #1d4ed8;
+    }
+
+    .filter-chip button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .export-btn {
+      margin-top: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #0070c9;
+      background: #0070c9;
+      color: #fff;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .export-btn:hover {
+      background: #005fa3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    th,
+    td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td:nth-child(2) {
+      white-space: normal;
+    }
+
+    .table-wrapper {
+      max-height: 310px;
+      overflow: auto;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f3f4f6;
+    }
+
+    tbody tr:hover {
+      background: #e5edff;
+      cursor: pointer;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .status-completed {
+      background: #16a34a;
+    }
+
+    .status-pending {
+      background: #dc2626;
+    }
+
+    .zone-chart-wrapper {
+      height: 220px;
+    }
+
+    .zone-card {
+      background: linear-gradient(135deg, #eff6ff, #ffffff);
+      margin-top: 4px;
+      margin-bottom: 10px;
+    }
+
+    .scope-card {
+      background: linear-gradient(135deg, #fef9c3, #ffffff);
+    }
+
+    .attention-card {
+      margin-top: 6px;
+    }
+
+    .progress-wrapper {
+      margin-top: 6px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #0ea5e9);
+      transition: width 0.6s ease;
+    }
+
+    .progress-label {
+      font-size: 11px;
+      color: #4b5563;
+      margin-top: 3px;
+    }
+
+    #lastUpdated {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+
+    .table-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .table-search {
+      flex: 1;
+    }
+
+    .table-search input {
+      width: 100%;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 11px;
+      background: #f9fafb;
+    }
+
+    .table-search input:focus {
+      outline: none;
+      border-color: var(--algo-blue);
+      box-shadow: 0 0 0 1px rgba(0, 112, 201, 0.3);
+    }
+
+    @media (max-width: 1024px) {
+      header {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .header-center {
+        text-align: left;
+      }
+      .container {
+        padding: 8px 12px 16px;
+        grid-template-columns: 1fr;
+        grid-gap: 10px;
+      }
+      .right-col {
+        order: 2;
+      }
+      .container > div:first-child {
+        order: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- ===== HEADER ===== -->
+    <header>
+      <div class="header-left">
+        <img src="aktor-logo.png" alt="AKTOR Qatar" class="logo-img" />
+      </div>
+
+      <div class="header-center">
+        <h1>Qatar North ITS Survey Dashboard</h1>
+        <div class="subtitle">
+          <a href="index.html">Traffic Junctions Dashboard</a> · ITS Devices &amp; Systems
+        </div>
+        <div class="datetime-header" id="currentDateTime"></div>
+      </div>
+
+      <div class="header-right">
+        <img
+          src="algosystems-logo.png"
+          alt="ALGOSYSTEMS Qatar"
+          class="logo-img logo-img-small"
+        />
+      </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="container">
+      <!-- LEFT COLUMN -->
+      <div>
+        <!-- KPI GRID -->
+        <div class="kpi-grid">
+          <!-- Top row: overall ITS KPIs -->
+          <div class="card">
+            <div class="card-title">Total ITS Assets</div>
+            <div class="card-value" id="kpi-total-assets">–</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Assets Surveyed</div>
+            <div class="card-value" id="kpi-assets-surveyed">–</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Survey Completion</div>
+            <div class="card-value" id="kpi-survey-pct-num">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="survey-progress-fill"></div>
+              </div>
+              <div class="progress-label" id="kpi-survey-pct-label">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Assets Pending</div>
+            <div class="card-value" id="kpi-assets-pending">–</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">CCTV Assets</div>
+            <div class="card-value" id="kpi-cctv">–</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">DMS / LCS Assets</div>
+            <div class="card-value" id="kpi-dms-lcs">–</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">RVD Assets</div>
+            <div class="card-value" id="kpi-rvd">–</div>
+          </div>
+
+          <!-- Second row: regional distribution -->
+          <div class="card">
+            <div class="card-title">Assets in Doha Region</div>
+            <div class="card-value" id="kpi-doha-assets">–</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Assets in North Region</div>
+            <div class="card-value" id="kpi-north-assets">–</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Distinct Areas / Corridors</div>
+            <div class="card-value" id="kpi-areas">–</div>
+          </div>
+        </div>
+
+        <!-- MAP -->
+        <div class="card map-card">
+          <div class="card-title">ITS Assets Map (Leaflet / OpenStreetMap)</div>
+          <div id="map"></div>
+          <div id="lastUpdated"></div>
+        </div>
+
+        <!-- ZONE CHART -->
+        <div class="card zone-card">
+          <div class="card-title">Zone-wise ITS Survey Completion</div>
+          <div class="zone-chart-wrapper">
+            <canvas id="zoneChart"></canvas>
+          </div>
+          <div class="card-sub">
+            Percentage of ITS assets surveyed in each zone.
+          </div>
+        </div>
+
+        <!-- INSIGHTS -->
+        <div class="card attention-card">
+          <div class="card-title">Zones / Areas Needing Attention</div>
+          <div id="attention-list" class="card-sub"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+        <!-- GLOBAL FILTERS -->
+        <div class="card">
+          <div class="filters-row-title">Filters</div>
+          <div class="filters">
+            <label>
+              Zone
+              <select id="filter-zone">
+                <option value="">All</option>
+              </select>
+            </label>
+            <label>
+              Area
+              <select id="filter-area">
+                <option value="">All</option>
+              </select>
+            </label>
+            <label>
+              Device Type
+              <select id="filter-device">
+                <option value="">All</option>
+              </select>
+            </label>
+            <label>
+              Survey Status
+              <select id="filter-survey">
+                <option value="">All</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+              </select>
+            </label>
+          </div>
+          <div class="active-filters" id="active-filters"></div>
+          <button id="export-btn" class="export-btn">
+            Download Current View (CSV)
+          </button>
+        </div>
+
+        <!-- ITS ASSET LIST -->
+        <div class="card">
+          <div class="card-title">ITS Asset List</div>
+          <div class="table-controls">
+            <div class="table-search">
+              <input
+                type="text"
+                id="table-search"
+                placeholder="Search ID, Name, device type, zone, area, or remarks..."
+              />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Device Type</th>
+                  <th>Zone</th>
+                  <th>Area</th>
+                  <th>Survey</th>
+                  <th>Remarks</th>
+                </tr>
+              </thead>
+              <tbody id="asset-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- DEVICE TYPE DONUT -->
+        <div class="card scope-card">
+          <div class="card-title">Assets by Device Type</div>
+          <canvas id="typeChart" height="160"></canvas>
+          <div class="card-sub">
+            Distribution of ITS assets by device type (CCTV, DMS/LCS, RVD, etc.).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    /* ===== DATA CONFIG ===== */
+    const SHEET_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5yrlBZ6pktog25ogVRyoi6XkGGt9nUMjGaiCjGRmCEG82EZKTa8XHecxBpAmuPBcaZQ-0BiIlb4_w/pub?gid=1191966534&single=true&output=csv";
+
+    const COLS = {
+      id: "ID",
+      name: "Name",
+      lat: "Latitude",
+      lon: "Longitude",
+      zone: "Zone",
+      area: "Area",
+      deviceType: "Device Type",
+      surveyStatus: "Survey Status",
+      remarks: "Remarks from Survey Team"
+    };
+
+    function isTruthy(val) {
+      if (val == null) return false;
+      const v = String(val).trim().toLowerCase();
+      return ["true", "yes", "1", "y", "done", "completed", "complete", "✓", "✔"].includes(v);
+    }
+
+    function classifySurvey(v) {
+      return isTruthy(v) ? "completed" : "pending";
+    }
+
+    function getDeviceCategory(type) {
+      const t = (type || "").toLowerCase();
+      if (t.includes("cctv")) return "CCTV";
+      if (t.includes("dms") || t.includes("lcs")) return "DMS/LCS";
+      if (t.includes("rvd") || t.includes("radar")) return "RVD";
+      return type || "Other";
+    }
+
+    function getMarkerColor(type) {
+      const t = (type || "").toLowerCase();
+      if (t.includes("cctv")) return "#2563eb";
+      if (t.includes("dms") || t.includes("lcs")) return "#f59e0b";
+      if (t.includes("rvd") || t.includes("radar")) return "#16a34a";
+      return "#6b7280";
+    }
+
+    let allData = [];
+    let currentFiltered = [];
+    let map;
+    let markersLayer;
+    let zoneChart = null;
+    let typeChart = null;
+    let tableSearchTerm = "";
+
+    /* ===== MAP ===== */
+    function initMap() {
+      map = L.map("map").setView([25.3, 51.4], 9);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      markersLayer = L.featureGroup().addTo(map);
+    }
+
+    function clearMarkers() {
+      markersLayer.clearLayers();
+    }
+
+    function addMarkers(data) {
+      clearMarkers();
+      data.forEach((row) => {
+        const lat = parseFloat(row[COLS.lat]);
+        const lon = parseFloat(row[COLS.lon]);
+        if (isNaN(lat) || isNaN(lon)) return;
+
+        const dt = row[COLS.deviceType];
+        const color = getMarkerColor(dt);
+        const surveyClass = classifySurvey(row[COLS.surveyStatus]);
+
+        const marker = L.circleMarker([lat, lon], {
+          radius: 5,
+          color,
+          fillColor: color,
+          fillOpacity: 0.9,
+          weight: 1,
+        });
+
+        const popupHtml = `
+          <strong>${row[COLS.id] || ""} – ${row[COLS.name] || ""}</strong><br/>
+          Device: ${row[COLS.deviceType] || ""}<br/>
+          Zone: ${row[COLS.zone] || ""} · Area: ${row[COLS.area] || ""}<br/>
+          Survey: ${surveyClass === "completed" ? "Completed" : "Pending"}<br/>
+          Remarks: ${row[COLS.remarks] || ""}
+        `;
+        marker.bindPopup(popupHtml);
+        marker.addTo(markersLayer);
+      });
+
+      if (data.length > 0) {
+        const bounds = markersLayer.getBounds();
+        if (bounds && bounds.isValid()) {
+          map.fitBounds(bounds.pad(0.1));
+        }
+      }
+    }
+
+    /* ===== KPIs ===== */
+    function updateKPIs(data) {
+      const total = data.length;
+      let surveyed = 0;
+      let cctv = 0;
+      let dmsLcs = 0;
+      let rvd = 0;
+      let doha = 0;
+      let north = 0;
+      const areasSet = new Set();
+
+      data.forEach((row) => {
+        const status = classifySurvey(row[COLS.surveyStatus]);
+        if (status === "completed") surveyed++;
+
+        const devType = (row[COLS.deviceType] || "").toLowerCase();
+        if (devType.includes("cctv")) cctv++;
+        if (devType.includes("dms") || devType.includes("lcs")) dmsLcs++;
+        if (devType.includes("rvd") || devType.includes("radar")) rvd++;
+
+        const zoneVal = (row[COLS.zone] || "").toLowerCase();
+        if (zoneVal.includes("doha")) doha++;
+        if (zoneVal.includes("north")) north++;
+
+        if (row[COLS.area]) areasSet.add(row[COLS.area]);
+      });
+
+      const pending = total - surveyed;
+
+      document.getElementById("kpi-total-assets").textContent = total;
+      document.getElementById("kpi-assets-surveyed").textContent = surveyed;
+      document.getElementById("kpi-assets-pending").textContent = pending;
+      document.getElementById("kpi-cctv").textContent = cctv;
+      document.getElementById("kpi-dms-lcs").textContent = dmsLcs;
+      document.getElementById("kpi-rvd").textContent = rvd;
+      document.getElementById("kpi-doha-assets").textContent = doha;
+      document.getElementById("kpi-north-assets").textContent = north;
+      document.getElementById("kpi-areas").textContent = areasSet.size;
+
+      const pct = total > 0 ? (surveyed / total) * 100 : 0;
+      const pctText = total > 0 ? pct.toFixed(1) + "%" : "–";
+
+      document.getElementById("kpi-survey-pct-num").textContent = pctText;
+      document.getElementById("kpi-survey-pct-label").textContent =
+        pctText + " of ITS assets";
+
+      const fill = document.getElementById("survey-progress-fill");
+      if (fill) fill.style.width = pct.toFixed(1) + "%";
+    }
+
+    /* ===== FILTER DROPDOWN OPTIONS ===== */
+    function updateFilterOptions(data) {
+      const zoneSelect = document.getElementById("filter-zone");
+      const areaSelect = document.getElementById("filter-area");
+      const deviceSelect = document.getElementById("filter-device");
+
+      const zones = Array.from(
+        new Set(data.map((row) => row[COLS.zone]).filter((z) => z != null && z !== ""))
+      ).sort((a, b) =>
+        String(a).localeCompare(String(b), undefined, { numeric: true })
+      );
+
+      const areas = Array.from(
+        new Set(data.map((row) => row[COLS.area]).filter((z) => z != null && z !== ""))
+      ).sort();
+
+      const devices = Array.from(
+        new Set(data.map((row) => row[COLS.deviceType]).filter((z) => z != null && z !== ""))
+      ).sort();
+
+      while (zoneSelect.options.length > 1) zoneSelect.remove(1);
+      while (areaSelect.options.length > 1) areaSelect.remove(1);
+      while (deviceSelect.options.length > 1) deviceSelect.remove(1);
+
+      zones.forEach((z) => {
+        const opt = document.createElement("option");
+        opt.value = z;
+        opt.textContent = z;
+        zoneSelect.appendChild(opt);
+      });
+
+      areas.forEach((z) => {
+        const opt = document.createElement("option");
+        opt.value = z;
+        opt.textContent = z;
+        areaSelect.appendChild(opt);
+      });
+
+      devices.forEach((z) => {
+        const opt = document.createElement("option");
+        opt.value = z;
+        opt.textContent = z;
+        deviceSelect.appendChild(opt);
+      });
+    }
+
+    /* ===== TABLE ===== */
+    function renderTable(data) {
+      const tbody = document.getElementById("asset-table-body");
+      tbody.innerHTML = "";
+
+      const term = tableSearchTerm.trim().toLowerCase();
+      const filtered = term
+        ? data.filter((row) => {
+            const fields = [
+              row[COLS.id],
+              row[COLS.name],
+              row[COLS.deviceType],
+              row[COLS.zone],
+              row[COLS.area],
+              row[COLS.remarks],
+            ];
+            return fields.some((v) =>
+              String(v || "").toLowerCase().includes(term)
+            );
+          })
+        : data;
+
+      filtered.forEach((row) => {
+        const tr = document.createElement("tr");
+
+        const surveyClass = classifySurvey(row[COLS.surveyStatus]);
+        const statusText = surveyClass === "completed" ? "Completed" : "Pending";
+        const statusClass =
+          surveyClass === "completed" ? "status-completed" : "status-pending";
+
+        tr.innerHTML = `
+          <td>${row[COLS.id] || ""}</td>
+          <td>${row[COLS.name] || ""}</td>
+          <td>${row[COLS.deviceType] || ""}</td>
+          <td>${row[COLS.zone] || ""}</td>
+          <td>${row[COLS.area] || ""}</td>
+          <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+          <td>${row[COLS.remarks] || ""}</td>
+        `;
+
+        tr.addEventListener("click", () => {
+          const lat = parseFloat(row[COLS.lat]);
+          const lon = parseFloat(row[COLS.lon]);
+          if (!isNaN(lat) && !isNaN(lon) && map) {
+            map.setView([lat, lon], 14, { animate: true });
+          }
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* ===== CHARTS ===== */
+    function buildZoneChart(data) {
+      const zoneMap = new Map();
+
+      data.forEach((row) => {
+        const zone = row[COLS.zone] || "NA";
+        if (!zoneMap.has(zone)) {
+          zoneMap.set(zone, { total: 0, completed: 0 });
+        }
+        const entry = zoneMap.get(zone);
+        entry.total++;
+        if (isTruthy(row[COLS.surveyStatus])) entry.completed++;
+      });
+
+      const labels = Array.from(zoneMap.keys()).sort((a, b) =>
+        String(a).localeCompare(String(b), undefined, { numeric: true })
+      );
+      const values = labels.map((z) => {
+        const { total, completed } = zoneMap.get(z);
+        return total > 0 ? +(completed / total * 100).toFixed(1) : 0;
+      });
+
+      const ctx = document.getElementById("zoneChart");
+      if (!ctx) return;
+
+      if (zoneChart) zoneChart.destroy();
+
+      zoneChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Survey Completion %",
+              data: values,
+              backgroundColor: "rgba(0, 112, 201, 0.75)",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.parsed.y}% surveyed`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              title: { display: true, text: "Zone" },
+            },
+            y: {
+              beginAtZero: true,
+              max: 100,
+              title: { display: true, text: "Completion %" },
+              ticks: {
+                callback: (v) => v + "%",
+              },
+            },
+          },
+        },
+      });
+    }
+
+    function buildTypeChart(data) {
+      const typeMap = new Map();
+
+      data.forEach((row) => {
+        const cat = getDeviceCategory(row[COLS.deviceType]);
+        if (!typeMap.has(cat)) typeMap.set(cat, 0);
+        typeMap.set(cat, typeMap.get(cat) + 1);
+      });
+
+      const labels = Array.from(typeMap.keys());
+      const values = labels.map((l) => typeMap.get(l));
+
+      const ctx = document.getElementById("typeChart");
+      if (!ctx) return;
+
+      if (typeChart) typeChart.destroy();
+
+      typeChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [
+            {
+              data: values,
+              backgroundColor: [
+                "rgba(37, 99, 235, 0.9)",
+                "rgba(245, 158, 11, 0.9)",
+                "rgba(22, 163, 74, 0.9)",
+                "rgba(239, 68, 68, 0.9)",
+                "rgba(148, 163, 184, 0.95)",
+              ],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { boxWidth: 12 },
+            },
+          },
+          cutout: "60%",
+        },
+      });
+    }
+
+    /* ===== INSIGHTS ===== */
+    function updateInsights(data) {
+      const el = document.getElementById("attention-list");
+      if (!el) return;
+
+      if (!data || data.length === 0) {
+        el.textContent = "No data for current selection.";
+        return;
+      }
+
+      const zoneMap = new Map();
+      data.forEach((row) => {
+        const zone = row[COLS.zone] || "NA";
+        if (!zoneMap.has(zone)) {
+          zoneMap.set(zone, { total: 0, completed: 0 });
+        }
+        const entry = zoneMap.get(zone);
+        entry.total++;
+        if (isTruthy(row[COLS.surveyStatus])) entry.completed++;
+      });
+
+      const zones = Array.from(zoneMap.entries()).map(
+        ([zone, { total, completed }]) => {
+          const pct = total > 0 ? (completed / total) * 100 : 0;
+          return { zone, total, completed, pct };
+        }
+      );
+
+      zones.sort((a, b) => a.pct - b.pct);
+      const threshold = 60;
+      const needing = zones.filter((z) => z.pct < threshold);
+
+      el.innerHTML = "";
+
+      if (needing.length === 0) {
+        el.textContent =
+          "All zones have ITS survey completion ≥ " + threshold + "%.";
+        return;
+      }
+
+      const top5 = needing.slice(0, 5);
+      const title = document.createElement("div");
+      title.innerHTML =
+        "<strong>Zones with lowest ITS survey completion (under " +
+        threshold +
+        "%):</strong>";
+      el.appendChild(title);
+
+      top5.forEach((z) => {
+        const line =
+          "Zone " +
+          z.zone +
+          ": " +
+          z.completed +
+          "/" +
+          z.total +
+          " (" +
+          z.pct.toFixed(1) +
+          "%)";
+        const div = document.createElement("div");
+        div.textContent = line;
+        el.appendChild(div);
+      });
+    }
+
+    /* ===== FILTER TAGS ===== */
+    function updateFilterTags() {
+      const zoneVal = document.getElementById("filter-zone").value;
+      const areaVal = document.getElementById("filter-area").value;
+      const deviceVal = document.getElementById("filter-device").value;
+      const surveyVal = document.getElementById("filter-survey").value;
+
+      const container = document.getElementById("active-filters");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const filters = [];
+      if (zoneVal) filters.push({ key: "zone", label: "Zone: " + zoneVal });
+      if (areaVal) filters.push({ key: "area", label: "Area: " + areaVal });
+      if (deviceVal)
+        filters.push({ key: "device", label: "Device: " + deviceVal });
+      if (surveyVal)
+        filters.push({
+          key: "survey",
+          label:
+            "Survey: " + (surveyVal === "completed" ? "Completed" : "Pending"),
+        });
+
+      if (filters.length === 0) {
+        container.textContent = "No filters applied.";
+        container.style.color = "#e5e7eb";
+        return;
+      }
+
+      filters.forEach((f) => {
+        const chip = document.createElement("span");
+        chip.className = "filter-chip";
+        chip.innerHTML = `
+          <span>${f.label}</span>
+          <button aria-label="Clear filter ${f.key}">×</button>
+        `;
+        chip.querySelector("button").addEventListener("click", () => {
+          if (f.key === "zone") document.getElementById("filter-zone").value = "";
+          if (f.key === "area") document.getElementById("filter-area").value = "";
+          if (f.key === "device")
+            document.getElementById("filter-device").value = "";
+          if (f.key === "survey")
+            document.getElementById("filter-survey").value = "";
+          applyFilters();
+        });
+        container.appendChild(chip);
+      });
+    }
+
+    /* ===== APPLY FILTERS ===== */
+    function applyFilters() {
+      const zoneVal = document.getElementById("filter-zone").value;
+      const areaVal = document.getElementById("filter-area").value;
+      const deviceVal = document.getElementById("filter-device").value;
+      const surveyVal = document.getElementById("filter-survey").value;
+
+      let filtered = allData.slice();
+
+      if (zoneVal) {
+        filtered = filtered.filter((row) => String(row[COLS.zone]) === zoneVal);
+      }
+
+      if (areaVal) {
+        filtered = filtered.filter((row) => String(row[COLS.area]) === areaVal);
+      }
+
+      if (deviceVal) {
+        filtered = filtered.filter(
+          (row) => String(row[COLS.deviceType]) === deviceVal
+        );
+      }
+
+      if (surveyVal) {
+        filtered = filtered.filter(
+          (row) => classifySurvey(row[COLS.surveyStatus]) === surveyVal
+        );
+      }
+
+      currentFiltered = filtered;
+
+      updateKPIs(filtered);
+      addMarkers(filtered);
+      renderTable(filtered);
+      buildZoneChart(filtered);
+      buildTypeChart(filtered);
+      updateInsights(filtered);
+      updateFilterTags();
+    }
+
+    /* ===== EXPORT ===== */
+    function exportCurrentView() {
+      const rows = currentFiltered.length > 0 ? currentFiltered : allData;
+      if (!rows || rows.length === 0) {
+        alert("No data to export.");
+        return;
+      }
+
+      const headers = [
+        COLS.id,
+        COLS.name,
+        COLS.deviceType,
+        COLS.zone,
+        COLS.area,
+        COLS.surveyStatus,
+        COLS.remarks,
+        COLS.lat,
+        COLS.lon,
+      ];
+
+      const csvLines = [];
+      csvLines.push(headers.join(","));
+
+      rows.forEach((row) => {
+        const line = headers
+          .map((h) => {
+            const val = row[h] == null ? "" : String(row[h]).replace(/"/g, '""');
+            return `"${val}"`;
+          })
+          .join(",");
+        csvLines.push(line);
+      });
+
+      const blob = new Blob([csvLines.join("\n")], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "qatar_north_its_view.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /* ===== LOAD DATA ===== */
+    function setLastUpdated() {
+      const el = document.getElementById("lastUpdated");
+      if (!el) return;
+      const now = new Date();
+      el.textContent =
+        "Last loaded: " +
+        now.toLocaleString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+    }
+
+    function loadData() {
+      Papa.parse(SHEET_CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+          allData = results.data;
+          updateFilterOptions(allData);
+          applyFilters();
+          setLastUpdated();
+
+          if (!window._itsAutoRefreshSet) {
+            window._itsAutoRefreshSet = true;
+            setInterval(() => {
+              loadData();
+            }, 5 * 60 * 1000); // 5 minutes
+          }
+        },
+        error: function (err) {
+          console.error("Error loading ITS CSV:", err);
+          alert("Error loading ITS data. Check the CSV URL or internet connection.");
+        },
+      });
+    }
+
+    /* ===== HEADER DATE/TIME ===== */
+    function updateCurrentDateTime() {
+      const el = document.getElementById("currentDateTime");
+      if (!el) return;
+      const now = new Date();
+      el.textContent = now.toLocaleString(undefined, {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    /* ===== INIT ===== */
+    document.addEventListener("DOMContentLoaded", function () {
+      initMap();
+      loadData();
+
+      document
+        .getElementById("filter-zone")
+        .addEventListener("change", applyFilters);
+      document
+        .getElementById("filter-area")
+        .addEventListener("change", applyFilters);
+      document
+        .getElementById("filter-device")
+        .addEventListener("change", applyFilters);
+      document
+        .getElementById("filter-survey")
+        .addEventListener("change", applyFilters);
+
+      document
+        .getElementById("export-btn")
+        .addEventListener("click", exportCurrentView);
+
+      document
+        .getElementById("table-search")
+        .addEventListener("input", (e) => {
+          tableSearchTerm = e.target.value;
+          renderTable(currentFiltered);
+        });
+
+      updateCurrentDateTime();
+      setInterval(updateCurrentDateTime, 30 * 1000);
+    });
+  </script>
+</body>
+</html>
