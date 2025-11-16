@@ -31,7 +31,8 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       height: 100%;
@@ -428,7 +429,8 @@
       <div class="header-center">
         <h1>Qatar North ITS Survey Dashboard</h1>
         <div class="subtitle">
-          <a href="index.html">Traffic Junctions Dashboard</a> · ITS Devices &amp; Systems
+          <a href="index.html">Traffic Junctions Dashboard</a> · ITS Devices &amp;
+          Systems
         </div>
         <div class="datetime-header" id="currentDateTime"></div>
       </div>
@@ -448,7 +450,7 @@
       <div>
         <!-- KPI GRID -->
         <div class="kpi-grid">
-          <!-- Top row: overall ITS KPIs -->
+          <!-- Overall ITS KPIs -->
           <div class="card">
             <div class="card-title">Total ITS Assets</div>
             <div class="card-value" id="kpi-total-assets">–</div>
@@ -475,22 +477,129 @@
             <div class="card-value" id="kpi-assets-pending">–</div>
           </div>
 
+          <!-- Device-type KPIs with individual percentages -->
           <div class="card">
             <div class="card-title">CCTV Assets</div>
             <div class="card-value" id="kpi-cctv">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-cctv"></div>
+              </div>
+              <div class="progress-label" id="kpi-cctv-pct-label">–</div>
+            </div>
           </div>
 
           <div class="card">
             <div class="card-title">DMS / LCS Assets</div>
             <div class="card-value" id="kpi-dms-lcs">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-dms-lcs"></div>
+              </div>
+              <div class="progress-label" id="kpi-dms-lcs-pct-label">–</div>
+            </div>
           </div>
 
           <div class="card">
             <div class="card-title">RVD Assets</div>
             <div class="card-value" id="kpi-rvd">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-rvd"></div>
+              </div>
+              <div class="progress-label" id="kpi-rvd-pct-label">–</div>
+            </div>
           </div>
 
-          <!-- Second row: regional distribution -->
+          <div class="card">
+            <div class="card-title">PTZ Assets</div>
+            <div class="card-value" id="kpi-ptz">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-ptz"></div>
+              </div>
+              <div class="progress-label" id="kpi-ptz-pct-label">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">LPR Assets</div>
+            <div class="card-value" id="kpi-lpr">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-lpr"></div>
+              </div>
+              <div class="progress-label" id="kpi-lpr-pct-label">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">AID Assets</div>
+            <div class="card-value" id="kpi-aid">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-aid"></div>
+              </div>
+              <div class="progress-label" id="kpi-aid-pct-label">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">OVDS Assets</div>
+            <div class="card-value" id="kpi-ovds">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-ovds"></div>
+              </div>
+              <div class="progress-label" id="kpi-ovds-pct-label">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Magnetometer AP</div>
+            <div class="card-value" id="kpi-mag-ap">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-mag-ap"></div>
+              </div>
+              <div class="progress-label" id="kpi-mag-ap-pct-label">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Magnetometer Dots</div>
+            <div class="card-value" id="kpi-mag-dot">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-mag-dot"></div>
+              </div>
+              <div class="progress-label" id="kpi-mag-dot-pct-label">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">WIM Sensor</div>
+            <div class="card-value" id="kpi-wim-sensor">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-wim-sensor"></div>
+              </div>
+              <div class="progress-label" id="kpi-wim-sensor-pct-label">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">WIM Controller</div>
+            <div class="card-value" id="kpi-wim-controller">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill-wim-controller"></div>
+              </div>
+              <div class="progress-label" id="kpi-wim-controller-pct-label">–</div>
+            </div>
+          </div>
+
+          <!-- Regional distribution -->
           <div class="card">
             <div class="card-title">Assets in Doha Region</div>
             <div class="card-value" id="kpi-doha-assets">–</div>
@@ -499,11 +608,6 @@
           <div class="card">
             <div class="card-title">Assets in North Region</div>
             <div class="card-value" id="kpi-north-assets">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Distinct Areas / Corridors</div>
-            <div class="card-value" id="kpi-areas">–</div>
           </div>
         </div>
 
@@ -634,13 +738,23 @@
       area: "Area",
       deviceType: "Device Type",
       surveyStatus: "Survey Status",
-      remarks: "Remarks from Survey Team"
+      remarks: "Remarks from Survey Team",
     };
 
     function isTruthy(val) {
       if (val == null) return false;
       const v = String(val).trim().toLowerCase();
-      return ["true", "yes", "1", "y", "done", "completed", "complete", "✓", "✔"].includes(v);
+      return [
+        "true",
+        "yes",
+        "1",
+        "y",
+        "done",
+        "completed",
+        "complete",
+        "✓",
+        "✔",
+      ].includes(v);
     }
 
     function classifySurvey(v) {
@@ -724,31 +838,82 @@
       }
     }
 
+    /* ===== KPI HELPERS ===== */
+    function setDeviceKpi(baseId, stat) {
+      const totalEl = document.getElementById(`kpi-${baseId}`);
+      const pctLabelEl = document.getElementById(`kpi-${baseId}-pct-label`);
+      const fillEl = document.getElementById(`progress-fill-${baseId}`);
+
+      const total = stat.total || 0;
+      const completed = stat.completed || 0;
+      const pct = total > 0 ? (completed / total) * 100 : 0;
+      const pctText = total > 0 ? pct.toFixed(1) + "%" : "–";
+
+      if (totalEl) totalEl.textContent = total;
+      if (pctLabelEl)
+        pctLabelEl.textContent =
+          total > 0 ? `${pctText} surveyed` : "No assets";
+      if (fillEl) fillEl.style.width = pct.toFixed(1) + "%";
+    }
+
     /* ===== KPIs ===== */
     function updateKPIs(data) {
       const total = data.length;
       let surveyed = 0;
-      let cctv = 0;
-      let dmsLcs = 0;
-      let rvd = 0;
       let doha = 0;
       let north = 0;
-      const areasSet = new Set();
+
+      // device-type stats (total + completed)
+      const deviceStats = {
+        cctv: { total: 0, completed: 0 },
+        dmsLcs: { total: 0, completed: 0 },
+        rvd: { total: 0, completed: 0 },
+        ptz: { total: 0, completed: 0 },
+        lpr: { total: 0, completed: 0 },
+        aid: { total: 0, completed: 0 },
+        ovds: { total: 0, completed: 0 },
+        magAp: { total: 0, completed: 0 },
+        magDot: { total: 0, completed: 0 },
+        wimSensor: { total: 0, completed: 0 },
+        wimCtrl: { total: 0, completed: 0 },
+      };
 
       data.forEach((row) => {
-        const status = classifySurvey(row[COLS.surveyStatus]);
-        if (status === "completed") surveyed++;
+        const statusClass = classifySurvey(row[COLS.surveyStatus]);
+        const completed = statusClass === "completed";
+        if (completed) surveyed++;
 
-        const devType = (row[COLS.deviceType] || "").toLowerCase();
-        if (devType.includes("cctv")) cctv++;
-        if (devType.includes("dms") || devType.includes("lcs")) dmsLcs++;
-        if (devType.includes("rvd") || devType.includes("radar")) rvd++;
+        const dt = (row[COLS.deviceType] || "").toLowerCase();
+        const areaVal = (row[COLS.area] || "").toLowerCase();
 
-        const zoneVal = (row[COLS.zone] || "").toLowerCase();
-        if (zoneVal.includes("doha")) doha++;
-        if (zoneVal.includes("north")) north++;
+        if (areaVal.includes("doha")) doha++;
+        if (areaVal.includes("north")) north++;
 
-        if (row[COLS.area]) areasSet.add(row[COLS.area]);
+        function incDevice(key) {
+          deviceStats[key].total++;
+          if (completed) deviceStats[key].completed++;
+        }
+
+        if (dt.includes("cctv")) incDevice("cctv");
+        if (dt.includes("dms") || dt.includes("lcs")) incDevice("dmsLcs");
+        if (dt.includes("rvd") || dt.includes("radar")) incDevice("rvd");
+        if (dt.includes("ptz")) incDevice("ptz");
+        if (dt.includes("lpr") || dt.includes("plate")) incDevice("lpr");
+        if (dt.includes("aid")) incDevice("aid");
+        if (dt.includes("ovds") || dt.includes("overheight")) incDevice("ovds");
+        if (dt.includes("mag") && dt.includes("ap")) incDevice("magAp");
+        if (
+          dt.includes("mag") &&
+          (dt.includes("dot") || dt.includes("detector"))
+        )
+          incDevice("magDot");
+        if (
+          dt.includes("wim") &&
+          (dt.includes("sensor") || dt.includes("loop"))
+        )
+          incDevice("wimSensor");
+        if (dt.includes("wim") && dt.includes("controller"))
+          incDevice("wimCtrl");
       });
 
       const pending = total - surveyed;
@@ -756,42 +921,60 @@
       document.getElementById("kpi-total-assets").textContent = total;
       document.getElementById("kpi-assets-surveyed").textContent = surveyed;
       document.getElementById("kpi-assets-pending").textContent = pending;
-      document.getElementById("kpi-cctv").textContent = cctv;
-      document.getElementById("kpi-dms-lcs").textContent = dmsLcs;
-      document.getElementById("kpi-rvd").textContent = rvd;
-      document.getElementById("kpi-doha-assets").textContent = doha;
-      document.getElementById("kpi-north-assets").textContent = north;
-      document.getElementById("kpi-areas").textContent = areasSet.size;
 
+      // main survey %
       const pct = total > 0 ? (surveyed / total) * 100 : 0;
       const pctText = total > 0 ? pct.toFixed(1) + "%" : "–";
-
       document.getElementById("kpi-survey-pct-num").textContent = pctText;
       document.getElementById("kpi-survey-pct-label").textContent =
         pctText + " of ITS assets";
-
       const fill = document.getElementById("survey-progress-fill");
       if (fill) fill.style.width = pct.toFixed(1) + "%";
+
+      // regional KPIs
+      document.getElementById("kpi-doha-assets").textContent = doha;
+      document.getElementById("kpi-north-assets").textContent = north;
+
+      // device-specific KPIs
+      setDeviceKpi("cctv", deviceStats.cctv);
+      setDeviceKpi("dms-lcs", deviceStats.dmsLcs);
+      setDeviceKpi("rvd", deviceStats.rvd);
+      setDeviceKpi("ptz", deviceStats.ptz);
+      setDeviceKpi("lpr", deviceStats.lpr);
+      setDeviceKpi("aid", deviceStats.aid);
+      setDeviceKpi("ovds", deviceStats.ovds);
+      setDeviceKpi("mag-ap", deviceStats.magAp);
+      setDeviceKpi("mag-dot", deviceStats.magDot);
+      setDeviceKpi("wim-sensor", deviceStats.wimSensor);
+      setDeviceKpi("wim-controller", deviceStats.wimCtrl);
     }
 
-    /* ===== FILTER DROPDOWN OPTIONS ===== */
+    /* ===== FILTER OPTIONS ===== */
     function updateFilterOptions(data) {
       const zoneSelect = document.getElementById("filter-zone");
       const areaSelect = document.getElementById("filter-area");
       const deviceSelect = document.getElementById("filter-device");
 
       const zones = Array.from(
-        new Set(data.map((row) => row[COLS.zone]).filter((z) => z != null && z !== ""))
+        new Set(
+          data.map((row) => row[COLS.zone]).filter((z) => z != null && z !== "")
+        )
       ).sort((a, b) =>
         String(a).localeCompare(String(b), undefined, { numeric: true })
       );
 
       const areas = Array.from(
-        new Set(data.map((row) => row[COLS.area]).filter((z) => z != null && z !== ""))
+        new Set(
+          data.map((row) => row[COLS.area]).filter((z) => z != null && z !== "")
+        )
       ).sort();
 
       const devices = Array.from(
-        new Set(data.map((row) => row[COLS.deviceType]).filter((z) => z != null && z !== ""))
+        new Set(
+          data
+            .map((row) => row[COLS.deviceType])
+            .filter((z) => z != null && z !== "")
+        )
       ).sort();
 
       while (zoneSelect.options.length > 1) zoneSelect.remove(1);
@@ -891,7 +1074,7 @@
       );
       const values = labels.map((z) => {
         const { total, completed } = zoneMap.get(z);
-        return total > 0 ? +(completed / total * 100).toFixed(1) : 0;
+        return total > 0 ? +((completed / total) * 100).toFixed(1) : 0;
       });
 
       const ctx = document.getElementById("zoneChart");
@@ -1142,110 +1325,95 @@
 
     /* ===== EXPORT ===== */
     function exportCurrentView() {
-      const rows = currentFiltered.length > 0 ? currentFiltered : allData;
-      if (!rows || rows.length === 0) {
-        alert("No data to export.");
-        return;
-      }
+      const rows = currentFiltered && currentFiltered.length
+        ? currentFiltered
+        : allData;
 
-      const headers = [
-        COLS.id,
-        COLS.name,
-        COLS.deviceType,
-        COLS.zone,
-        COLS.area,
-        COLS.surveyStatus,
-        COLS.remarks,
-        COLS.lat,
-        COLS.lon,
-      ];
+      if (!rows || !rows.length) return;
 
-      const csvLines = [];
-      csvLines.push(headers.join(","));
+      const exportRows = rows.map((row) => ({
+        [COLS.id]: row[COLS.id] || "",
+        [COLS.name]: row[COLS.name] || "",
+        [COLS.deviceType]: row[COLS.deviceType] || "",
+        [COLS.zone]: row[COLS.zone] || "",
+        [COLS.area]: row[COLS.area] || "",
+        [COLS.surveyStatus]: row[COLS.surveyStatus] || "",
+        [COLS.remarks]: row[COLS.remarks] || "",
+        [COLS.lat]: row[COLS.lat] || "",
+        [COLS.lon]: row[COLS.lon] || "",
+      }));
 
-      rows.forEach((row) => {
-        const line = headers
-          .map((h) => {
-            const val = row[h] == null ? "" : String(row[h]).replace(/"/g, '""');
-            return `"${val}"`;
-          })
-          .join(",");
-        csvLines.push(line);
-      });
-
-      const blob = new Blob([csvLines.join("\n")], {
+      const csv = Papa.unparse(exportRows);
+      const blob = new Blob([csv], {
         type: "text/csv;charset=utf-8;",
       });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "qatar_north_its_view.csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "its-dashboard-view.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
     }
 
-    /* ===== LOAD DATA ===== */
-    function setLastUpdated() {
-      const el = document.getElementById("lastUpdated");
+    /* ===== DATETIME HEADER ===== */
+    function updateDateTimeHeader() {
+      const el = document.getElementById("currentDateTime");
       if (!el) return;
       const now = new Date();
-      el.textContent =
-        "Last loaded: " +
-        now.toLocaleString(undefined, {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      el.textContent = now.toLocaleString("en-GB", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
     }
 
+    /* ===== LOAD DATA ===== */
     function loadData() {
       Papa.parse(SHEET_CSV_URL, {
         download: true,
         header: true,
+        dynamicTyping: false,
         skipEmptyLines: true,
-        complete: function (results) {
-          allData = results.data;
+        complete: (results) => {
+          const rows = (results.data || []).filter((r) => r[COLS.id]);
+          allData = rows;
+          currentFiltered = rows.slice();
+
           updateFilterOptions(allData);
           applyFilters();
-          setLastUpdated();
 
-          if (!window._itsAutoRefreshSet) {
-            window._itsAutoRefreshSet = true;
-            setInterval(() => {
-              loadData();
-            }, 5 * 60 * 1000); // 5 minutes
+          const lastUpdatedEl = document.getElementById("lastUpdated");
+          if (lastUpdatedEl) {
+            const now = new Date();
+            lastUpdatedEl.textContent =
+              "Last loaded: " +
+              now.toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
           }
         },
-        error: function (err) {
-          console.error("Error loading ITS CSV:", err);
-          alert("Error loading ITS data. Check the CSV URL or internet connection.");
+        error: (err) => {
+          console.error("Error loading CSV", err);
         },
       });
     }
 
-    /* ===== HEADER DATE/TIME ===== */
-    function updateCurrentDateTime() {
-      const el = document.getElementById("currentDateTime");
-      if (!el) return;
-      const now = new Date();
-      el.textContent = now.toLocaleString(undefined, {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    }
-
-    /* ===== INIT ===== */
-    document.addEventListener("DOMContentLoaded", function () {
+    /* ===== EVENT HOOKUP ===== */
+    document.addEventListener("DOMContentLoaded", () => {
       initMap();
       loadData();
+      updateDateTimeHeader();
+      setInterval(updateDateTimeHeader, 1000);
 
       document
         .getElementById("filter-zone")
@@ -1261,18 +1429,15 @@
         .addEventListener("change", applyFilters);
 
       document
-        .getElementById("export-btn")
-        .addEventListener("click", exportCurrentView);
-
-      document
         .getElementById("table-search")
         .addEventListener("input", (e) => {
-          tableSearchTerm = e.target.value;
+          tableSearchTerm = e.target.value || "";
           renderTable(currentFiltered);
         });
 
-      updateCurrentDateTime();
-      setInterval(updateCurrentDateTime, 30 * 1000);
+      document
+        .getElementById("export-btn")
+        .addEventListener("click", exportCurrentView);
     });
   </script>
 </body>
