@@ -3,259 +3,385 @@
 <head>
   <meta charset="UTF-8" />
   <title>Qatar North ITS Survey Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Leaflet CSS -->
+  <!-- Viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
 
   <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
   <style>
     :root {
-      --aktor-blue: #111827;
-      --aktor-red: #e0283b;
-      --algo-blue: #0070c9;
-      --card-bg: #ffffff;
+      --bg: #02051b;
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --card-border: rgba(255, 255, 255, 0.2);
+      --accent: #0099ff;
+      --accent-soft: #1b6eff;
+      --accent-green: #1bbf6b;
+      --accent-red: #ff4b5c;
+      --accent-orange: #ffb347;
+      --header-height: 90px;
+      --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.35);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-pill: 999px;
     }
 
     * {
       box-sizing: border-box;
-    }
-
-    html,
-    body {
       margin: 0;
       padding: 0;
-      height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
     }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
-      color: #111827;
-      background: #020617 url("bg-image.png") no-repeat center top fixed;
+      min-height: 100vh;
+      background: #02051b url("bg-image.png") no-repeat center top fixed;
       background-size: cover;
+      color: #111827;
+      display: flex;
+      justify-content: center;
     }
 
     .page {
       width: 100%;
-      min-height: 100vh;
-      margin: 0;
-      background: linear-gradient(
-        180deg,
-        rgba(15, 23, 42, 0.3),
-        rgba(15, 23, 42, 0.7)
-      );
+      max-width: 1700px;
+      margin: 0 auto 40px auto;
+      padding: 12px 18px 40px 18px;
     }
 
-    /* ===== HEADER ===== */
     header {
-      width: 100%;
-      background: linear-gradient(90deg, #020617, #111827);
-      backdrop-filter: blur(8px);
-      border-bottom: 3px solid rgba(224, 40, 59, 0.9);
-      padding: 10px 24px;
+      background: linear-gradient(
+        90deg,
+        rgba(2, 6, 23, 0.96),
+        rgba(15, 23, 42, 0.96)
+      );
+      color: #f9fafb;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 10px 28px 14px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      border-bottom: 3px solid #ff375f;
     }
 
     .header-left,
     .header-right {
-      flex: 0 0 auto;
       display: flex;
       align-items: center;
+      gap: 16px;
+    }
+
+    .header-logo {
+      height: 55px;
+      object-fit: contain;
     }
 
     .header-center {
-      flex: 1 1 auto;
       text-align: center;
+      flex: 1;
     }
 
-    .logo-img {
-      max-height: 56px;
-      height: auto;
-    }
-
-    .logo-img-small {
-      max-height: 42px;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 22px;
+    .header-title {
+      font-size: 26px;
       font-weight: 700;
       letter-spacing: 0.03em;
-      color: #f9fafb;
     }
 
-    header .subtitle {
-      font-size: 11px;
-      color: #e5e7eb;
+    .header-subtitle {
+      font-size: 12px;
+      opacity: 0.8;
       margin-top: 2px;
     }
 
-    .subtitle a {
-      color: #93c5fd;
-      text-decoration: none;
-    }
-
-    .subtitle a:hover {
-      text-decoration: underline;
-    }
-
-    .datetime-header {
+    .header-meta {
       font-size: 11px;
-      color: #cbd5ff;
+      opacity: 0.85;
       margin-top: 4px;
     }
 
-    /* ===== MAIN GRID ===== */
-    .container {
-      padding: 12px 16px 20px;
-      display: grid;
-      grid-template-columns: 1.55fr 1.15fr;
-      grid-gap: 16px;
+    main {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
+
+    /* KPI cards */
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-      grid-gap: 10px;
-      margin-bottom: 14px;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    @media (max-width: 1450px) {
+      .kpi-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      header {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+      .header-left,
+      .header-right {
+        justify-content: center;
+      }
     }
 
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 10px 14px;
-      box-shadow: 0 3px 12px rgba(15, 23, 42, 0.35);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(8px);
     }
 
-    .card-title {
+    .kpi-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 84px;
+    }
+
+    .kpi-label {
       font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
       color: #6b7280;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
-    .card-value {
-      font-size: 24px;
+    .kpi-value {
+      font-size: 26px;
       font-weight: 700;
       color: #111827;
     }
 
-    .card-sub {
+    .kpi-subtext {
       font-size: 11px;
       color: #4b5563;
       margin-top: 4px;
     }
 
-    #map {
-      width: 100%;
-      height: 420px;
-      border-radius: 12px;
+    .progress-track {
+      margin-top: 6px;
+      height: 5px;
+      border-radius: var(--radius-pill);
+      background: #e5e7eb;
       overflow: hidden;
     }
 
-    .map-card {
-      margin-bottom: 12px;
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(
+        90deg,
+        var(--accent-green),
+        var(--accent-soft)
+      );
+      transition: width 0.4s ease-out;
     }
 
-    .right-col {
+    .kpi-pct {
+      font-size: 11px;
+      color: #111827;
+      margin-top: 3px;
+    }
+
+    /* Filters */
+
+    .filters-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.2fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 1100px) {
+      .filters-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .filters-card {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
-    .filters-row-title {
-      font-size: 11px;
+    .filters-title {
+      font-size: 13px;
       font-weight: 600;
       color: #374151;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: flex-start;
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .filters-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 2px;
+    }
+
+    select,
+    input[type="text"] {
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid #d1d5db;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: #f9fafb;
+      color: #111827;
+      outline: none;
+    }
+
+    select:focus,
+    input[type="text"]:focus {
+      border-color: var(--accent-soft);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+      background: #ffffff;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-pill);
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      background: linear-gradient(
+        90deg,
+        var(--accent-soft),
+        var(--accent-green)
+      );
+      color: white;
+      cursor: pointer;
+      gap: 6px;
+      margin-top: 8px;
+      align-self: flex-start;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.05);
+    }
+
+    .filters-note {
+      font-size: 11px;
+      color: #6b7280;
       margin-top: 4px;
     }
 
-    .filters label {
-      font-size: 11px;
+    /* Layout: map + table + chart */
+
+    .layout-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 1200px) {
+      .layout-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .map-card {
+      padding: 10px 10px 6px 10px;
+    }
+
+    .map-title,
+    .table-title,
+    .chart-title {
+      font-size: 12px;
+      font-weight: 600;
       color: #374151;
+      margin-bottom: 6px;
+    }
+
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: var(--radius-md);
+    }
+
+    .map-footer {
+      font-size: 10px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .table-card {
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 6px;
+      max-height: 440px;
     }
 
-    .filters select {
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 11px;
-      min-width: 110px;
-      background: #f9fafb;
-    }
-
-    .filters select:focus {
-      outline: none;
-      border-color: var(--algo-blue);
-      box-shadow: 0 0 0 1px rgba(0, 112, 201, 0.3);
-    }
-
-    .active-filters {
-      margin-top: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      font-size: 10px;
-    }
-
-    .filter-chip {
-      display: inline-flex;
+    .table-header-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 160px;
+      gap: 10px;
       align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(0, 112, 201, 0.12);
-      color: #1d4ed8;
     }
 
-    .filter-chip button {
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-size: 11px;
-      line-height: 1;
+    .search-input {
+      font-size: 12px;
     }
 
-    .export-btn {
-      margin-top: 8px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #0070c9;
-      background: #0070c9;
-      color: #fff;
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    .export-btn:hover {
-      background: #005fa3;
+    .table-wrapper {
+      flex: 1;
+      overflow: auto;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
     }
 
     table {
@@ -264,1180 +390,947 @@
       font-size: 11px;
     }
 
+    thead {
+      position: sticky;
+      top: 0;
+      background: #f9fafb;
+      z-index: 1;
+    }
+
     th,
     td {
-      padding: 4px 6px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 6px 8px;
+      border-bottom: 1px solid #f3f4f6;
       text-align: left;
       white-space: nowrap;
     }
 
-    th {
-      background: #f9fafb;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    td:nth-child(2) {
-      white-space: normal;
-    }
-
-    .table-wrapper {
-      max-height: 310px;
-      overflow: auto;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      background: #fff;
-    }
-
     tbody tr:nth-child(even) {
-      background: #f3f4f6;
+      background: #f9fafb;
     }
 
-    tbody tr:hover {
-      background: #e5edff;
-      cursor: pointer;
-    }
-
-    .status-pill {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 999px;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
       font-size: 10px;
       font-weight: 600;
-      color: #fff;
+      color: white;
     }
 
-    .status-completed {
+    .badge-success {
       background: #16a34a;
     }
 
-    .status-pending {
+    .badge-pending {
       background: #dc2626;
     }
 
-    .zone-chart-wrapper {
-      height: 220px;
+    .badge-neutral {
+      background: #6b7280;
     }
 
-    .zone-card {
-      background: linear-gradient(135deg, #eff6ff, #ffffff);
-      margin-top: 4px;
-      margin-bottom: 10px;
+    .bottom-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 14px;
     }
 
-    .scope-card {
-      background: linear-gradient(135deg, #fef9c3, #ffffff);
+    @media (max-width: 1300px) {
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
     }
 
-    .attention-card {
-      margin-top: 6px;
+    .chart-card {
+      padding: 10px 12px;
     }
 
-    .progress-wrapper {
-      margin-top: 6px;
+    #deviceTypeChart {
+      max-height: 280px;
     }
 
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #22c55e, #0ea5e9);
-      transition: width 0.6s ease;
-    }
-
-    .progress-label {
-      font-size: 11px;
-      color: #4b5563;
-      margin-top: 3px;
-    }
-
-    #lastUpdated {
+    .chart-legend {
       font-size: 11px;
       color: #6b7280;
-      margin-top: 6px;
-    }
-
-    .table-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .table-search {
-      flex: 1;
-    }
-
-    .table-search input {
-      width: 100%;
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 11px;
-      background: #f9fafb;
-    }
-
-    .table-search input:focus {
-      outline: none;
-      border-color: var(--algo-blue);
-      box-shadow: 0 0 0 1px rgba(0, 112, 201, 0.3);
-    }
-
-    @media (max-width: 1024px) {
-      header {
-        padding: 8px 12px;
-        flex-wrap: wrap;
-        align-items: flex-start;
-      }
-      .header-center {
-        text-align: left;
-      }
-      .container {
-        padding: 8px 12px 16px;
-        grid-template-columns: 1fr;
-        grid-gap: 10px;
-      }
-      .right-col {
-        order: 2;
-      }
-      .container > div:first-child {
-        order: 1;
-      }
+      margin-top: 4px;
     }
   </style>
 </head>
+
 <body>
   <div class="page">
-    <!-- ===== HEADER ===== -->
     <header>
       <div class="header-left">
-        <img src="aktor-logo.png" alt="AKTOR Qatar" class="logo-img" />
+        <img src="aktor-logo.png" alt="Aktor Qatar" class="header-logo" />
       </div>
 
       <div class="header-center">
-        <h1>Qatar North ITS Survey Dashboard</h1>
-        <div class="subtitle">
-          <a href="index.html">Traffic Junctions Dashboard</a> · ITS Devices &amp;
-          Systems
+        <div class="header-title">Qatar North ITS Survey Dashboard</div>
+        <div class="header-subtitle">
+          Traffic Junctions Dashboard · ITS Devices &amp; Systems
         </div>
-        <div class="datetime-header" id="currentDateTime"></div>
+        <div class="header-meta">
+          Live from Google Sheet — assets, survey completion &amp; location
+          overview · <span id="last-updated">Loading…</span>
+        </div>
       </div>
 
       <div class="header-right">
         <img
           src="algosystems-logo.png"
-          alt="ALGOSYSTEMS Qatar"
-          class="logo-img logo-img-small"
+          alt="Algosystems"
+          class="header-logo"
         />
       </div>
     </header>
 
-    <!-- ===== MAIN CONTENT ===== -->
-    <div class="container">
-      <!-- LEFT COLUMN -->
-      <div>
-        <!-- KPI GRID -->
-        <div class="kpi-grid">
-          <!-- Overall ITS KPIs -->
-          <div class="card">
-            <div class="card-title">Total ITS Assets</div>
-            <div class="card-value" id="kpi-total-assets">–</div>
-          </div>
+    <main>
+      <!-- KPI GRID -->
+      <section class="kpi-grid">
+        <!-- ROW 1 -->
+        <div class="card kpi-card">
+          <div class="kpi-label">Total ITS Assets</div>
+          <div class="kpi-value" id="total-assets-count">–</div>
+        </div>
 
-          <div class="card">
-            <div class="card-title">Assets Surveyed</div>
-            <div class="card-value" id="kpi-assets-surveyed">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Survey Completion</div>
-            <div class="card-value" id="kpi-survey-pct-num">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="survey-progress-fill"></div>
-              </div>
-              <div class="progress-label" id="kpi-survey-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Assets Pending</div>
-            <div class="card-value" id="kpi-assets-pending">–</div>
-          </div>
-
-          <!-- Device-type KPIs with individual percentages -->
-          <div class="card">
-            <div class="card-title">CCTV Assets</div>
-            <div class="card-value" id="kpi-cctv">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-cctv"></div>
-              </div>
-              <div class="progress-label" id="kpi-cctv-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">DMS / LCS Assets</div>
-            <div class="card-value" id="kpi-dms-lcs">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-dms-lcs"></div>
-              </div>
-              <div class="progress-label" id="kpi-dms-lcs-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">RVD Assets</div>
-            <div class="card-value" id="kpi-rvd">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-rvd"></div>
-              </div>
-              <div class="progress-label" id="kpi-rvd-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">PTZ Assets</div>
-            <div class="card-value" id="kpi-ptz">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-ptz"></div>
-              </div>
-              <div class="progress-label" id="kpi-ptz-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">LPR Assets</div>
-            <div class="card-value" id="kpi-lpr">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-lpr"></div>
-              </div>
-              <div class="progress-label" id="kpi-lpr-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">AID Assets</div>
-            <div class="card-value" id="kpi-aid">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-aid"></div>
-              </div>
-              <div class="progress-label" id="kpi-aid-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">OVDS Assets</div>
-            <div class="card-value" id="kpi-ovds">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-ovds"></div>
-              </div>
-              <div class="progress-label" id="kpi-ovds-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Magnetometer AP</div>
-            <div class="card-value" id="kpi-mag-ap">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-mag-ap"></div>
-              </div>
-              <div class="progress-label" id="kpi-mag-ap-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Magnetometer Dots</div>
-            <div class="card-value" id="kpi-mag-dot">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-mag-dot"></div>
-              </div>
-              <div class="progress-label" id="kpi-mag-dot-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">WIM Sensor</div>
-            <div class="card-value" id="kpi-wim-sensor">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-wim-sensor"></div>
-              </div>
-              <div class="progress-label" id="kpi-wim-sensor-pct-label">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">WIM Controller</div>
-            <div class="card-value" id="kpi-wim-controller">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill-wim-controller"></div>
-              </div>
-              <div class="progress-label" id="kpi-wim-controller-pct-label">–</div>
-            </div>
-          </div>
-
-          <!-- Regional distribution -->
-          <div class="card">
-            <div class="card-title">Assets in Doha Region</div>
-            <div class="card-value" id="kpi-doha-assets">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Assets in North Region</div>
-            <div class="card-value" id="kpi-north-assets">–</div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Assets Surveyed</div>
+          <div class="kpi-value" id="assets-surveyed-count">–</div>
+          <div class="kpi-subtext" id="assets-surveyed-percent-text">
+            –
           </div>
         </div>
 
-        <!-- MAP -->
-        <div class="card map-card">
-          <div class="card-title">ITS Assets Map (Leaflet / OpenStreetMap)</div>
-          <div id="map"></div>
-          <div id="lastUpdated"></div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Survey Completion</div>
+          <div class="kpi-value" id="survey-completion-percent">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="survey-completion-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="survey-completion-text">–</div>
         </div>
 
-        <!-- ZONE CHART -->
-        <div class="card zone-card">
-          <div class="card-title">Zone-wise ITS Survey Completion</div>
-          <div class="zone-chart-wrapper">
-            <canvas id="zoneChart"></canvas>
-          </div>
-          <div class="card-sub">
-            Percentage of ITS assets surveyed in each zone.
-          </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Assets Pending</div>
+          <div class="kpi-value" id="assets-pending-count">–</div>
+          <div class="kpi-subtext">Assets with survey status “Pending”.</div>
         </div>
 
-        <!-- INSIGHTS -->
-        <div class="card attention-card">
-          <div class="card-title">Zones / Areas Needing Attention</div>
-          <div id="attention-list" class="card-sub"></div>
-        </div>
-      </div>
-
-      <!-- RIGHT COLUMN -->
-      <div class="right-col">
-        <!-- GLOBAL FILTERS -->
-        <div class="card">
-          <div class="filters-row-title">Filters</div>
-          <div class="filters">
-            <label>
-              Zone
-              <select id="filter-zone">
-                <option value="">All</option>
-              </select>
-            </label>
-            <label>
-              Area
-              <select id="filter-area">
-                <option value="">All</option>
-              </select>
-            </label>
-            <label>
-              Device Type
-              <select id="filter-device">
-                <option value="">All</option>
-              </select>
-            </label>
-            <label>
-              Survey Status
-              <select id="filter-survey">
-                <option value="">All</option>
-                <option value="completed">Completed</option>
-                <option value="pending">Pending</option>
-              </select>
-            </label>
+        <div class="card kpi-card">
+          <div class="kpi-label">CCTV Assets</div>
+          <div class="kpi-value" id="cctv-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="cctv-survey-bar"
+              style="width: 0%"
+            ></div>
           </div>
-          <div class="active-filters" id="active-filters"></div>
-          <button id="export-btn" class="export-btn">
+          <div class="kpi-pct" id="cctv-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">DMS Assets</div>
+          <div class="kpi-value" id="dms-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="dms-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="dms-survey-text">–</div>
+        </div>
+
+        <!-- ROW 2 -->
+        <div class="card kpi-card">
+          <div class="kpi-label">RVD Assets</div>
+          <div class="kpi-value" id="rvd-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="rvd-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="rvd-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">PTZ Assets</div>
+          <div class="kpi-value" id="ptz-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="ptz-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="ptz-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">LPR Assets</div>
+          <div class="kpi-value" id="lpr-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="lpr-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="lpr-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">AID Assets</div>
+          <div class="kpi-value" id="aid-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="aid-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="aid-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">OVDS Assets</div>
+          <div class="kpi-value" id="ovds-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="ovds-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="ovds-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">Magnetometer AP</div>
+          <div class="kpi-value" id="magap-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="magap-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="magap-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">Magnetometer Dots</div>
+          <div class="kpi-value" id="magdot-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="magdot-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="magdot-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">WIM Sensor</div>
+          <div class="kpi-value" id="wim-sensor-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="wim-sensor-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="wim-sensor-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">WIM Controller</div>
+          <div class="kpi-value" id="wim-controller-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="wim-controller-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="wim-controller-survey-text">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">Assets in Doha Region</div>
+          <div class="kpi-value" id="assets-doha-count">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">Assets in North Region</div>
+          <div class="kpi-value" id="assets-north-count">–</div>
+        </div>
+      </section>
+
+      <!-- FILTERS -->
+      <section class="filters-row">
+        <div class="card filters-card">
+          <div class="filters-title">Filters</div>
+          <div class="filters-grid">
+            <div>
+              <div class="field-label">Zone Area</div>
+              <select id="zoneAreaFilter">
+                <option value="All">All</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Device Type</div>
+              <select id="deviceTypeFilter">
+                <option value="All">All</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Survey Status</div>
+              <select id="surveyStatusFilter">
+                <option value="All">All</option>
+                <option value="Completed">Completed</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="downloadBtn" class="btn-primary">
             Download Current View (CSV)
           </button>
+          <div class="filters-note">No filters applied.</div>
         </div>
 
-        <!-- ITS ASSET LIST -->
-        <div class="card">
-          <div class="card-title">ITS Asset List</div>
-          <div class="table-controls">
-            <div class="table-search">
+        <div class="card filters-card">
+          <div class="filters-title">Search &amp; Quick View</div>
+          <div class="table-header-grid">
+            <div>
+              <div class="field-label">Search by ID, Name, Device Type, Zone Area, or Remarks</div>
               <input
                 type="text"
-                id="table-search"
-                placeholder="Search ID, Name, device type, zone, area, or remarks..."
+                id="assetSearch"
+                class="search-input"
+                placeholder="Start typing to filter the ITS asset list..."
               />
             </div>
           </div>
+          <div class="filters-note">
+            The search box and filters apply to the asset list, map and charts.
+          </div>
+        </div>
+      </section>
+
+      <!-- MAP + TABLE -->
+      <section class="layout-row">
+        <div class="card map-card">
+          <div class="map-title">ITS Assets Map (Leaflet / OpenStreetMap)</div>
+          <div id="map"></div>
+          <div class="map-footer" id="map-footer">
+            Map shows surveyed (green) and pending (red) ITS assets in Qatar
+            North.
+          </div>
+        </div>
+
+        <div class="card table-card">
+          <div class="table-title">ITS Asset List</div>
+
           <div class="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th style="width: 70px">ID</th>
                   <th>Name</th>
                   <th>Device Type</th>
+                  <th>Zone Area</th>
                   <th>Zone</th>
-                  <th>Area</th>
                   <th>Survey</th>
                   <th>Remarks</th>
                 </tr>
               </thead>
-              <tbody id="asset-table-body"></tbody>
+              <tbody id="asset-table-body">
+                <!-- Rows injected here -->
+              </tbody>
             </table>
           </div>
         </div>
+      </section>
 
-        <!-- DEVICE TYPE DONUT -->
-        <div class="card scope-card">
-          <div class="card-title">Assets by Device Type</div>
-          <canvas id="typeChart" height="160"></canvas>
-          <div class="card-sub">
-            Distribution of ITS assets by device type (CCTV, DMS/LCS, RVD, etc.).
+      <!-- CHARTS -->
+      <section class="bottom-row">
+        <div class="card chart-card">
+          <div class="chart-title">Assets by Device Type</div>
+          <canvas id="deviceTypeChart"></canvas>
+          <div class="chart-legend" id="chart-legend">
+            Distribution of ITS assets by device type for the current
+            selection.
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   </div>
 
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-
   <script>
-    /* ===== DATA CONFIG ===== */
-    const SHEET_CSV_URL =
+    // === CONFIG ==========================================================
+    const CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5yrlBZ6pktog25ogVRyoi6XkGGt9nUMjGaiCjGRmCEG82EZKTa8XHecxBpAmuPBcaZQ-0BiIlb4_w/pub?gid=1191966534&single=true&output=csv";
 
-    const COLS = {
-      id: "ID",
-      name: "Name",
-      lat: "Latitude",
-      lon: "Longitude",
-      zone: "Zone",
-      area: "Area",
-      deviceType: "Device Type",
-      surveyStatus: "Survey Status",
-      remarks: "Remarks from Survey Team",
-    };
+    // === GLOBAL STATE ====================================================
+    let allAssets = [];
+    let filteredAssets = [];
 
-    function isTruthy(val) {
-      if (val == null) return false;
-      const v = String(val).trim().toLowerCase();
-      return [
-        "true",
-        "yes",
-        "1",
-        "y",
-        "done",
-        "completed",
-        "complete",
-        "✓",
-        "✔",
-      ].includes(v);
-    }
-
-    function classifySurvey(v) {
-      return isTruthy(v) ? "completed" : "pending";
-    }
-
-    function getDeviceCategory(type) {
-      const t = (type || "").toLowerCase();
-      if (t.includes("cctv")) return "CCTV";
-      if (t.includes("dms") || t.includes("lcs")) return "DMS/LCS";
-      if (t.includes("rvd") || t.includes("radar")) return "RVD";
-      return type || "Other";
-    }
-
-    function getMarkerColor(type) {
-      const t = (type || "").toLowerCase();
-      if (t.includes("cctv")) return "#2563eb";
-      if (t.includes("dms") || t.includes("lcs")) return "#f59e0b";
-      if (t.includes("rvd") || t.includes("radar")) return "#16a34a";
-      return "#6b7280";
-    }
-
-    let allData = [];
-    let currentFiltered = [];
     let map;
-    let markersLayer;
-    let zoneChart = null;
-    let typeChart = null;
-    let tableSearchTerm = "";
+    let markerLayer;
+    let deviceTypeChart;
 
-    /* ===== MAP ===== */
-    function initMap() {
-      map = L.map("map").setView([25.3, 51.4], 9);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
-        attribution: "&copy; OpenStreetMap contributors",
-      }).addTo(map);
+    // === UTILITIES =======================================================
 
-      markersLayer = L.featureGroup().addTo(map);
+    function normalizeDeviceType(raw) {
+      const s = (raw || "").toString().trim().toLowerCase();
+      if (!s) return "";
+
+      if (s === "dms" || s.includes("dms")) return "DMS";
+      if (s === "rvd") return "RVD";
+      if (s.includes("ptz")) return "PTZ";
+      if (s.includes("lpr")) return "LPR";
+      if (s.includes("aid")) return "AID";
+      if (s.includes("ovds") || s.includes("overheight") || s.includes("over height"))
+        return "OVDS";
+      if (s.includes("wim") && s.includes("sensor")) return "WIM Sensor";
+      if (s.includes("wim") && s.includes("controller")) return "WIM Controller";
+      if (s.includes("mag") && s.includes("ap")) return "Magnetometer AP";
+      if (s.includes("mag") && (s.includes("dot") || s.includes("detector")))
+        return "Magnetometer Dots";
+
+      if (s.includes("cctv")) return "CCTV";
+
+      return raw || "";
     }
 
-    function clearMarkers() {
-      markersLayer.clearLayers();
+    function normalizeZoneArea(rawZoneArea) {
+      const txt = (rawZoneArea || "").toString().trim();
+      const lower = txt.toLowerCase();
+      if (lower.includes("doha")) return "Doha Region";
+      if (lower.includes("north")) return "North Region";
+      return txt || "";
     }
 
-    function addMarkers(data) {
-      clearMarkers();
-      data.forEach((row) => {
-        const lat = parseFloat(row[COLS.lat]);
-        const lon = parseFloat(row[COLS.lon]);
-        if (isNaN(lat) || isNaN(lon)) return;
-
-        const dt = row[COLS.deviceType];
-        const color = getMarkerColor(dt);
-        const surveyClass = classifySurvey(row[COLS.surveyStatus]);
-
-        const marker = L.circleMarker([lat, lon], {
-          radius: 5,
-          color,
-          fillColor: color,
-          fillOpacity: 0.9,
-          weight: 1,
-        });
-
-        const popupHtml = `
-          <strong>${row[COLS.id] || ""} – ${row[COLS.name] || ""}</strong><br/>
-          Device: ${row[COLS.deviceType] || ""}<br/>
-          Zone: ${row[COLS.zone] || ""} · Area: ${row[COLS.area] || ""}<br/>
-          Survey: ${surveyClass === "completed" ? "Completed" : "Pending"}<br/>
-          Remarks: ${row[COLS.remarks] || ""}
-        `;
-        marker.bindPopup(popupHtml);
-        marker.addTo(markersLayer);
-      });
-
-      if (data.length > 0) {
-        const bounds = markersLayer.getBounds();
-        if (bounds && bounds.isValid()) {
-          map.fitBounds(bounds.pad(0.1));
-        }
-      }
+    function formatPercent(value) {
+      if (!isFinite(value)) return "0.0%";
+      return value.toFixed(1) + "%";
     }
 
-    /* ===== KPI HELPERS ===== */
-    function setDeviceKpi(baseId, stat) {
-      const totalEl = document.getElementById(`kpi-${baseId}`);
-      const pctLabelEl = document.getElementById(`kpi-${baseId}-pct-label`);
-      const fillEl = document.getElementById(`progress-fill-${baseId}`);
-
-      const total = stat.total || 0;
-      const completed = stat.completed || 0;
-      const pct = total > 0 ? (completed / total) * 100 : 0;
-      const pctText = total > 0 ? pct.toFixed(1) + "%" : "–";
-
-      if (totalEl) totalEl.textContent = total;
-      if (pctLabelEl)
-        pctLabelEl.textContent =
-          total > 0 ? `${pctText} surveyed` : "No assets";
-      if (fillEl) fillEl.style.width = pct.toFixed(1) + "%";
-    }
-
-    /* ===== KPIs ===== */
-    function updateKPIs(data) {
-      const total = data.length;
-      let surveyed = 0;
-      let doha = 0;
-      let north = 0;
-
-      // device-type stats (total + completed)
-      const deviceStats = {
-        cctv: { total: 0, completed: 0 },
-        dmsLcs: { total: 0, completed: 0 },
-        rvd: { total: 0, completed: 0 },
-        ptz: { total: 0, completed: 0 },
-        lpr: { total: 0, completed: 0 },
-        aid: { total: 0, completed: 0 },
-        ovds: { total: 0, completed: 0 },
-        magAp: { total: 0, completed: 0 },
-        magDot: { total: 0, completed: 0 },
-        wimSensor: { total: 0, completed: 0 },
-        wimCtrl: { total: 0, completed: 0 },
-      };
-
-      data.forEach((row) => {
-        const statusClass = classifySurvey(row[COLS.surveyStatus]);
-        const completed = statusClass === "completed";
-        if (completed) surveyed++;
-
-        const dt = (row[COLS.deviceType] || "").toLowerCase();
-        const areaVal = (row[COLS.area] || "").toLowerCase();
-
-        if (areaVal.includes("doha")) doha++;
-        if (areaVal.includes("north")) north++;
-
-        function incDevice(key) {
-          deviceStats[key].total++;
-          if (completed) deviceStats[key].completed++;
-        }
-
-        if (dt.includes("cctv")) incDevice("cctv");
-        if (dt.includes("dms") || dt.includes("lcs")) incDevice("dmsLcs");
-        if (dt.includes("rvd") || dt.includes("radar")) incDevice("rvd");
-        if (dt.includes("ptz")) incDevice("ptz");
-        if (dt.includes("lpr") || dt.includes("plate")) incDevice("lpr");
-        if (dt.includes("aid")) incDevice("aid");
-        if (dt.includes("ovds") || dt.includes("overheight")) incDevice("ovds");
-        if (dt.includes("mag") && dt.includes("ap")) incDevice("magAp");
-        if (
-          dt.includes("mag") &&
-          (dt.includes("dot") || dt.includes("detector"))
-        )
-          incDevice("magDot");
-        if (
-          dt.includes("wim") &&
-          (dt.includes("sensor") || dt.includes("loop"))
-        )
-          incDevice("wimSensor");
-        if (dt.includes("wim") && dt.includes("controller"))
-          incDevice("wimCtrl");
-      });
-
-      const pending = total - surveyed;
-
-      document.getElementById("kpi-total-assets").textContent = total;
-      document.getElementById("kpi-assets-surveyed").textContent = surveyed;
-      document.getElementById("kpi-assets-pending").textContent = pending;
-
-      // main survey %
-      const pct = total > 0 ? (surveyed / total) * 100 : 0;
-      const pctText = total > 0 ? pct.toFixed(1) + "%" : "–";
-      document.getElementById("kpi-survey-pct-num").textContent = pctText;
-      document.getElementById("kpi-survey-pct-label").textContent =
-        pctText + " of ITS assets";
-      const fill = document.getElementById("survey-progress-fill");
-      if (fill) fill.style.width = pct.toFixed(1) + "%";
-
-      // regional KPIs
-      document.getElementById("kpi-doha-assets").textContent = doha;
-      document.getElementById("kpi-north-assets").textContent = north;
-
-      // device-specific KPIs
-      setDeviceKpi("cctv", deviceStats.cctv);
-      setDeviceKpi("dms-lcs", deviceStats.dmsLcs);
-      setDeviceKpi("rvd", deviceStats.rvd);
-      setDeviceKpi("ptz", deviceStats.ptz);
-      setDeviceKpi("lpr", deviceStats.lpr);
-      setDeviceKpi("aid", deviceStats.aid);
-      setDeviceKpi("ovds", deviceStats.ovds);
-      setDeviceKpi("mag-ap", deviceStats.magAp);
-      setDeviceKpi("mag-dot", deviceStats.magDot);
-      setDeviceKpi("wim-sensor", deviceStats.wimSensor);
-      setDeviceKpi("wim-controller", deviceStats.wimCtrl);
-    }
-
-    /* ===== FILTER OPTIONS ===== */
-    function updateFilterOptions(data) {
-      const zoneSelect = document.getElementById("filter-zone");
-      const areaSelect = document.getElementById("filter-area");
-      const deviceSelect = document.getElementById("filter-device");
-
-      const zones = Array.from(
-        new Set(
-          data.map((row) => row[COLS.zone]).filter((z) => z != null && z !== "")
-        )
-      ).sort((a, b) =>
-        String(a).localeCompare(String(b), undefined, { numeric: true })
-      );
-
-      const areas = Array.from(
-        new Set(
-          data.map((row) => row[COLS.area]).filter((z) => z != null && z !== "")
-        )
-      ).sort();
-
-      const devices = Array.from(
-        new Set(
-          data
-            .map((row) => row[COLS.deviceType])
-            .filter((z) => z != null && z !== "")
-        )
-      ).sort();
-
-      while (zoneSelect.options.length > 1) zoneSelect.remove(1);
-      while (areaSelect.options.length > 1) areaSelect.remove(1);
-      while (deviceSelect.options.length > 1) deviceSelect.remove(1);
-
-      zones.forEach((z) => {
-        const opt = document.createElement("option");
-        opt.value = z;
-        opt.textContent = z;
-        zoneSelect.appendChild(opt);
-      });
-
-      areas.forEach((z) => {
-        const opt = document.createElement("option");
-        opt.value = z;
-        opt.textContent = z;
-        areaSelect.appendChild(opt);
-      });
-
-      devices.forEach((z) => {
-        const opt = document.createElement("option");
-        opt.value = z;
-        opt.textContent = z;
-        deviceSelect.appendChild(opt);
-      });
-    }
-
-    /* ===== TABLE ===== */
-    function renderTable(data) {
-      const tbody = document.getElementById("asset-table-body");
-      tbody.innerHTML = "";
-
-      const term = tableSearchTerm.trim().toLowerCase();
-      const filtered = term
-        ? data.filter((row) => {
-            const fields = [
-              row[COLS.id],
-              row[COLS.name],
-              row[COLS.deviceType],
-              row[COLS.zone],
-              row[COLS.area],
-              row[COLS.remarks],
-            ];
-            return fields.some((v) =>
-              String(v || "").toLowerCase().includes(term)
-            );
-          })
-        : data;
-
-      filtered.forEach((row) => {
-        const tr = document.createElement("tr");
-
-        const surveyClass = classifySurvey(row[COLS.surveyStatus]);
-        const statusText = surveyClass === "completed" ? "Completed" : "Pending";
-        const statusClass =
-          surveyClass === "completed" ? "status-completed" : "status-pending";
-
-        tr.innerHTML = `
-          <td>${row[COLS.id] || ""}</td>
-          <td>${row[COLS.name] || ""}</td>
-          <td>${row[COLS.deviceType] || ""}</td>
-          <td>${row[COLS.zone] || ""}</td>
-          <td>${row[COLS.area] || ""}</td>
-          <td><span class="status-pill ${statusClass}">${statusText}</span></td>
-          <td>${row[COLS.remarks] || ""}</td>
-        `;
-
-        tr.addEventListener("click", () => {
-          const lat = parseFloat(row[COLS.lat]);
-          const lon = parseFloat(row[COLS.lon]);
-          if (!isNaN(lat) && !isNaN(lon) && map) {
-            map.setView([lat, lon], 14, { animate: true });
-          }
-        });
-
-        tbody.appendChild(tr);
-      });
-    }
-
-    /* ===== CHARTS ===== */
-    function buildZoneChart(data) {
-      const zoneMap = new Map();
-
-      data.forEach((row) => {
-        const zone = row[COLS.zone] || "NA";
-        if (!zoneMap.has(zone)) {
-          zoneMap.set(zone, { total: 0, completed: 0 });
-        }
-        const entry = zoneMap.get(zone);
-        entry.total++;
-        if (isTruthy(row[COLS.surveyStatus])) entry.completed++;
-      });
-
-      const labels = Array.from(zoneMap.keys()).sort((a, b) =>
-        String(a).localeCompare(String(b), undefined, { numeric: true })
-      );
-      const values = labels.map((z) => {
-        const { total, completed } = zoneMap.get(z);
-        return total > 0 ? +((completed / total) * 100).toFixed(1) : 0;
-      });
-
-      const ctx = document.getElementById("zoneChart");
-      if (!ctx) return;
-
-      if (zoneChart) zoneChart.destroy();
-
-      zoneChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Survey Completion %",
-              data: values,
-              backgroundColor: "rgba(0, 112, 201, 0.75)",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.parsed.y}% surveyed`,
-              },
-            },
-          },
-          scales: {
-            x: {
-              title: { display: true, text: "Zone" },
-            },
-            y: {
-              beginAtZero: true,
-              max: 100,
-              title: { display: true, text: "Completion %" },
-              ticks: {
-                callback: (v) => v + "%",
-              },
-            },
-          },
-        },
-      });
-    }
-
-    function buildTypeChart(data) {
-      const typeMap = new Map();
-
-      data.forEach((row) => {
-        const cat = getDeviceCategory(row[COLS.deviceType]);
-        if (!typeMap.has(cat)) typeMap.set(cat, 0);
-        typeMap.set(cat, typeMap.get(cat) + 1);
-      });
-
-      const labels = Array.from(typeMap.keys());
-      const values = labels.map((l) => typeMap.get(l));
-
-      const ctx = document.getElementById("typeChart");
-      if (!ctx) return;
-
-      if (typeChart) typeChart.destroy();
-
-      typeChart = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels,
-          datasets: [
-            {
-              data: values,
-              backgroundColor: [
-                "rgba(37, 99, 235, 0.9)",
-                "rgba(245, 158, 11, 0.9)",
-                "rgba(22, 163, 74, 0.9)",
-                "rgba(239, 68, 68, 0.9)",
-                "rgba(148, 163, 184, 0.95)",
-              ],
-              borderWidth: 0,
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: { boxWidth: 12 },
-            },
-          },
-          cutout: "60%",
-        },
-      });
-    }
-
-    /* ===== INSIGHTS ===== */
-    function updateInsights(data) {
-      const el = document.getElementById("attention-list");
-      if (!el) return;
-
-      if (!data || data.length === 0) {
-        el.textContent = "No data for current selection.";
-        return;
-      }
-
-      const zoneMap = new Map();
-      data.forEach((row) => {
-        const zone = row[COLS.zone] || "NA";
-        if (!zoneMap.has(zone)) {
-          zoneMap.set(zone, { total: 0, completed: 0 });
-        }
-        const entry = zoneMap.get(zone);
-        entry.total++;
-        if (isTruthy(row[COLS.surveyStatus])) entry.completed++;
-      });
-
-      const zones = Array.from(zoneMap.entries()).map(
-        ([zone, { total, completed }]) => {
-          const pct = total > 0 ? (completed / total) * 100 : 0;
-          return { zone, total, completed, pct };
-        }
-      );
-
-      zones.sort((a, b) => a.pct - b.pct);
-      const threshold = 60;
-      const needing = zones.filter((z) => z.pct < threshold);
-
-      el.innerHTML = "";
-
-      if (needing.length === 0) {
-        el.textContent =
-          "All zones have ITS survey completion ≥ " + threshold + "%.";
-        return;
-      }
-
-      const top5 = needing.slice(0, 5);
-      const title = document.createElement("div");
-      title.innerHTML =
-        "<strong>Zones with lowest ITS survey completion (under " +
-        threshold +
-        "%):</strong>";
-      el.appendChild(title);
-
-      top5.forEach((z) => {
-        const line =
-          "Zone " +
-          z.zone +
-          ": " +
-          z.completed +
-          "/" +
-          z.total +
-          " (" +
-          z.pct.toFixed(1) +
-          "%)";
-        const div = document.createElement("div");
-        div.textContent = line;
-        el.appendChild(div);
-      });
-    }
-
-    /* ===== FILTER TAGS ===== */
-    function updateFilterTags() {
-      const zoneVal = document.getElementById("filter-zone").value;
-      const areaVal = document.getElementById("filter-area").value;
-      const deviceVal = document.getElementById("filter-device").value;
-      const surveyVal = document.getElementById("filter-survey").value;
-
-      const container = document.getElementById("active-filters");
-      if (!container) return;
-      container.innerHTML = "";
-
-      const filters = [];
-      if (zoneVal) filters.push({ key: "zone", label: "Zone: " + zoneVal });
-      if (areaVal) filters.push({ key: "area", label: "Area: " + areaVal });
-      if (deviceVal)
-        filters.push({ key: "device", label: "Device: " + deviceVal });
-      if (surveyVal)
-        filters.push({
-          key: "survey",
-          label:
-            "Survey: " + (surveyVal === "completed" ? "Completed" : "Pending"),
-        });
-
-      if (filters.length === 0) {
-        container.textContent = "No filters applied.";
-        container.style.color = "#e5e7eb";
-        return;
-      }
-
-      filters.forEach((f) => {
-        const chip = document.createElement("span");
-        chip.className = "filter-chip";
-        chip.innerHTML = `
-          <span>${f.label}</span>
-          <button aria-label="Clear filter ${f.key}">×</button>
-        `;
-        chip.querySelector("button").addEventListener("click", () => {
-          if (f.key === "zone") document.getElementById("filter-zone").value = "";
-          if (f.key === "area") document.getElementById("filter-area").value = "";
-          if (f.key === "device")
-            document.getElementById("filter-device").value = "";
-          if (f.key === "survey")
-            document.getElementById("filter-survey").value = "";
-          applyFilters();
-        });
-        container.appendChild(chip);
-      });
-    }
-
-    /* ===== APPLY FILTERS ===== */
-    function applyFilters() {
-      const zoneVal = document.getElementById("filter-zone").value;
-      const areaVal = document.getElementById("filter-area").value;
-      const deviceVal = document.getElementById("filter-device").value;
-      const surveyVal = document.getElementById("filter-survey").value;
-
-      let filtered = allData.slice();
-
-      if (zoneVal) {
-        filtered = filtered.filter((row) => String(row[COLS.zone]) === zoneVal);
-      }
-
-      if (areaVal) {
-        filtered = filtered.filter((row) => String(row[COLS.area]) === areaVal);
-      }
-
-      if (deviceVal) {
-        filtered = filtered.filter(
-          (row) => String(row[COLS.deviceType]) === deviceVal
-        );
-      }
-
-      if (surveyVal) {
-        filtered = filtered.filter(
-          (row) => classifySurvey(row[COLS.surveyStatus]) === surveyVal
-        );
-      }
-
-      currentFiltered = filtered;
-
-      updateKPIs(filtered);
-      addMarkers(filtered);
-      renderTable(filtered);
-      buildZoneChart(filtered);
-      buildTypeChart(filtered);
-      updateInsights(filtered);
-      updateFilterTags();
-    }
-
-    /* ===== EXPORT ===== */
-    function exportCurrentView() {
-      const rows = currentFiltered && currentFiltered.length
-        ? currentFiltered
-        : allData;
-
-      if (!rows || !rows.length) return;
-
-      const exportRows = rows.map((row) => ({
-        [COLS.id]: row[COLS.id] || "",
-        [COLS.name]: row[COLS.name] || "",
-        [COLS.deviceType]: row[COLS.deviceType] || "",
-        [COLS.zone]: row[COLS.zone] || "",
-        [COLS.area]: row[COLS.area] || "",
-        [COLS.surveyStatus]: row[COLS.surveyStatus] || "",
-        [COLS.remarks]: row[COLS.remarks] || "",
-        [COLS.lat]: row[COLS.lat] || "",
-        [COLS.lon]: row[COLS.lon] || "",
-      }));
-
-      const csv = Papa.unparse(exportRows);
-      const blob = new Blob([csv], {
-        type: "text/csv;charset=utf-8;",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "its-dashboard-view.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
-
-    /* ===== DATETIME HEADER ===== */
-    function updateDateTimeHeader() {
-      const el = document.getElementById("currentDateTime");
-      if (!el) return;
+    function setLastUpdated() {
+      const span = document.getElementById("last-updated");
       const now = new Date();
-      el.textContent = now.toLocaleString("en-GB", {
+      span.textContent = now.toLocaleString("en-GB", {
         weekday: "short",
         day: "2-digit",
         month: "short",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",
+        second: "2-digit"
       });
     }
 
-    /* ===== LOAD DATA ===== */
+    // === DATA LOADING ====================================================
+
     function loadData() {
-      Papa.parse(SHEET_CSV_URL, {
+      Papa.parse(CSV_URL, {
         download: true,
         header: true,
-        dynamicTyping: false,
         skipEmptyLines: true,
         complete: (results) => {
-          const rows = (results.data || []).filter((r) => r[COLS.id]);
-          allData = rows;
-          currentFiltered = rows.slice();
+          const rows = results.data || [];
 
-          updateFilterOptions(allData);
+          allAssets = rows
+            .map((row) => {
+              const lat = parseFloat(row["Latitude"]);
+              const lng = parseFloat(row["Longitude"]);
+              if (!isFinite(lat) || !isFinite(lng)) return null;
+
+              const rawArea =
+                row["Zone Area"] || row["Area"] || row["Zone"] || "";
+              const zoneArea = normalizeZoneArea(rawArea);
+
+              const surveyStatusRaw =
+                (row["Survey Status"] || row["SurveyStatus"] || "").toString().trim().toUpperCase();
+              const surveyStatus =
+                surveyStatusRaw === "TRUE" || surveyStatusRaw === "COMPLETED"
+                  ? "Completed"
+                  : "Pending";
+
+              const deviceType = normalizeDeviceType(row["Device Type"]);
+
+              return {
+                id: row["ID"],
+                name: row["Name"],
+                latitude: lat,
+                longitude: lng,
+                zoneArea,
+                zone: row["Zone"] || "",
+                deviceType,
+                surveyStatus,
+                remarks: row["Remarks from Survey Team"] || row["Remarks"] || ""
+              };
+            })
+            .filter(Boolean);
+
+          initFilters();
           applyFilters();
-
-          const lastUpdatedEl = document.getElementById("lastUpdated");
-          if (lastUpdatedEl) {
-            const now = new Date();
-            lastUpdatedEl.textContent =
-              "Last loaded: " +
-              now.toLocaleString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-          }
-        },
-        error: (err) => {
-          console.error("Error loading CSV", err);
-        },
+          setLastUpdated();
+        }
       });
     }
 
-    /* ===== EVENT HOOKUP ===== */
-    document.addEventListener("DOMContentLoaded", () => {
-      initMap();
-      loadData();
-      updateDateTimeHeader();
-      setInterval(updateDateTimeHeader, 1000);
+    // === FILTERS & SEARCH ===============================================
 
-      document
-        .getElementById("filter-zone")
-        .addEventListener("change", applyFilters);
-      document
-        .getElementById("filter-area")
-        .addEventListener("change", applyFilters);
-      document
-        .getElementById("filter-device")
-        .addEventListener("change", applyFilters);
-      document
-        .getElementById("filter-survey")
-        .addEventListener("change", applyFilters);
+    function initFilters() {
+      const zoneAreaSelect = document.getElementById("zoneAreaFilter");
+      const deviceTypeSelect = document.getElementById("deviceTypeFilter");
 
+      // Zone Area options
+      const zoneAreas = Array.from(
+        new Set(allAssets.map((a) => a.zoneArea).filter((x) => x))
+      ).sort();
+
+      zoneAreas.forEach((za) => {
+        const opt = document.createElement("option");
+        opt.value = za;
+        opt.textContent = za;
+        zoneAreaSelect.appendChild(opt);
+      });
+
+      // Device types
+      const deviceTypes = Array.from(
+        new Set(allAssets.map((a) => a.deviceType).filter((x) => x))
+      ).sort();
+
+      deviceTypes.forEach((dt) => {
+        const opt = document.createElement("option");
+        opt.value = dt;
+        opt.textContent = dt;
+        deviceTypeSelect.appendChild(opt);
+      });
+
+      // Event handlers
+      zoneAreaSelect.addEventListener("change", applyFilters);
+      deviceTypeSelect.addEventListener("change", applyFilters);
       document
-        .getElementById("table-search")
-        .addEventListener("input", (e) => {
-          tableSearchTerm = e.target.value || "";
-          renderTable(currentFiltered);
+        .getElementById("surveyStatusFilter")
+        .addEventListener("change", applyFilters);
+      document
+        .getElementById("assetSearch")
+        .addEventListener("input", applyFilters);
+      document
+        .getElementById("downloadBtn")
+        .addEventListener("click", downloadCurrentView);
+    }
+
+    function applyFilters() {
+      const zoneAreaValue = document.getElementById("zoneAreaFilter").value;
+      const deviceTypeValue = document.getElementById("deviceTypeFilter").value;
+      const surveyStatusValue =
+        document.getElementById("surveyStatusFilter").value;
+      const searchText = document
+        .getElementById("assetSearch")
+        .value.toLowerCase()
+        .trim();
+
+      filteredAssets = allAssets.filter((asset) => {
+        if (zoneAreaValue !== "All" && asset.zoneArea !== zoneAreaValue)
+          return false;
+        if (deviceTypeValue !== "All" && asset.deviceType !== deviceTypeValue)
+          return false;
+        if (
+          surveyStatusValue !== "All" &&
+          asset.surveyStatus !== surveyStatusValue
+        )
+          return false;
+
+        if (!searchText) return true;
+
+        const haystack = (
+          asset.id +
+          " " +
+          asset.name +
+          " " +
+          asset.deviceType +
+          " " +
+          asset.zoneArea +
+          " " +
+          asset.zone +
+          " " +
+          asset.remarks
+        )
+          .toLowerCase()
+          .trim();
+
+        return haystack.includes(searchText);
+      });
+
+      updateSummaryCards(filteredAssets);
+      updateMap(filteredAssets);
+      updateTable(filteredAssets);
+      updateDeviceTypeChart(filteredAssets);
+      updateFiltersNote();
+    }
+
+    function updateFiltersNote() {
+      const zoneAreaValue = document.getElementById("zoneAreaFilter").value;
+      const deviceTypeValue = document.getElementById("deviceTypeFilter").value;
+      const surveyStatusValue =
+        document.getElementById("surveyStatusFilter").value;
+      const searchText = document
+        .getElementById("assetSearch")
+        .value.toLowerCase()
+        .trim();
+
+      const active = [];
+
+      if (zoneAreaValue !== "All") active.push("Zone Area: " + zoneAreaValue);
+      if (deviceTypeValue !== "All")
+        active.push("Device Type: " + deviceTypeValue);
+      if (surveyStatusValue !== "All")
+        active.push("Survey: " + surveyStatusValue);
+      if (searchText) active.push("Search text");
+
+      const noteEl = document.querySelector(".filters-note");
+      if (!active.length) {
+        noteEl.textContent = "No filters applied.";
+      } else {
+        noteEl.textContent = "Active filters — " + active.join(" · ");
+      }
+    }
+
+    // === SUMMARY CARDS ===================================================
+
+    function deviceStats(assets, canonicalType) {
+      const matching = assets.filter((a) => a.deviceType === canonicalType);
+      const total = matching.length;
+      const completed = matching.filter(
+        (a) => a.surveyStatus === "Completed"
+      ).length;
+      const percent = total ? (completed / total) * 100 : 0;
+      return { total, completed, percent };
+    }
+
+    function setCardStats(type, stats) {
+      const { total, percent } = stats;
+      const countEl = document.getElementById(`${type}-assets-count`);
+      const barEl = document.getElementById(`${type}-survey-bar`);
+      const textEl = document.getElementById(`${type}-survey-text`);
+      if (!countEl || !barEl || !textEl) return;
+
+      countEl.textContent = total.toString();
+      barEl.style.width = percent.toFixed(1) + "%";
+      textEl.textContent =
+        stats.completed +
+        " surveyed (" +
+        formatPercent(isFinite(percent) ? percent : 0) +
+        ")";
+    }
+
+    function updateSummaryCards(assets) {
+      const total = assets.length;
+      const surveyed = assets.filter(
+        (a) => a.surveyStatus === "Completed"
+      ).length;
+      const pending = total - surveyed;
+      const completionPct = total ? (surveyed / total) * 100 : 0;
+
+      document.getElementById("total-assets-count").textContent = total;
+      document.getElementById("assets-surveyed-count").textContent = surveyed;
+      document.getElementById(
+        "assets-surveyed-percent-text"
+      ).textContent = formatPercent(completionPct) + " of ITS assets";
+      document.getElementById("assets-pending-count").textContent = pending;
+
+      document.getElementById("survey-completion-percent").textContent =
+        formatPercent(completionPct);
+      document.getElementById("survey-completion-bar").style.width =
+        completionPct.toFixed(1) + "%";
+      document.getElementById("survey-completion-text").textContent =
+        surveyed +
+        " of " +
+        total +
+        " assets surveyed (" +
+        formatPercent(completionPct) +
+        ").";
+
+      // Doha / North
+      const assetsDoha = assets.filter((a) =>
+        a.zoneArea.toLowerCase().includes("doha")
+      ).length;
+      const assetsNorth = assets.filter((a) =>
+        a.zoneArea.toLowerCase().includes("north")
+      ).length;
+
+      document.getElementById("assets-doha-count").textContent = assetsDoha;
+      document.getElementById("assets-north-count").textContent = assetsNorth;
+
+      // Device-specific cards
+      setCardStats("cctv", deviceStats(assets, "CCTV"));
+      setCardStats("dms", deviceStats(assets, "DMS"));
+      setCardStats("rvd", deviceStats(assets, "RVD"));
+      setCardStats("ptz", deviceStats(assets, "PTZ"));
+      setCardStats("lpr", deviceStats(assets, "LPR"));
+      setCardStats("aid", deviceStats(assets, "AID"));
+      setCardStats("ovds", deviceStats(assets, "OVDS"));
+      setCardStats("magap", deviceStats(assets, "Magnetometer AP"));
+      setCardStats("magdot", deviceStats(assets, "Magnetometer Dots"));
+      setCardStats("wim-sensor", deviceStats(assets, "WIM Sensor"));
+      setCardStats("wim-controller", deviceStats(assets, "WIM Controller"));
+    }
+
+    // === MAP =============================================================
+
+    function initMap() {
+      map = L.map("map", {
+        center: [25.35, 51.45],
+        zoom: 9
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://openstreetmap.org">OSM</a> contributors'
+      }).addTo(map);
+
+      markerLayer = L.layerGroup().addTo(map);
+    }
+
+    function updateMap(assets) {
+      if (!map) initMap();
+      markerLayer.clearLayers();
+
+      if (!assets.length) return;
+
+      const bounds = [];
+
+      assets.forEach((asset) => {
+        const color =
+          asset.surveyStatus === "Completed"
+            ? "#16a34a"
+            : "#dc2626";
+
+        const marker = L.circleMarker([asset.latitude, asset.longitude], {
+          radius: 6,
+          color,
+          fillColor: color,
+          fillOpacity: 0.85,
+          weight: 1
         });
 
-      document
-        .getElementById("export-btn")
-        .addEventListener("click", exportCurrentView);
+        marker.bindPopup(
+          `<strong>${asset.id || ""} - ${
+            asset.name || ""
+          }</strong><br/>
+           <strong>Device:</strong> ${asset.deviceType || ""}<br/>
+           <strong>Zone Area:</strong> ${asset.zoneArea || ""}<br/>
+           <strong>Zone:</strong> ${asset.zone || ""}<br/>
+           <strong>Survey:</strong> ${asset.surveyStatus}<br/>
+           <strong>Remarks:</strong> ${asset.remarks || "—"}`
+        );
+
+        marker.addTo(markerLayer);
+        bounds.push([asset.latitude, asset.longitude]);
+      });
+
+      if (bounds.length > 1) {
+        map.fitBounds(bounds, { padding: [20, 20] });
+      } else if (bounds.length === 1) {
+        map.setView(bounds[0], 13);
+      }
+    }
+
+    // === TABLE ===========================================================
+
+    function updateTable(assets) {
+      const tbody = document.getElementById("asset-table-body");
+      tbody.innerHTML = "";
+
+      assets.forEach((asset) => {
+        const tr = document.createElement("tr");
+
+        const tdId = document.createElement("td");
+        tdId.textContent = asset.id || "";
+        tr.appendChild(tdId);
+
+        const tdName = document.createElement("td");
+        tdName.textContent = asset.name || "";
+        tr.appendChild(tdName);
+
+        const tdDevice = document.createElement("td");
+        tdDevice.textContent = asset.deviceType || "";
+        tr.appendChild(tdDevice);
+
+        const tdArea = document.createElement("td");
+        tdArea.textContent = asset.zoneArea || "";
+        tr.appendChild(tdArea);
+
+        const tdZone = document.createElement("td");
+        tdZone.textContent = asset.zone || "";
+        tr.appendChild(tdZone);
+
+        const tdSurvey = document.createElement("td");
+        const badge = document.createElement("span");
+        badge.classList.add("badge");
+        if (asset.surveyStatus === "Completed") {
+          badge.classList.add("badge-success");
+          badge.textContent = "Completed";
+        } else {
+          badge.classList.add("badge-pending");
+          badge.textContent = "Pending";
+        }
+        tdSurvey.appendChild(badge);
+        tr.appendChild(tdSurvey);
+
+        const tdRemarks = document.createElement("td");
+        tdRemarks.textContent = asset.remarks || "";
+        tr.appendChild(tdRemarks);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // === CHART ===========================================================
+
+    function updateDeviceTypeChart(assets) {
+      const ctx = document.getElementById("deviceTypeChart").getContext("2d");
+
+      const counts = {};
+      assets.forEach((a) => {
+        const type = a.deviceType || "Unknown";
+        counts[type] = (counts[type] || 0) + 1;
+      });
+
+      const labels = Object.keys(counts);
+      const data = labels.map((l) => counts[l]);
+
+      if (deviceTypeChart) {
+        deviceTypeChart.destroy();
+      }
+
+      deviceTypeChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [
+            {
+              data,
+              backgroundColor: [
+                "#4f46e5",
+                "#0ea5e9",
+                "#10b981",
+                "#6366f1",
+                "#f97316",
+                "#ec4899",
+                "#a855f7",
+                "#22c55e",
+                "#eab308",
+                "#f97316",
+                "#06b6d4",
+                "#94a3b8"
+              ],
+              borderWidth: 0
+            }
+          ]
+        },
+        options: {
+          plugins: {
+            legend: {
+              position: "right",
+              labels: {
+                boxWidth: 10,
+                boxHeight: 10,
+                font: { size: 10 }
+              }
+            }
+          },
+          maintainAspectRatio: false
+        }
+      });
+
+      document.getElementById("chart-legend").textContent =
+        "Showing " +
+        assets.length +
+        " ITS assets across " +
+        labels.length +
+        " device type(s) for the current filter selection.";
+    }
+
+    // === DOWNLOAD CURRENT VIEW ==========================================
+
+    function downloadCurrentView() {
+      if (!filteredAssets.length) {
+        alert("No assets in the current view to export.");
+        return;
+      }
+
+      const csvHeader = [
+        "ID",
+        "Name",
+        "Device Type",
+        "Zone Area",
+        "Zone",
+        "Latitude",
+        "Longitude",
+        "Survey Status",
+        "Remarks"
+      ];
+
+      const rows = filteredAssets.map((a) => [
+        a.id || "",
+        a.name || "",
+        a.deviceType || "",
+        a.zoneArea || "",
+        a.zone || "",
+        a.latitude,
+        a.longitude,
+        a.surveyStatus,
+        (a.remarks || "").replace(/\r?\n/g, " ")
+      ]);
+
+      const allRows = [csvHeader, ...rows];
+      const csvContent = allRows
+        .map((r) =>
+          r
+            .map((field) => {
+              const f = field == null ? "" : field.toString();
+              if (/[",\n]/.test(f)) {
+                return '"' + f.replace(/"/g, '""') + '"';
+              }
+              return f;
+            })
+            .join(",")
+        )
+        .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "its-dashboard-current-view.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // === INIT ============================================================
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initMap();
+      loadData();
     });
   </script>
 </body>
