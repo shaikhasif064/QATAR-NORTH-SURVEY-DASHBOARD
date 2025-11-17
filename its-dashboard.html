@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Qatar North ITS Survey Dashboard</title>
 
-  <!-- Viewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Leaflet -->
@@ -36,7 +35,6 @@
       --accent-green: #1bbf6b;
       --accent-red: #ff4b5c;
       --accent-orange: #ffb347;
-      --header-height: 90px;
       --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.35);
       --radius-lg: 14px;
       --radius-md: 10px;
@@ -81,6 +79,10 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 3px solid #ff375f;
+
+      /* make header full viewport width */
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
     }
 
     .header-left,
@@ -226,7 +228,7 @@
 
     .filters-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr); /* single full-width card */
+      grid-template-columns: minmax(0, 1fr);
       gap: 14px;
       align-items: stretch;
     }
@@ -319,7 +321,7 @@
       margin-top: 4px;
     }
 
-    /* Layout: map + table + chart */
+    /* Layout: map + table + charts */
 
     .layout-row {
       display: grid;
@@ -452,6 +454,10 @@
       max-height: 280px;
     }
 
+    #deviceCompletionChart {
+      max-height: 280px;
+    }
+
     .chart-legend {
       font-size: 11px;
       color: #6b7280;
@@ -490,7 +496,7 @@
     <main>
       <!-- KPI GRID -->
       <section class="kpi-grid">
-        <!-- ROW 1 -->
+        <!-- row 1 -->
         <div class="card kpi-card">
           <div class="kpi-label">Total ITS Assets</div>
           <div class="kpi-value" id="total-assets-count">–</div>
@@ -499,9 +505,7 @@
         <div class="card kpi-card">
           <div class="kpi-label">Assets Surveyed</div>
           <div class="kpi-value" id="assets-surveyed-count">–</div>
-          <div class="kpi-subtext" id="assets-surveyed-percent-text">
-            –
-          </div>
+          <div class="kpi-subtext" id="assets-surveyed-percent-text">–</div>
         </div>
 
         <div class="card kpi-card">
@@ -549,7 +553,7 @@
           <div class="kpi-pct" id="dms-survey-text">–</div>
         </div>
 
-        <!-- ROW 2 & 3 (device types etc.) -->
+        <!-- row 2 -->
         <div class="card kpi-card">
           <div class="kpi-label">RVD Assets</div>
           <div class="kpi-value" id="rvd-assets-count">–</div>
@@ -615,6 +619,20 @@
           <div class="kpi-pct" id="ovds-survey-text">–</div>
         </div>
 
+        <div class="card kpi-card">
+          <div class="kpi-label">RWIS Assets</div>
+          <div class="kpi-value" id="rwis-assets-count">–</div>
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              id="rwis-survey-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="kpi-pct" id="rwis-survey-text">–</div>
+        </div>
+
+        <!-- row 3 -->
         <div class="card kpi-card">
           <div class="kpi-label">LCS Assets</div>
           <div class="kpi-value" id="lcs-assets-count">–</div>
@@ -704,7 +722,7 @@
         </div>
       </section>
 
-      <!-- FILTERS (top) -->
+      <!-- FILTERS -->
       <section class="filters-row">
         <div class="card filters-card">
           <div class="filters-title">Filters</div>
@@ -752,7 +770,6 @@
         <div class="card table-card">
           <div class="table-title">ITS Asset List</div>
 
-          <!-- Search aligned with table -->
           <div class="table-header-grid">
             <div>
               <div class="field-label">
@@ -780,9 +797,7 @@
                   <th>Remarks</th>
                 </tr>
               </thead>
-              <tbody id="asset-table-body">
-                <!-- Rows injected here -->
-              </tbody>
+              <tbody id="asset-table-body"></tbody>
             </table>
           </div>
         </div>
@@ -796,6 +811,16 @@
           <div class="chart-legend" id="chart-legend">
             Distribution of ITS assets by device type for the current
             selection.
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">
+            Survey Completion % by Device Type
+          </div>
+          <canvas id="deviceCompletionChart"></canvas>
+          <div class="chart-legend" id="completion-legend">
+            Percentage of surveyed devices for each device type.
           </div>
         </div>
       </section>
@@ -814,6 +839,7 @@
     let map;
     let markerLayer;
     let deviceTypeChart;
+    let deviceCompletionChart;
 
     // === UTILITIES =======================================================
 
@@ -828,6 +854,7 @@
       if (s.includes("aid")) return "AID";
       if (s.includes("ovds") || s.includes("overheight") || s.includes("over height"))
         return "OVDS";
+      if (s.includes("rwis") || s.includes("weather")) return "RWIS";
       if (s.includes("wim") && s.includes("sensor")) return "WIM Sensor";
       if (s.includes("wim") && s.includes("controller")) return "WIM Controller";
       if (s.includes("mag") && s.includes("ap")) return "Magnetometer AP";
@@ -926,7 +953,6 @@
       const zoneAreaSelect = document.getElementById("zoneAreaFilter");
       const deviceTypeSelect = document.getElementById("deviceTypeFilter");
 
-      // Zone Area options
       const zoneAreas = Array.from(
         new Set(allAssets.map((a) => a.zoneArea).filter((x) => x))
       ).sort();
@@ -938,7 +964,6 @@
         zoneAreaSelect.appendChild(opt);
       });
 
-      // Device types
       const deviceTypes = Array.from(
         new Set(allAssets.map((a) => a.deviceType).filter((x) => x))
       ).sort();
@@ -950,7 +975,6 @@
         deviceTypeSelect.appendChild(opt);
       });
 
-      // Event handlers
       zoneAreaSelect.addEventListener("change", applyFilters);
       deviceTypeSelect.addEventListener("change", applyFilters);
       document
@@ -1009,7 +1033,7 @@
       updateSummaryCards(filteredAssets);
       updateMap(filteredAssets);
       updateTable(filteredAssets);
-      updateDeviceTypeChart(filteredAssets);
+      updateDeviceCharts(filteredAssets);
       updateFiltersNote();
     }
 
@@ -1095,7 +1119,6 @@
         formatPercent(completionPct) +
         ").";
 
-      // Doha / North
       const assetsDoha = assets.filter((a) =>
         a.zoneArea.toLowerCase().includes("doha")
       ).length;
@@ -1106,7 +1129,6 @@
       document.getElementById("assets-doha-count").textContent = assetsDoha;
       document.getElementById("assets-north-count").textContent = assetsNorth;
 
-      // Device-specific cards
       setCardStats("cctv", deviceStats(assets, "CCTV"));
       setCardStats("dms", deviceStats(assets, "DMS"));
       setCardStats("rvd", deviceStats(assets, "RVD"));
@@ -1114,6 +1136,7 @@
       setCardStats("lpr", deviceStats(assets, "LPR"));
       setCardStats("aid", deviceStats(assets, "AID"));
       setCardStats("ovds", deviceStats(assets, "OVDS"));
+      setCardStats("rwis", deviceStats(assets, "RWIS"));
       setCardStats("lcs", deviceStats(assets, "LCS"));
       setCardStats("aqms", deviceStats(assets, "AQMS"));
       setCardStats("magap", deviceStats(assets, "Magnetometer AP"));
@@ -1232,31 +1255,47 @@
       });
     }
 
-    // === CHART ===========================================================
+    // === CHARTS ==========================================================
 
-    function updateDeviceTypeChart(assets) {
-      const ctx = document.getElementById("deviceTypeChart").getContext("2d");
+    function updateDeviceCharts(assets) {
+      const ctxDonut = document
+        .getElementById("deviceTypeChart")
+        .getContext("2d");
+      const ctxBar = document
+        .getElementById("deviceCompletionChart")
+        .getContext("2d");
 
       const counts = {};
+      const completed = {};
+
       assets.forEach((a) => {
         const type = a.deviceType || "Unknown";
         counts[type] = (counts[type] || 0) + 1;
+        if (a.surveyStatus === "Completed") {
+          completed[type] = (completed[type] || 0) + 1;
+        }
       });
 
       const labels = Object.keys(counts);
-      const data = labels.map((l) => counts[l]);
+      const dataCounts = labels.map((l) => counts[l]);
+      const dataPct = labels.map((l) =>
+        counts[l] ? (completed[l] || 0) / counts[l] * 100 : 0
+      );
 
       if (deviceTypeChart) {
         deviceTypeChart.destroy();
       }
+      if (deviceCompletionChart) {
+        deviceCompletionChart.destroy();
+      }
 
-      deviceTypeChart = new Chart(ctx, {
+      deviceTypeChart = new Chart(ctxDonut, {
         type: "doughnut",
         data: {
           labels,
           datasets: [
             {
-              data,
+              data: dataCounts,
               backgroundColor: [
                 "#4f46e5",
                 "#0ea5e9",
@@ -1290,12 +1329,56 @@
         }
       });
 
+      deviceCompletionChart = new Chart(ctxBar, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Survey Completion %",
+              data: dataPct,
+              backgroundColor: "#22c55e"
+            }
+          ]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: (value) => value + "%"
+              },
+              title: {
+                display: true,
+                text: "Completion %"
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) =>
+                  ctx.parsed.y.toFixed(1) + "% surveyed"
+              }
+            }
+          },
+          maintainAspectRatio: false
+        }
+      });
+
       document.getElementById("chart-legend").textContent =
         "Showing " +
         assets.length +
         " ITS assets across " +
         labels.length +
         " device type(s) for the current filter selection.";
+
+      document.getElementById("completion-legend").textContent =
+        "Bars show the percentage of surveyed devices for each device type.";
     }
 
     // === DOWNLOAD CURRENT VIEW ==========================================
