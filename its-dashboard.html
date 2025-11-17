@@ -226,7 +226,7 @@
 
     .filters-row {
       display: grid;
-      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.2fr);
+      grid-template-columns: minmax(0, 1fr); /* single full-width card */
       gap: 14px;
       align-items: stretch;
     }
@@ -362,15 +362,16 @@
       padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       max-height: 440px;
     }
 
     .table-header-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 160px;
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
       align-items: center;
+      margin-bottom: 4px;
     }
 
     .search-input {
@@ -677,7 +678,7 @@
         </div>
       </section>
 
-      <!-- FILTERS -->
+      <!-- FILTERS (top) -->
       <section class="filters-row">
         <div class="card filters-card">
           <div class="filters-title">Filters</div>
@@ -709,24 +710,6 @@
           </button>
           <div class="filters-note">No filters applied.</div>
         </div>
-
-        <div class="card filters-card">
-          <div class="filters-title">Search &amp; Quick View</div>
-          <div class="table-header-grid">
-            <div>
-              <div class="field-label">Search by ID, Name, Device Type, Zone Area, or Remarks</div>
-              <input
-                type="text"
-                id="assetSearch"
-                class="search-input"
-                placeholder="Start typing to filter the ITS asset list..."
-              />
-            </div>
-          </div>
-          <div class="filters-note">
-            The search box and filters apply to the asset list, map and charts.
-          </div>
-        </div>
       </section>
 
       <!-- MAP + TABLE -->
@@ -742,6 +725,21 @@
 
         <div class="card table-card">
           <div class="table-title">ITS Asset List</div>
+
+          <!-- Search & Quick View now aligned with table -->
+          <div class="table-header-grid">
+            <div>
+              <div class="field-label">
+                Search by ID, Name, Device Type, Zone Area, or Remarks
+              </div>
+              <input
+                type="text"
+                id="assetSearch"
+                class="search-input"
+                placeholder="Start typing to filter the ITS asset list..."
+              />
+            </div>
+          </div>
 
           <div class="table-wrapper">
             <table>
