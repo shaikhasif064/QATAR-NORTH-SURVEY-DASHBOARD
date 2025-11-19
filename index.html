@@ -40,9 +40,12 @@
         sans-serif;
       color: #111827;
       
-      /* FIXED: Updated filename to match your uploaded file 'bg-image.jpg' */
-      background: url('bg-image.jpg') no-repeat center center fixed; 
+      /* FIX: Using explicit properties for reliable background loading */
+      background-image: url('bg-image.jpg'); 
       background-color: #020617; /* Fallback color */
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-attachment: fixed;
       background-size: cover;
     }
 
