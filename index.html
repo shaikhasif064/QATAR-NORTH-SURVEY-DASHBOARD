@@ -66,7 +66,7 @@
       background: linear-gradient(90deg, #020617, #111827);
       backdrop-filter: blur(8px);
       border-bottom: 5px solid var(--aktor-red); 
-      padding: 10px 24px;
+      padding: 8px 16px; /* Reduced Padding */
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -86,17 +86,17 @@
     }
 
     .logo-img {
-      max-height: 56px;
+      max-height: 50px; /* Reduced Logo Size */
       height: auto;
     }
 
     .logo-img-small {
-      max-height: 42px;
+      max-height: 38px;
     }
 
     header h1 {
       margin: 0;
-      font-size: 26px; 
+      font-size: 24px; /* Reduced Font Size */
       font-weight: 800; 
       letter-spacing: 0.04em;
       color: #f9fafb;
@@ -104,55 +104,81 @@
     }
 
     header .subtitle {
-      font-size: 11px;
+      font-size: 10px; /* Reduced Font Size */
       color: #e5e7eb;
       margin-top: 2px;
     }
 
     .datetime-header {
-      font-size: 11px;
+      font-size: 10px;
       color: #cbd5ff;
       margin-top: 4px;
     }
 
-    /* ===== MAIN GRID - COMPACT RATIO ===== */
+    /* ===== MAIN GRID - NEW COMPACT LAYOUT ===== */
     .container {
-      padding: 12px 16px 20px;
-      grid-template-columns: 1.7fr 1.3fr;
-      grid-gap: 16px;
+      padding: 10px 16px 20px; /* Reduced Padding */
+      display: grid;
+      /* Top row: KPI column, Map Column, Filters/Scope Column */
+      grid-template-columns: 1fr 2fr 1fr; 
+      grid-template-rows: auto auto 1fr; /* 3 Rows: KPIs, Map/Filters, Charts/Table */
+      grid-gap: 12px; /* Reduced Gap */
     }
 
-    /* ********** COMPACTNESS CHANGE: KPI GRID ********** */
-    .kpi-grid {
-      /* Reduced min size to fit more columns */
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
-      grid-gap: 8px; /* Slightly reduced gap */
-      margin-bottom: 14px;
+    .top-left-kpis {
+        grid-column: 1 / 2;
+        grid-row: 1 / 3; /* KPIs now span down next to the map */
+    }
+
+    .map-card-wrapper {
+        grid-column: 2 / 3;
+        grid-row: 1 / 3;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .right-column {
+        grid-column: 3 / 4;
+        grid-row: 1 / 3;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .bottom-row-grid {
+        grid-column: 1 / 4; /* Spans across all 3 columns */
+        grid-row: 3 / 4;
+        display: grid;
+        grid-template-columns: 1fr 1.5fr; /* Chart on left, Table on right */
+        gap: 12px;
     }
     
-    /* Force 6 columns on wider screens to save vertical space */
-    @media (min-width: 1400px) {
-        .kpi-grid {
-            grid-template-columns: repeat(6, 1fr);
-        }
-    }
     /* ************************************************* */
 
 
+    /* ===== KPI GRID (Tighter) ===== */
+    .kpi-grid {
+      display: grid;
+      /* Fixed 2 columns in the KPI space for denser packing */
+      grid-template-columns: repeat(2, 1fr); 
+      grid-gap: 8px; 
+      margin-bottom: 0;
+    }
+    
     /* ===== CARD REFINEMENTS (KPIs, Charts) ===== */
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 12px 16px; /* Reduced padding slightly */
-      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.25);
+      border-radius: 10px; /* Slightly smaller radius */
+      padding: 10px 12px; /* Reduced padding */
+      box-shadow: 0 3px 12px rgba(15, 23, 42, 0.2);
       transition: transform 0.2s ease; 
       border: 1px solid #e5e7eb; 
+      height: fit-content;
     }
 
     .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3);
+        transform: none; /* Removed hover effect for a static look */
+        box-shadow: 0 3px 12px rgba(15, 23, 42, 0.2);
     }
 
     .kpi-grid .card { 
@@ -160,161 +186,93 @@
     }
 
     .card-title {
-      font-size: 10px; /* Reduced font size for tighter fit */
+      font-size: 9px; /* Further Reduced font size for tighter fit */
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: #6b7280;
-      margin-bottom: 4px; /* Reduced margin */
+      margin-bottom: 2px; 
       font-weight: 600; 
     }
 
     .card-value {
-      font-size: 24px; /* Reduced size */
+      font-size: 20px; /* Further Reduced size */
       font-weight: 700;
       color: #111827;
       line-height: 1.1;
     }
 
     .card-sub {
-      font-size: 11px;
+      font-size: 10px;
       color: #4b5563;
-      margin-top: 4px;
+      margin-top: 3px;
     }
 
     /* ********** COMPACTNESS CHANGE: MAP HEIGHT ********** */
     #map {
       width: 100%;
-      height: 350px; /* Was 420px */
-      border-radius: 12px;
+      height: 300px; /* Further reduced from 350px */
+      border-radius: 10px;
       overflow: hidden;
     }
     /* ************************************************* */
 
     .map-card {
-      margin-bottom: 12px;
+      margin-bottom: 0; 
+      padding: 12px; /* Slight adjustment */
+      flex-grow: 1;
     }
 
-    .right-col {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
 
-    /* ===== FILTER & INPUT REFINEMENTS ===== */
+    /* ===== FILTER & INPUT REFINEMENTS (Tighter) ===== */
     .filters-row-title {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: #374151;
       margin-bottom: 4px;
     }
 
     .filters {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* Force two columns in filters */
       gap: 8px;
       align-items: flex-start;
       margin-top: 4px;
     }
 
     .filters label {
-      font-size: 11px;
-      color: #374151;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .filters select {
-      padding: 6px 10px; 
-      border-radius: 8px; 
-      border: 1px solid #d1d5db;
-      font-size: 12px; 
-      min-width: 120px;
-      background: #ffffff;
-      color: #111827;
-    }
-
-    .filters select:focus {
-      outline: none;
-      border-color: var(--algo-blue);
-      box-shadow: 0 0 0 2px rgba(0, 112, 201, 0.4);
-    }
-
-    .active-filters {
-      margin-top: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
       font-size: 10px;
     }
 
-    .filter-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(0, 112, 201, 0.12);
-      color: #1d4ed8;
-    }
-
-    .filter-chip button {
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-size: 11px;
-      line-height: 1;
+    .filters select {
+      padding: 4px 8px; /* Reduced padding */
+      border-radius: 6px; 
+      font-size: 11px; 
+      min-width: unset;
     }
 
     .export-btn {
-      margin-top: 10px;
-      padding: 6px 16px; 
-      border-radius: 8px; 
-      border: 1px solid #0070c9;
-      background: #0070c9;
-      color: #fff;
-      font-size: 12px; 
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0, 112, 201, 0.3);
-      transition: background 0.2s ease, transform 0.1s ease;
+      margin-top: 8px;
+      padding: 4px 12px; /* Reduced padding */
+      font-size: 11px; 
+    }
+    
+    .filter-card {
+        margin-bottom: 0;
     }
 
-    .export-btn:hover {
-      background: #005fa3;
-      transform: translateY(-1px);
-    }
-
-    /* ===== TABLE STYLES ===== */
+    /* ===== TABLE STYLES (More Compact) ===== */
     table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
+      font-size: 10px; /* Reduced table font size */
     }
 
     th,
     td {
-      padding: 4px 6px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    th {
-      background: #f9fafb;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    td:nth-child(2) {
-      white-space: normal;
+      padding: 3px 5px; /* Reduced table cell padding */
     }
 
     /* ********** COMPACTNESS CHANGE: TABLE HEIGHT ********** */
     .table-wrapper {
-      max-height: 250px; /* Was 310px */
+      max-height: 300px; /* Increased slightly to balance overall view */
       overflow: auto;
       border-radius: 8px;
       border: 1px solid #e5e7eb;
@@ -322,43 +280,23 @@
     }
     /* ************************************************* */
 
-    tbody tr:nth-child(even) {
-      background: #f3f4f6;
-    }
-
-    tbody tr:hover {
-      background: #e5edff;
-      cursor: pointer;
-    }
-
-    /* ===== COLOR CONSISTENCY (Pills & Progress) ===== */
-    .status-pill {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 600;
-      color: #fff;
-    }
-
-    .status-completed {
-      background: var(--algo-blue); /* #0070c9 */
-    }
-
-    .status-pending {
-      background: var(--aktor-red); /* #e0283b */
-    }
-
-    /* ********** COMPACTNESS CHANGE: ZONE CHART HEIGHT ********** */
+    /* ===== ZONE CHART & INSIGHTS (Tighter) ===== */
+    /* Zone Chart has its own grid slot now */
     .zone-chart-wrapper {
-      height: 200px; /* Was 250px */
+      height: 250px; /* Allowed to grow slightly in the bottom-left slot */
+      margin-bottom: 0;
     }
-    /* ************************************************* */
 
+    .zone-chart-area {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
     .zone-card {
-      background: linear-gradient(135deg, #eff6ff, #ffffff);
-      margin-top: 4px;
-      margin-bottom: 10px;
+        flex-grow: 1;
+        margin-top: 0;
+        margin-bottom: 0;
     }
 
     /* ===== SCOPE CHART FIX (Sizing and Placement) ===== */
@@ -367,81 +305,19 @@
       display: flex;
       flex-direction: column;
       align-items: center; 
+      margin-bottom: 0;
     }
     
     /* ********** COMPACTNESS CHANGE: DONUT CHART SIZE ********** */
     #scopeChart {
-        max-width: 240px; /* Limits the physical size of the chart (Was 280px) */
-        margin-bottom: 8px; 
-    }
-    /* ************************************************* */
-
-    .attention-card {
-      margin-top: 6px;
+        max-width: 100%; /* Allows it to fill the column space */
+        max-height: 120px; /* Hard limit on visual height */
+        margin-bottom: 6px; 
     }
 
-    .progress-wrapper {
-      margin-top: 6px;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #1d4ed8, #0070c9); 
-      transition: width 0.6s ease;
-    }
-
-    .progress-label {
-      font-size: 11px;
-      color: #4b5563;
-      margin-top: 3px;
-    }
-
-    #lastUpdated {
-      font-size: 11px;
-      color: #6b7280;
-      margin-top: 6px;
-    }
-
-    .table-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .table-search {
-      flex: 1;
-    }
-
-    .table-search input {
-      width: 100%;
-      padding: 6px 10px; 
-      border-radius: 8px; 
-      border: 1px solid #d1d5db;
-      font-size: 12px;
-      background: #ffffff;
-    }
-
-    .table-search input:focus {
-      outline: none;
-      border-color: var(--algo-blue);
-      box-shadow: 0 0 0 2px rgba(0, 112, 201, 0.4);
-    }
-
+    /* Responsive adjustments for smaller screens */
     @media (max-width: 1024px) {
       header {
-        padding: 8px 12px;
         flex-wrap: wrap;
         align-items: flex-start;
       }
@@ -449,15 +325,22 @@
         text-align: left;
       }
       .container {
-        padding: 8px 12px 16px;
+        padding: 8px;
+        /* Revert to single-column stacking for mobile */
         grid-template-columns: 1fr;
-        grid-gap: 10px;
+        grid-template-rows: auto;
+        grid-gap: 8px;
       }
-      .right-col {
-        order: 2;
+      .top-left-kpis, .map-card-wrapper, .right-column {
+          grid-column: 1 / 2;
+          grid-row: auto; 
       }
-      .container > div:first-child {
-        order: 1;
+      .bottom-row-grid {
+          grid-column: 1 / 2;
+          grid-template-columns: 1fr;
+      }
+      #map {
+        height: 250px;
       }
     }
   </style>
@@ -487,7 +370,8 @@
     </header>
 
     <div class="container">
-      <div>
+      
+      <div class="top-left-kpis">
         <div class="kpi-grid">
           <div class="card">
             <div class="card-title">Total Junctions</div>
@@ -495,7 +379,7 @@
           </div>
 
           <div class="card">
-            <div class="card-title">Doha Region</div>
+            <div class="card-title">Doha Total</div>
             <div class="card-value" id="kpi-doha-total">–</div>
             <div class="progress-wrapper">
               <div class="progress-bar">
@@ -506,7 +390,7 @@
           </div>
 
           <div class="card">
-            <div class="card-title">North Region</div>
+            <div class="card-title">North Total</div>
             <div class="card-value" id="kpi-north-total">–</div>
             <div class="progress-wrapper">
               <div class="progress-bar">
@@ -517,7 +401,7 @@
           </div>
 
           <div class="card">
-            <div class="card-title">Pole Survey Status</div>
+            <div class="card-title">Pole Survey</div>
             <div class="card-value" id="kpi-pole-completed">–</div>
             <div class="progress-wrapper">
               <div class="progress-bar">
@@ -528,7 +412,7 @@
           </div>
 
           <div class="card">
-            <div class="card-title">Controller Survey Status</div>
+            <div class="card-title">Controller Survey</div>
             <div class="card-value" id="kpi-ctrl-completed">–</div>
             <div class="progress-wrapper">
               <div class="progress-bar">
@@ -539,7 +423,7 @@
           </div>
 
           <div class="card">
-            <div class="card-title">Survey Completed</div>
+            <div class="card-title">Overall Completed</div>
             <div class="card-value" id="kpi-survey-completed">–</div>
             <div class="progress-wrapper">
               <div class="progress-bar">
@@ -555,17 +439,17 @@
           </div>
 
           <div class="card">
-            <div class="card-title">Junctions Under O&amp;M</div>
+            <div class="card-title">Under O&amp;M</div>
             <div class="card-value" id="kpi-om">–</div>
           </div>
 
           <div class="card">
-            <div class="card-title">Junctions Under Projects</div>
+            <div class="card-title">Under Projects</div>
             <div class="card-value" id="kpi-projects">–</div>
           </div>
 
           <div class="card">
-            <div class="card-title">Junctions Switched Off</div>
+            <div class="card-title">Switched Off</div>
             <div class="card-value" id="kpi-off">–</div>
           </div>
 
@@ -575,35 +459,22 @@
           </div>
 
           <div class="card">
-            <div class="card-title">Non-SCATS (Isolated)</div>
+            <div class="card-title">Non-SCATS</div>
             <div class="card-value" id="kpi-non-scats">–</div>
           </div>
         </div>
+      </div>
 
+      <div class="map-card-wrapper">
         <div class="card map-card">
           <div class="card-title">Junction Map (Leaflet / OpenStreetMap)</div>
           <div id="map"></div>
           <div id="lastUpdated"></div>
         </div>
-
-        <div class="card zone-card">
-          <div class="card-title">Zone-wise Survey Completion</div>
-          <div class="zone-chart-wrapper">
-            <canvas id="zoneChart"></canvas>
-          </div>
-          <div class="card-sub">
-            Percentage of junctions with completed survey status in each zone.
-          </div>
-        </div>
-
-        <div class="card attention-card">
-          <div class="card-title">Zones Needing Attention</div>
-          <div id="attention-list" class="card-sub"></div>
-        </div>
       </div>
 
-      <div class="right-col">
-        <div class="card">
+      <div class="right-column">
+        <div class="card filter-card">
           <div class="filters-row-title">Filters</div>
           <div class="filters">
             <label>
@@ -638,12 +509,13 @@
               Remarks
               <select id="filter-remarks">
                 <option value="">All</option>
-                <option value="om">Under O&amp;M</option>
-                <option value="projects">Under Projects</option>
-                <option value="off">Switched Off</option>
+                <option value="om">O&amp;M</option>
+                <option value="projects">Projects</option>
+                <option value="off">Off</option>
                 <option value="other">Other</option>
               </select>
             </label>
+            
           </div>
           <div class="active-filters" id="active-filters"></div>
           <button id="export-btn" class="export-btn">
@@ -651,6 +523,31 @@
           </button>
         </div>
 
+        <div class="card scope-card">
+          <div class="card-title">Scope Distribution by Remarks</div>
+          <canvas id="scopeChart" height="120"></canvas> 
+          <div class="card-sub">
+            Split of junctions by Remarks status.
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-row-grid">
+        
+        <div class="zone-chart-area">
+            <div class="card zone-card">
+              <div class="card-title">Zone-wise Survey Completion</div>
+              <div class="zone-chart-wrapper">
+                <canvas id="zoneChart"></canvas>
+              </div>
+            </div>
+
+            <div class="card attention-card">
+              <div class="card-title">Zones Needing Attention</div>
+              <div id="attention-list" class="card-sub"></div>
+            </div>
+        </div>
+        
         <div class="card">
           <div class="card-title">Junction List</div>
           <div class="table-controls">
@@ -672,8 +569,8 @@
                   <th>Area</th>
                   <th>Street</th>
                   <th>Remarks</th>
-                  <th>Pole Survey</th>
-                  <th>Ctrl Survey</th>
+                  <th>Pole</th>
+                  <th>Ctrl</th>
                   <th>Survey</th>
                 </tr>
               </thead>
@@ -681,14 +578,7 @@
             </table>
           </div>
         </div>
-        
-        <div class="card scope-card">
-          <div class="card-title">Scope Distribution</div>
-          <canvas id="scopeChart" height="140"></canvas> 
-          <div class="card-sub">
-            Split of junctions by Remarks (Under O&amp;M / Under Projects / Switched Off / Other).
-          </div>
-        </div>
+
       </div>
     </div>
   </div>
@@ -974,7 +864,7 @@
 
         const getStatusHtml = (val) => {
             const cls = classifySurvey(val);
-            const txt = cls === "completed" ? "Completed" : "Pending";
+            const txt = cls === "completed" ? "Comp" : "Pend";
             const css = cls === "completed" ? "status-completed" : "status-pending";
             return `<span class="status-pill ${css}">${txt}</span>`;
         };
@@ -1056,6 +946,7 @@
           scales: {
             x: {
               title: { display: true, text: "Zone No" },
+              ticks: { font: { size: 10 } }
             },
             y: {
               beginAtZero: true,
@@ -1063,6 +954,7 @@
               title: { display: true, text: "Completion %" },
               ticks: {
                 callback: (v) => v + "%",
+                font: { size: 10 }
               },
             },
           },
@@ -1110,10 +1002,12 @@
           plugins: {
             legend: {
               position: "bottom",
-              labels: { boxWidth: 12 },
+              labels: { boxWidth: 10, font: { size: 10 } },
             },
           },
           cutout: "60%",
+          maintainAspectRatio: false,
+          responsive: true,
         },
       });
     }
@@ -1213,7 +1107,7 @@
 
       if (filters.length === 0) {
         container.textContent = "No filters applied.";
-        container.style.color = "#e5e7eb";
+        container.style.color = "#6b7280";
         return;
       }
 
