@@ -39,7 +39,10 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
       color: #111827;
-      background: #020617; 
+      /* BACKGROUND IMAGE FIX: Assumes you have a file named 'background.jpg' or similar. 
+         If you don't have one, it defaults to the dark blue color. */
+      background: url('background.jpg') no-repeat center center fixed; 
+      background-color: #020617;
       background-size: cover;
     }
 
@@ -47,10 +50,11 @@
       width: 100%;
       min-height: 100vh;
       margin: 0;
+      /* Overlay to ensure text is readable over the background image */
       background: linear-gradient(
         180deg,
-        rgba(15, 23, 42, 0.3),
-        rgba(15, 23, 42, 0.7)
+        rgba(15, 23, 42, 0.5),
+        rgba(15, 23, 42, 0.8)
       );
     }
 
@@ -461,6 +465,28 @@
           </div>
 
           <div class="card">
+            <div class="card-title">Pole Survey Status</div>
+            <div class="card-value" id="kpi-pole-completed">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="pole-progress-fill"></div>
+              </div>
+              <div class="progress-label" id="kpi-pole-pct">–</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Controller Survey Status</div>
+            <div class="card-value" id="kpi-ctrl-completed">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="ctrl-progress-fill"></div>
+              </div>
+              <div class="progress-label" id="kpi-ctrl-pct">–</div>
+            </div>
+          </div>
+
+          <div class="card">
             <div class="card-title">Junctions Under O&amp;M</div>
             <div class="card-value" id="kpi-om">–</div>
           </div>
@@ -752,7 +778,10 @@
         dohaTotal = 0,
         dohaCompleted = 0,
         northTotal = 0,
-        northCompleted = 0;
+        northCompleted = 0,
+        // New Counters
+        poleCompleted = 0,
+        ctrlCompleted = 0;
 
       data.forEach((row) => {
         // Remarks Count
@@ -768,24 +797,36 @@
         } else {
           surveyPending++;
         }
+        
+        // Pole Survey Count
+        if (isTruthy(row[COLS.poleSurvey])) {
+            poleCompleted++;
+        }
+
+        // Controller Survey Count
+        if (isTruthy(row[COLS.ctrlSurvey])) {
+            ctrlCompleted++;
+        }
 
         // SCATS Count
         const scatsType = classifyScats(row[COLS.scats]);
         if (scatsType === "scats") scatsOperated++;
         else if (scatsType === "non") nonScats++;
 
-        // REGION COUNTS
-        const region = (row[COLS.region] || "").trim();
-        if (region === "Doha Region") {
+        // REGION COUNTS (New Robust Logic)
+        const region = (row[COLS.region] || "").toLowerCase().trim();
+        
+        if (region.includes("doha")) {
           dohaTotal++;
           if (isDone) dohaCompleted++;
-        } else if (region === "North Region") {
+        } 
+        else if (region.includes("north")) {
           northTotal++;
           if (isDone) northCompleted++;
         }
       });
 
-      // Existing KPIs
+      // Update Basic KPIs
       document.getElementById("kpi-total").textContent = total;
       document.getElementById("kpi-om").textContent = om;
       document.getElementById("kpi-projects").textContent = proj;
@@ -795,41 +836,51 @@
       document.getElementById("kpi-scats-operated").textContent = scatsOperated;
       document.getElementById("kpi-non-scats").textContent = nonScats;
 
-      // Survey Total Percentage
+      // 1. Survey Total Percentage
       const pctSurvey = total > 0 ? (surveyCompleted / total) * 100 : 0;
       document.getElementById("kpi-survey-pct").textContent =
         (total > 0 ? pctSurvey.toFixed(1) + "%" : "–") + " of total";
-      
       const surveyFill = document.getElementById("survey-progress-fill");
       if (surveyFill) surveyFill.style.width = pctSurvey.toFixed(1) + "%";
 
-      /* DOHA & NORTH STATS with Progress Bars */
-      // Doha
+      // 2. Pole Survey Percentage
+      const pctPole = total > 0 ? (poleCompleted / total) * 100 : 0;
+      document.getElementById("kpi-pole-completed").textContent = poleCompleted;
+      document.getElementById("kpi-pole-pct").textContent = 
+        (total > 0 ? pctPole.toFixed(1) + "%" : "–") + " Completed";
+      const poleFill = document.getElementById("pole-progress-fill");
+      if (poleFill) poleFill.style.width = pctPole.toFixed(1) + "%";
+
+      // 3. Controller Survey Percentage
+      const pctCtrl = total > 0 ? (ctrlCompleted / total) * 100 : 0;
+      document.getElementById("kpi-ctrl-completed").textContent = ctrlCompleted;
+      document.getElementById("kpi-ctrl-pct").textContent = 
+        (total > 0 ? pctCtrl.toFixed(1) + "%" : "–") + " Completed";
+      const ctrlFill = document.getElementById("ctrl-progress-fill");
+      if (ctrlFill) ctrlFill.style.width = pctCtrl.toFixed(1) + "%";
+
+      // 4. Doha & North Region Stats
       const dohaPct = dohaTotal > 0 ? (dohaCompleted / dohaTotal) * 100 : 0;
       document.getElementById("kpi-doha-total").textContent = dohaTotal;
       document.getElementById("kpi-doha-pct").textContent = 
         dohaTotal > 0 ? `${dohaPct.toFixed(1)}% Completed` : "0% Completed";
-      
       const dohaFill = document.getElementById("doha-progress-fill");
       if (dohaFill) dohaFill.style.width = dohaPct.toFixed(1) + "%";
 
-      // North
       const northPct = northTotal > 0 ? (northCompleted / northTotal) * 100 : 0;
       document.getElementById("kpi-north-total").textContent = northTotal;
       document.getElementById("kpi-north-pct").textContent = 
         northTotal > 0 ? `${northPct.toFixed(1)}% Completed` : "0% Completed";
-        
       const northFill = document.getElementById("north-progress-fill");
       if (northFill) northFill.style.width = northPct.toFixed(1) + "%";
     }
 
     /* ===== FILTER POPULATION ===== */
-    
-    // Helper to populate dropdowns
     function populateDropdown(data, column, elementId) {
       const select = document.getElementById(elementId);
+      // Get unique values, sort them, filter out empties
       const values = Array.from(
-        new Set(data.map((row) => row[column]).filter((v) => v != null && v !== ""))
+        new Set(data.map((row) => row[column]).filter((v) => v != null && String(v).trim() !== ""))
       ).sort((a, b) =>
         String(a).localeCompare(String(b), undefined, { numeric: true })
       );
@@ -876,26 +927,17 @@
           })
         : data;
 
+      // Render top 200 for performance
       filtered.slice(0, 200).forEach((row) => {
         const tr = document.createElement("tr");
 
-        // Survey Status
-        const surveyClass = classifySurvey(row[COLS.surveyStatus]);
-        const surveyText = surveyClass === "completed" ? "Completed" : "Pending";
-        const surveyStatusClass =
-          surveyClass === "completed" ? "status-completed" : "status-pending";
-          
-        // Pole Survey Status
-        const poleClass = classifySurvey(row[COLS.poleSurvey]);
-        const poleText = poleClass === "completed" ? "Completed" : "Pending";
-        const poleStatusClass =
-          poleClass === "completed" ? "status-completed" : "status-pending";
-          
-        // Controller Survey Status
-        const ctrlClass = classifySurvey(row[COLS.ctrlSurvey]);
-        const ctrlText = ctrlClass === "completed" ? "Completed" : "Pending";
-        const ctrlStatusClass =
-          ctrlClass === "completed" ? "status-completed" : "status-pending";
+        // Helper for status styling
+        const getStatusHtml = (val) => {
+            const cls = classifySurvey(val);
+            const txt = cls === "completed" ? "Completed" : "Pending";
+            const css = cls === "completed" ? "status-completed" : "status-pending";
+            return `<span class="status-pill ${css}">${txt}</span>`;
+        };
 
         tr.innerHTML = `
           <td>${row[COLS.junctNo] || ""}</td>
@@ -904,9 +946,9 @@
           <td>${row[COLS.area] || ""}</td>
           <td>${row[COLS.street] || ""}</td>
           <td>${row[COLS.remarks] || ""}</td>
-          <td><span class="status-pill ${poleStatusClass}">${poleText}</span></td>
-          <td><span class="status-pill ${ctrlStatusClass}">${ctrlText}</span></td>
-          <td><span class="status-pill ${surveyStatusClass}">${surveyText}</span></td>
+          <td>${getStatusHtml(row[COLS.poleSurvey])}</td>
+          <td>${getStatusHtml(row[COLS.ctrlSurvey])}</td>
+          <td>${getStatusHtml(row[COLS.surveyStatus])}</td>
         `;
 
         tr.addEventListener("click", () => {
