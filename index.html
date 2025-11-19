@@ -39,10 +39,10 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
       color: #111827;
-      /* BACKGROUND IMAGE FIX: Assumes you have a file named 'background.jpg' or similar. 
-         If you don't have one, it defaults to the dark blue color. */
-      background: url('background.jpg') no-repeat center center fixed; 
-      background-color: #020617;
+      
+      /* FIXED: Updated filename to match your uploaded file 'bg-image.jpg' */
+      background: url('bg-image.jpg') no-repeat center center fixed; 
+      background-color: #020617; /* Fallback color */
       background-size: cover;
     }
 
@@ -813,7 +813,7 @@
         if (scatsType === "scats") scatsOperated++;
         else if (scatsType === "non") nonScats++;
 
-        // REGION COUNTS (New Robust Logic)
+        // REGION COUNTS (Robust Logic)
         const region = (row[COLS.region] || "").toLowerCase().trim();
         
         if (region.includes("doha")) {
