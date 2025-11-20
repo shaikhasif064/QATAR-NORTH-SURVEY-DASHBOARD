@@ -515,68 +515,69 @@
           </div>
 
           <div class="card">
-            <div class="card-title">Survey Completed</div>
-            <div class="card-value" id="kpi-survey-completed">–</div>
+            <div class="card-title">Overall Survey Status</div>
+            <div class="card-value" id="kpi-overall-completed">–</div>
             <div class="progress-wrapper">
               <div class="progress-bar">
-                <div class="progress-fill" id="survey-progress-fill"></div>
+                <div class="progress-fill" id="overall-progress-fill"></div>
               </div>
-              <div class="progress-label" id="kpi-survey-pct">–</div>
+              <div class="progress-label" id="kpi-overall-pct">–</div>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-title">Survey Pending</div>
-            <div class="card-value" id="kpi-survey-pending">–</div>
+            <div class="card-title">Number of Sites Visited</div>
+            <div class="card-value" id="kpi-sites-visited">–</div>
           </div>
-        </div>
+          </div>
 
         <div class="card map-card">
-          <div class="card-title">Junction Map (Leaflet / OpenStreetMap)</div>
           <div id="map"></div>
-          <div id="lastUpdated"></div>
         </div>
 
         <div class="card zone-card">
-          <div class="card-title">Zone-wise Survey Completion</div>
+          <div class="card-title">Zone-wise Survey Completion (%)</div>
           <div class="zone-chart-wrapper">
             <canvas id="zoneChart"></canvas>
           </div>
           <div class="card-sub">
-            Percentage of junctions with completed survey status in each zone.
+            The chart shows the percentage of completed surveys for each zone (filtered view).
           </div>
         </div>
 
         <div class="card attention-card">
-          <div class="card-title">Zones Needing Attention</div>
-          <div id="attention-list" class="card-sub"></div>
+          <div class="card-title">Areas Needing Attention</div>
+          <div id="attention-list">Loading insights...</div>
         </div>
       </div>
 
       <div class="right-col">
         <div class="card">
-          <div class="filters-row-title">Filters</div>
+          <div class="card-title">Data Filters</div>
+          <div class="filters-row-title">Filter by Location:</div>
           <div class="filters">
             <label>
               Region
               <select id="filter-region">
                 <option value="">All</option>
-              </select>
+                </select>
             </label>
-            
-             <label>
+            <label>
               Area
               <select id="filter-area">
                 <option value="">All</option>
-              </select>
+                </select>
             </label>
-
             <label>
               Zone
               <select id="filter-zone">
                 <option value="">All</option>
-              </select>
+                </select>
             </label>
+          </div>
+
+          <div class="filters-row-title" style="margin-top: 10px;">Filter by Status:</div>
+          <div class="filters">
             <label>
               Survey Status
               <select id="filter-survey">
@@ -596,7 +597,9 @@
               </select>
             </label>
           </div>
+
           <div class="active-filters" id="active-filters"></div>
+
           <button id="export-btn" class="export-btn">
             Download Current View (CSV)
           </button>
@@ -631,6 +634,7 @@
               <tbody id="junction-table-body"></tbody>
             </table>
           </div>
+          <div id="lastUpdated">Last Updated: –</div>
         </div>
 
         <div class="card scope-card">
@@ -652,86 +656,87 @@
 
   <script>
     /* ===== DATA CONFIG ===== */
-    const SHEET_CSV_URL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vS5pFct4J8nDgw7VLuUJpfVgxewoZSkjh-cNxjgtOOZcjEM5Hx0xyJsziL9MUrEmK6wuls0C2Ffd1ku/pub?gid=1921347271&single=true&output=csv";
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS5pFct4J8nDgw7m5082I0-4X_FqWpE8jB9kH6jQ-1dF7VzB2M4i4R-b0w3iP8y9-S0F-Q/pub?gid=0&single=true&output=csv";
 
+    // Column Indices for easy access (based on 0-indexing of CSV columns)
     const COLS = {
-      junctNo: "Junct No",
-      street: "Street Details",
-      lat: "Latitude",
-      lon: "Longitude",
-      zone: "Zone No",
-      district: "District",
-      remarks: "Remarks",
-      surveyStatus: "Survey Status",
-      poleSurvey: "Pole Survey",
-      ctrlSurvey: "Controller Survey",
-      scats: "SCATS & Non SCATS",
-      operationStatus: "Operation Status",
-      region: "Region",
-      area: "Area"
+      sNo: 0,
+      junctNo: 1,
+      street: 2,
+      lat: 3,
+      lon: 4,
+      zone: 5,
+      district: 6,
+      area: 7,
+      operationStatus: 8,
+      scatsStatus: 9,
+      remarks: 10,
+      surveyStatus: 11,
+      poleSurvey: 12,
+      ctrlSurvey: 13,
+      region: 14,
     };
-
-    function isTruthy(val) {
-      if (val == null) return false;
-      const v = String(val).trim().toLowerCase();
-      return ["true", "yes", "1", "y", "done", "completed", "✓", "✔"].includes(v);
-    }
-
-    function classifySurvey(v) {
-      return isTruthy(v) ? "completed" : "pending";
-    }
-
-    function classifyRemarks(remarks) {
-      const r = (remarks || "").toLowerCase();
-      if (r.includes("under o&m") || r.includes("under o & m")) return "om";
-      if (r.includes("under projects") || r.includes("under project")) return "projects";
-      if (r.includes("switched off") || r.includes("switch off")) return "off";
-      return "other";
-    }
-
-    function classifyScats(val) {
-      const v = (val || "").toLowerCase();
-      if (v.includes("operated")) return "scats";
-      if (v.includes("isolated") || v.includes("non scats") || v.includes("non-scats")) {
-        return "non";
-      }
-      return "unknown";
-    }
-
-    function classifyOperationStatus(val) {
-      const v = (val || "").toLowerCase();
-      if (v.startsWith("operational")) return "operational";
-      if (v.startsWith("non-operational (under")) return "non_op_construction";
-      if (v.startsWith("non-operational")) return "non_operational";
-      return "other";
-    }
 
     let allData = [];
     let currentFiltered = [];
-    let map;
-    let markersLayer;
+    let map = null;
+    let markersLayer = null;
     let zoneChart = null;
     let scopeChart = null;
     let tableSearchTerm = "";
 
-    /* ===== MAP ===== */
+    /* ===== UTILITY FUNCTIONS ===== */
+    function isTruthy(value) {
+      if (typeof value === "string") {
+        return value.toUpperCase() === "TRUE" || value.toUpperCase() === "YES" || value.trim() !== "";
+      }
+      return !!value;
+    }
+
+    function classifyRemarks(remarks) {
+      if (!remarks) return "other";
+      const r = remarks.toLowerCase();
+      if (r.includes("o&m")) return "om";
+      if (r.includes("project")) return "projects";
+      if (r.includes("off")) return "off";
+      return "other";
+    }
+
+    function classifySurvey(status) {
+        return isTruthy(status) ? "completed" : "pending";
+    }
+
+    function getStatusHtml(status) {
+      const surveyClass = classifySurvey(status);
+      const text = surveyClass === "completed" ? "Completed" : "Pending";
+      return `<span class="status-pill status-${surveyClass}">${text}</span>`;
+    }
+
+    /* ===== MAP/MARKERS ===== */
     function initMap() {
-      map = L.map("map").setView([25.3, 51.4], 9);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      if (map) map.remove();
+
+      map = L.map("map", {
+        minZoom: 10,
         maxZoom: 18,
-        attribution: "&copy; OpenStreetMap contributors",
+        zoomControl: false,
+      }).setView([25.4, 51.2], 11);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      markersLayer = L.featureGroup().addTo(map);
+      // Add a scale control to the map
+      L.control.scale({ imperial: false }).addTo(map);
+
+      // Initialize the markers layer
+      markersLayer = L.layerGroup().addTo(map);
     }
 
-    function clearMarkers() {
+    function updateMapMarkers(data) {
       markersLayer.clearLayers();
-    }
 
-    function addMarkers(data) {
-      clearMarkers();
       data.forEach((row) => {
         const lat = parseFloat(row[COLS.lat]);
         const lon = parseFloat(row[COLS.lon]);
@@ -771,20 +776,8 @@
     /* ===== KPIs ===== */
     function updateKPIs(data) {
       const total = data.length;
-      let om = 0,
-        proj = 0,
-        off = 0,
-        surveyCompleted = 0,
-        surveyPending = 0,
-        scatsOperated = 0,
-        nonScats = 0,
-        dohaTotal = 0,
-        dohaCompleted = 0,
-        northTotal = 0,
-        northCompleted = 0,
-        // New Counters
-        poleCompleted = 0,
-        ctrlCompleted = 0;
+      let om = 0, proj = 0, off = 0, surveyCompleted = 0, surveyPending = 0, scatsOperated = 0, nonScats = 0, dohaTotal = 0, dohaCompleted = 0, northTotal = 0, northCompleted = 0, // New Counters
+        poleCompleted = 0, ctrlCompleted = 0;
 
       data.forEach((row) => {
         // Remarks Count
@@ -793,155 +786,281 @@
         else if (remarksType === "projects") proj++;
         else if (remarksType === "off") off++;
 
-        // Survey Count
-        const isDone = isTruthy(row[COLS.surveyStatus]);
-        if (isDone) {
-          surveyCompleted++;
-        } else {
-          surveyPending++;
-        }
-        
-        // Pole Survey Count
-        if (isTruthy(row[COLS.poleSurvey])) {
-            poleCompleted++;
-        }
+        // SCATS Status Count
+        if (row[COLS.scatsStatus] === "SCATS - OPERATED") scatsOperated++;
+        else if (row[COLS.scatsStatus] === "ISOLATED") nonScats++;
 
-        // Controller Survey Count
-        if (isTruthy(row[COLS.ctrlSurvey])) {
-            ctrlCompleted++;
-        }
+        // Survey Status Count
+        if (isTruthy(row[COLS.surveyStatus])) surveyCompleted++;
+        else surveyPending++;
 
-        // SCATS Count
-        const scatsType = classifyScats(row[COLS.scats]);
-        if (scatsType === "scats") scatsOperated++;
-        else if (scatsType === "non") nonScats++;
+        if (isTruthy(row[COLS.poleSurvey])) poleCompleted++;
+        if (isTruthy(row[COLS.ctrlSurvey])) ctrlCompleted++;
 
-        // REGION COUNTS (Robust Logic)
-        const region = (row[COLS.region] || "").toLowerCase().trim();
-        
-        if (region.includes("doha")) {
+        // Region Count
+        if (row[COLS.region] === "Doha Region") {
           dohaTotal++;
-          if (isDone) dohaCompleted++;
-        } 
-        else if (region.includes("north")) {
+          if (isTruthy(row[COLS.surveyStatus])) dohaCompleted++;
+        } else if (row[COLS.region] === "North Region") {
           northTotal++;
-          if (isDone) northCompleted++;
+          if (isTruthy(row[COLS.surveyStatus])) northCompleted++;
         }
       });
 
-      // Update Basic KPIs
+      // 1. Total Junctions
       document.getElementById("kpi-total").textContent = total;
+
+      // 2. Remarks
       document.getElementById("kpi-om").textContent = om;
       document.getElementById("kpi-projects").textContent = proj;
       document.getElementById("kpi-off").textContent = off;
-      document.getElementById("kpi-survey-completed").textContent = surveyCompleted;
-      document.getElementById("kpi-survey-pending").textContent = surveyPending;
+
+      // 3. SCATS Status
       document.getElementById("kpi-scats-operated").textContent = scatsOperated;
       document.getElementById("kpi-non-scats").textContent = nonScats;
 
-      // 1. Survey Total Percentage
-      const pctSurvey = total > 0 ? (surveyCompleted / total) * 100 : 0;
-      document.getElementById("kpi-survey-pct").textContent =
-        (total > 0 ? pctSurvey.toFixed(1) + "%" : "–") + " of total";
-      const surveyFill = document.getElementById("survey-progress-fill");
-      if (surveyFill) surveyFill.style.width = pctSurvey.toFixed(1) + "%";
-
-      // 2. Pole Survey Percentage
+      // 4. Pole Survey Percentage
       const pctPole = total > 0 ? (poleCompleted / total) * 100 : 0;
       document.getElementById("kpi-pole-completed").textContent = poleCompleted;
-      document.getElementById("kpi-pole-pct").textContent = 
+      document.getElementById("kpi-pole-pct").textContent =
         (total > 0 ? pctPole.toFixed(1) + "%" : "–") + " Completed";
       const poleFill = document.getElementById("pole-progress-fill");
       if (poleFill) poleFill.style.width = pctPole.toFixed(1) + "%";
 
-      // 3. Controller Survey Percentage
+      // 5. Controller Survey Percentage
       const pctCtrl = total > 0 ? (ctrlCompleted / total) * 100 : 0;
       document.getElementById("kpi-ctrl-completed").textContent = ctrlCompleted;
-      document.getElementById("kpi-ctrl-pct").textContent = 
+      document.getElementById("kpi-ctrl-pct").textContent =
         (total > 0 ? pctCtrl.toFixed(1) + "%" : "–") + " Completed";
       const ctrlFill = document.getElementById("ctrl-progress-fill");
       if (ctrlFill) ctrlFill.style.width = pctCtrl.toFixed(1) + "%";
 
-      // 4. Doha & North Region Stats
+      // 6. Doha & North Region Stats
       const dohaPct = dohaTotal > 0 ? (dohaCompleted / dohaTotal) * 100 : 0;
       document.getElementById("kpi-doha-total").textContent = dohaTotal;
-      document.getElementById("kpi-doha-pct").textContent = 
+      document.getElementById("kpi-doha-pct").textContent =
         dohaTotal > 0 ? `${dohaPct.toFixed(1)}% Completed` : "0% Completed";
       const dohaFill = document.getElementById("doha-progress-fill");
       if (dohaFill) dohaFill.style.width = dohaPct.toFixed(1) + "%";
 
       const northPct = northTotal > 0 ? (northCompleted / northTotal) * 100 : 0;
       document.getElementById("kpi-north-total").textContent = northTotal;
-      document.getElementById("kpi-north-pct").textContent = 
+      document.getElementById("kpi-north-pct").textContent =
         northTotal > 0 ? `${northPct.toFixed(1)}% Completed` : "0% Completed";
       const northFill = document.getElementById("north-progress-fill");
       if (northFill) northFill.style.width = northPct.toFixed(1) + "%";
+
+      // 7. Overall Survey Status
+      const pctOverall = total > 0 ? (surveyCompleted / total) * 100 : 0;
+      document.getElementById("kpi-overall-completed").textContent = surveyCompleted;
+      document.getElementById("kpi-overall-pct").textContent =
+        (total > 0 ? pctOverall.toFixed(1) + "%" : "–") + " Completed";
+      const overallFill = document.getElementById("overall-progress-fill");
+      if (overallFill) overallFill.style.width = pctOverall.toFixed(1) + "%";
+
+      // 8. Number of Sites Visited (NEW CARD)
+      // This displays the count of completed surveys, as a completed survey implies a site visit.
+      document.getElementById("kpi-sites-visited").textContent = surveyCompleted;
     }
 
-    /* ===== FILTER POPULATION ===== */
-    function populateDropdown(data, column, elementId) {
-      const select = document.getElementById(elementId);
-      // Get unique values, sort them, filter out empties
-      const values = Array.from(
-        new Set(data.map((row) => row[column]).filter((v) => v != null && String(v).trim() !== ""))
-      ).sort((a, b) =>
+    /* ===== CHARTS ===== */
+    function buildZoneChart(data) {
+      const zoneMap = new Map();
+      data.forEach((row) => {
+        const zone = row[COLS.zone] || "NA";
+        if (!zoneMap.has(zone)) {
+          zoneMap.set(zone, { total: 0, completed: 0 });
+        }
+        const entry = zoneMap.get(zone);
+        entry.total++;
+        if (isTruthy(row[COLS.surveyStatus])) entry.completed++;
+      });
+
+      const labels = Array.from(zoneMap.keys()).sort((a, b) =>
         String(a).localeCompare(String(b), undefined, { numeric: true })
       );
-
-      // Clear existing options except 'All'
-      while (select.options.length > 1) {
-        select.remove(1);
-      }
-
-      values.forEach((v) => {
-        const opt = document.createElement("option");
-        opt.value = v;
-        opt.textContent = v;
-        select.appendChild(opt);
+      const values = labels.map((z) => {
+        const entry = zoneMap.get(z);
+        return entry.total > 0
+          ? ((entry.completed / entry.total) * 100).toFixed(1)
+          : 0;
       });
+
+      const chartData = {
+        labels: labels,
+        datasets: [
+          {
+            label: "Survey Completion (%)",
+            data: values,
+            backgroundColor: values.map((v) =>
+              v >= 80
+                ? "rgba(22, 163, 74, 0.7)" // Green for 80%+
+                : v >= 50
+                ? "rgba(251, 191, 36, 0.7)" // Yellow for 50-79%
+                : "rgba(239, 68, 68, 0.7)" // Red for <50%
+            ),
+            borderColor: values.map((v) =>
+              v >= 80
+                ? "rgba(22, 163, 74, 1)"
+                : v >= 50
+                ? "rgba(251, 191, 36, 1)"
+                : "rgba(239, 68, 68, 1)"
+            ),
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+        ],
+      };
+
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: {
+              display: true,
+              text: "Completion Percentage (%)",
+              font: { size: 10 },
+              color: "#4b5563",
+            },
+            ticks: { font: { size: 10 } },
+            grid: { color: "rgba(0, 0, 0, 0.05)" },
+          },
+          x: {
+            ticks: { font: { size: 10 } },
+            grid: { display: false },
+          },
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                let label = context.dataset.label || "";
+                if (label) {
+                  label += ": ";
+                }
+                label += context.parsed.y + "%";
+                return label;
+              },
+            },
+          },
+        },
+      };
+
+      if (zoneChart) {
+        zoneChart.data = chartData;
+        zoneChart.options = chartOptions;
+        zoneChart.update();
+      } else {
+        const ctx = document.getElementById("zoneChart").getContext("2d");
+        zoneChart = new Chart(ctx, {
+          type: "bar",
+          data: chartData,
+          options: chartOptions,
+        });
+      }
     }
 
-    function updateFilters(data) {
-      populateDropdown(data, COLS.zone, "filter-zone");
-      populateDropdown(data, COLS.region, "filter-region");
-      populateDropdown(data, COLS.area, "filter-area");
+    function buildScopeChart(data) {
+      let om = 0,
+        proj = 0,
+        off = 0,
+        other = 0;
+
+      data.forEach((row) => {
+        const remarksType = classifyRemarks(row[COLS.remarks]);
+        if (remarksType === "om") om++;
+        else if (remarksType === "projects") proj++;
+        else if (remarksType === "off") off++;
+        else other++;
+      });
+
+      const total = om + proj + off + other;
+
+      const chartData = {
+        labels: ["Under O&M", "Under Projects", "Switched Off", "Other"],
+        datasets: [
+          {
+            data: [om, proj, off, other],
+            backgroundColor: [
+              "rgba(75, 192, 192, 0.8)", // Teal/Cyan
+              "rgba(54, 162, 235, 0.8)", // Blue
+              "rgba(255, 99, 132, 0.8)", // Red
+              "rgba(201, 203, 207, 0.8)", // Gray
+            ],
+            borderColor: [
+              "rgba(75, 192, 192, 1)",
+              "rgba(54, 162, 235, 1)",
+              "rgba(255, 99, 132, 1)",
+              "rgba(201, 203, 207, 1)",
+            ],
+            borderWidth: 1,
+          },
+        ],
+      };
+
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "right",
+            labels: {
+              font: { size: 10 },
+            },
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const count = context.raw;
+                const percentage =
+                  total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                return `${context.label}: ${count} (${percentage}%)`;
+              },
+            },
+          },
+        },
+      };
+
+      if (scopeChart) {
+        scopeChart.data = chartData;
+        scopeChart.options = chartOptions;
+        scopeChart.update();
+      } else {
+        const ctx = document.getElementById("scopeChart").getContext("2d");
+        scopeChart = new Chart(ctx, {
+          type: "doughnut",
+          data: chartData,
+          options: chartOptions,
+        });
+      }
     }
 
-    /* ===== TABLE RENDER ===== */
+    /* ===== TABLE RENDERING ===== */
     function renderTable(data) {
       const tbody = document.getElementById("junction-table-body");
       tbody.innerHTML = "";
 
-      const term = tableSearchTerm.trim().toLowerCase();
-      const filtered = term
-        ? data.filter((row) => {
-            const fields = [
-              row[COLS.junctNo],
-              row[COLS.street],
-              row[COLS.zone],
-              row[COLS.district],
-              row[COLS.remarks],
-              row[COLS.region],
-              row[COLS.area]
-            ];
-            return fields.some((v) =>
-              String(v || "").toLowerCase().includes(term)
-            );
-          })
-        : data;
+      // Apply search filter
+      let filteredData = data.slice();
+      if (tableSearchTerm) {
+        const term = tableSearchTerm.toLowerCase();
+        filteredData = filteredData.filter((row) => {
+          return (
+            String(row[COLS.junctNo]).toLowerCase().includes(term) ||
+            String(row[COLS.street]).toLowerCase().includes(term) ||
+            String(row[COLS.zone]).toLowerCase().includes(term) ||
+            String(row[COLS.district]).toLowerCase().includes(term) ||
+            String(row[COLS.remarks]).toLowerCase().includes(term)
+          );
+        });
+      }
 
-      // Render top 200 for performance
-      filtered.slice(0, 200).forEach((row) => {
+      filteredData.forEach((row) => {
         const tr = document.createElement("tr");
-
-        // Helper for status styling
-        const getStatusHtml = (val) => {
-            const cls = classifySurvey(val);
-            const txt = cls === "completed" ? "Completed" : "Pending";
-            const css = cls === "completed" ? "status-completed" : "status-pending";
-            return `<span class="status-pill ${css}">${txt}</span>`;
-        };
-
         tr.innerHTML = `
           <td>${row[COLS.junctNo] || ""}</td>
           <td>${row[COLS.region] || ""}</td>
@@ -961,123 +1080,7 @@
             map.setView([lat, lon], 14, { animate: true });
           }
         });
-
         tbody.appendChild(tr);
-      });
-    }
-
-    /* ===== CHARTS ===== */
-    function buildZoneChart(data) {
-      const zoneMap = new Map();
-
-      data.forEach((row) => {
-        const zone = row[COLS.zone] || "NA";
-        if (!zoneMap.has(zone)) {
-          zoneMap.set(zone, { total: 0, completed: 0 });
-        }
-        const entry = zoneMap.get(zone);
-        entry.total++;
-        if (isTruthy(row[COLS.surveyStatus])) entry.completed++;
-      });
-
-      const labels = Array.from(zoneMap.keys()).sort((a, b) =>
-        String(a).localeCompare(String(b), undefined, { numeric: true })
-      );
-      const values = labels.map((z) => {
-        const { total, completed } = zoneMap.get(z);
-        return total > 0 ? +(completed / total * 100).toFixed(1) : 0;
-      });
-
-      const ctx = document.getElementById("zoneChart");
-      if (!ctx) return;
-
-      if (zoneChart) zoneChart.destroy();
-
-      zoneChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Survey Completion %",
-              data: values,
-              backgroundColor: "rgba(0, 112, 201, 0.75)",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.parsed.y}% completed`,
-              },
-            },
-          },
-          scales: {
-            x: {
-              title: { display: true, text: "Zone No" },
-            },
-            y: {
-              beginAtZero: true,
-              max: 100,
-              title: { display: true, text: "Completion %" },
-              ticks: {
-                callback: (v) => v + "%",
-              },
-            },
-          },
-        },
-      });
-    }
-
-    function buildScopeChart(data) {
-      let om = 0,
-        proj = 0,
-        off = 0,
-        other = 0;
-
-      data.forEach((row) => {
-        const t = classifyRemarks(row[COLS.remarks]);
-        if (t === "om") om++;
-        else if (t === "projects") proj++;
-        else if (t === "off") off++;
-        else other++;
-      });
-
-      const ctx = document.getElementById("scopeChart");
-      if (!ctx) return;
-
-      if (scopeChart) scopeChart.destroy();
-
-      scopeChart = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: ["Under O&M", "Under Projects", "Switched Off", "Other"],
-          datasets: [
-            {
-              data: [om, proj, off, other],
-              backgroundColor: [
-                "rgba(34, 197, 94, 0.9)",
-                "rgba(59, 130, 246, 0.9)",
-                "rgba(239, 68, 68, 0.9)",
-                "rgba(148, 163, 184, 0.95)",
-              ],
-              borderWidth: 0,
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: { boxWidth: 12 },
-            },
-          },
-          cutout: "60%",
-        },
       });
     }
 
@@ -1115,12 +1118,12 @@
       const needing = zones.filter((z) => z.pct < threshold);
 
       if (needing.length === 0) {
-        el.textContent =
-          "All zones have survey completion ≥ " + threshold + "%.";
+        el.innerHTML = `<strong>All zones have survey completion &ge; ${threshold}%.</strong>`;
         return;
       }
 
       const top5 = needing.slice(0, 5);
+
       el.innerHTML =
         "<strong>Lowest completion zones (under " +
         threshold +
@@ -1144,59 +1147,65 @@
 
     /* ===== FILTER TAGS ===== */
     function updateFilterTags() {
-      const regionVal = document.getElementById("filter-region").value;
-      const areaVal = document.getElementById("filter-area").value;
-      const zoneVal = document.getElementById("filter-zone").value;
-      const surveyVal = document.getElementById("filter-survey").value;
-      const remarksVal = document.getElementById("filter-remarks").value;
+      const activeFiltersEl = document.getElementById("active-filters");
+      activeFiltersEl.innerHTML = "";
 
-      const container = document.getElementById("active-filters");
-      if (!container) return;
-      container.innerHTML = "";
-
-      const filters = [];
-      if (regionVal) filters.push({ key: "region", label: "Region: " + regionVal });
-      if (areaVal) filters.push({ key: "area", label: "Area: " + areaVal });
-      if (zoneVal) filters.push({ key: "zone", label: "Zone: " + zoneVal });
-      if (surveyVal)
-        filters.push({
+      const filters = [
+        {
+          key: "region",
+          label: "Region",
+          value: document.getElementById("filter-region").value,
+        },
+        {
+          key: "area",
+          label: "Area",
+          value: document.getElementById("filter-area").value,
+        },
+        {
+          key: "zone",
+          label: "Zone",
+          value: document.getElementById("filter-zone").value,
+        },
+        {
           key: "survey",
-          label:
-            "Survey: " + (surveyVal === "completed" ? "Completed" : "Pending"),
-        });
-      if (remarksVal) {
-        const map = {
-          om: "Under O&M",
-          projects: "Under Projects",
-          off: "Switched Off",
-          other: "Other",
-        };
-        filters.push({ key: "remarks", label: "Remarks: " + map[remarksVal] });
-      }
-
-      if (filters.length === 0) {
-        container.textContent = "No filters applied.";
-        container.style.color = "#e5e7eb";
-        return;
-      }
+          label: "Survey Status",
+          value: document.getElementById("filter-survey").value,
+        },
+        {
+          key: "remarks",
+          label: "Remarks",
+          value:
+            document.getElementById("filter-remarks").value === "om"
+              ? "Under O&M"
+              : document.getElementById("filter-remarks").value === "projects"
+              ? "Under Projects"
+              : document.getElementById("filter-remarks").value === "off"
+              ? "Switched Off"
+              : document.getElementById("filter-remarks").value === "other"
+              ? "Other"
+              : document.getElementById("filter-remarks").value,
+        },
+      ];
 
       filters.forEach((f) => {
-        const chip = document.createElement("span");
-        chip.className = "filter-chip";
-        chip.innerHTML = `
-          <span>${f.label}</span>
-          <button aria-label="Clear filter ${f.key}">×</button>
+        if (!f.value || f.value === "All") return;
+
+        const container = document.createElement("div");
+        container.className = "filter-chip";
+        container.innerHTML = `
+          ${f.label}: ${f.value}
+          <button data-filter-key="${f.key}">x</button>
         `;
-        chip.querySelector("button").addEventListener("click", () => {
+
+        container.querySelector("button").addEventListener("click", () => {
           if (f.key === "region") document.getElementById("filter-region").value = "";
           if (f.key === "area") document.getElementById("filter-area").value = "";
           if (f.key === "zone") document.getElementById("filter-zone").value = "";
           if (f.key === "survey") document.getElementById("filter-survey").value = "";
-          if (f.key === "remarks")
-            document.getElementById("filter-remarks").value = "";
+          if (f.key === "remarks") document.getElementById("filter-remarks").value = "";
           applyFilters();
         });
-        container.appendChild(chip);
+        activeFiltersEl.appendChild(container);
       });
     }
 
@@ -1224,112 +1233,101 @@
         filtered = filtered.filter((row) => String(row[COLS.zone]) === zoneVal);
       }
 
+      // Survey Status Filter
       if (surveyVal) {
-        filtered = filtered.filter(
-          (row) => classifySurvey(row[COLS.surveyStatus]) === surveyVal
-        );
+        const isCompleted = surveyVal === "completed";
+        filtered = filtered.filter((row) => isTruthy(row[COLS.surveyStatus]) === isCompleted);
       }
 
+      // Remarks Filter
       if (remarksVal) {
-        filtered = filtered.filter(
-          (row) => classifyRemarks(row[COLS.remarks]) === remarksVal
-        );
+        filtered = filtered.filter((row) => classifyRemarks(row[COLS.remarks]) === remarksVal);
       }
 
       currentFiltered = filtered;
 
       updateKPIs(filtered);
-      addMarkers(filtered);
+      updateMapMarkers(filtered);
       renderTable(filtered);
       buildZoneChart(filtered);
       buildScopeChart(filtered);
       updateInsights(filtered);
       updateFilterTags();
+
+      document.getElementById("lastUpdated").textContent = `Last Updated: ${new Date().toLocaleString()} (Showing ${filtered.length} of ${allData.length} Junctions)`;
     }
 
-    /* ===== EXPORT ===== */
-    function exportCurrentView() {
-      const rows = currentFiltered.length > 0 ? currentFiltered : allData;
-      if (!rows || rows.length === 0) {
-        alert("No data to export.");
-        return;
-      }
+    /* ===== POPULATE FILTERS ===== */
+    function populateFilters(data) {
+      const regions = new Set();
+      const areas = new Set();
+      const zones = new Set();
 
-      const headers = [
-        COLS.junctNo,
-        COLS.region,
-        COLS.zone,
-        COLS.area,
-        COLS.district,
-        COLS.street,
-        COLS.remarks,
-        COLS.poleSurvey,
-        COLS.ctrlSurvey,
-        COLS.surveyStatus,
-        COLS.scats,
-        COLS.lat,
-        COLS.lon,
-      ];
-
-      const csvLines = [];
-      csvLines.push(headers.join(","));
-
-      rows.forEach((row) => {
-        const line = headers
-          .map((h) => {
-            const val = row[h] == null ? "" : String(row[h]).replace(/"/g, '""');
-            return `"${val}"`;
-          })
-          .join(",");
-        csvLines.push(line);
+      data.forEach((row) => {
+        if (row[COLS.region]) regions.add(row[COLS.region]);
+        if (row[COLS.area]) areas.add(row[COLS.area]);
+        if (row[COLS.zone]) zones.add(row[COLS.zone]);
       });
 
-      const blob = new Blob([csvLines.join("\n")], {
-        type: "text/csv;charset=utf-8;",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "qatar_north_junctions_view.csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+      const regionSelect = document.getElementById("filter-region");
+      const areaSelect = document.getElementById("filter-area");
+      const zoneSelect = document.getElementById("filter-zone");
 
-    /* ===== LOAD DATA (WITH AUTO REFRESH) ===== */
-    function setLastUpdated() {
-      const el = document.getElementById("lastUpdated");
-      if (!el) return;
-      const now = new Date();
-      el.textContent =
-        "Last loaded: " +
-        now.toLocaleString(undefined, {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
+      const sortedRegions = Array.from(regions).sort();
+      const sortedAreas = Array.from(areas).sort();
+      const sortedZones = Array.from(zones).sort((a, b) =>
+        String(a).localeCompare(String(b), undefined, { numeric: true })
+      );
+
+      // Helper function to populate select
+      const populateSelect = (selectElement, options) => {
+        // Keep the "All" option
+        const initialOption = selectElement.querySelector('option[value=""]');
+        selectElement.innerHTML = '';
+        if (initialOption) {
+            selectElement.appendChild(initialOption);
+        } else {
+             const allOption = document.createElement("option");
+             allOption.value = "";
+             allOption.textContent = "All";
+             selectElement.appendChild(allOption);
+        }
+
+        options.forEach((option) => {
+          const opt = document.createElement("option");
+          opt.value = option;
+          opt.textContent = option;
+          selectElement.appendChild(opt);
         });
+      };
+
+      populateSelect(regionSelect, sortedRegions);
+      populateSelect(areaSelect, sortedAreas);
+      populateSelect(zoneSelect, sortedZones);
+
+      // Add event listeners for region and area filters if they don't exist
+      if (!regionSelect.getAttribute('data-listener-added')) {
+        regionSelect.addEventListener("change", applyFilters);
+        regionSelect.setAttribute('data-listener-added', 'true');
+      }
+      if (!areaSelect.getAttribute('data-listener-added')) {
+        areaSelect.addEventListener("change", applyFilters);
+        areaSelect.setAttribute('data-listener-added', 'true');
+      }
     }
 
+    /* ===== DATA LOADING & INITIALIZATION ===== */
     function loadData() {
       Papa.parse(SHEET_CSV_URL, {
         download: true,
-        header: true,
+        header: false,
         skipEmptyLines: true,
         complete: function (results) {
-          allData = results.data;
-          updateFilters(allData);
+          // Remove header row (assuming the first row is the header)
+          const data = results.data.slice(1);
+          allData = data;
+          populateFilters(allData);
           applyFilters();
-          setLastUpdated();
-
-          if (!window._autoRefreshSet) {
-            window._autoRefreshSet = true;
-            setInterval(() => {
-              loadData();
-            }, 5 * 60 * 1000); // 5 minutes
-          }
         },
         error: function (err) {
           console.error("Error loading CSV:", err);
@@ -1353,28 +1351,59 @@
       });
     }
 
+    /* ===== CSV EXPORT ===== */
+    function exportCurrentView() {
+      const filteredHeaders = [
+        "Junct No", "Region", "Zone", "Area", "Street Details", "Remarks", "Survey Status"
+      ];
+      
+      const filteredData = currentFiltered.map(row => ({
+        "Junct No": row[COLS.junctNo],
+        "Region": row[COLS.region],
+        "Zone": row[COLS.zone],
+        "Area": row[COLS.area],
+        "Street Details": row[COLS.street],
+        "Remarks": row[COLS.remarks],
+        "Survey Status": isTruthy(row[COLS.surveyStatus]) ? "Completed" : "Pending"
+      }));
+
+      const csv = Papa.unparse({
+        fields: filteredHeaders,
+        data: filteredData
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `traffic_junctions_dashboard_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+
     /* ===== INIT ===== */
     document.addEventListener("DOMContentLoaded", function () {
       initMap();
       loadData();
 
-      document.getElementById("filter-region").addEventListener("change", applyFilters);
-      document.getElementById("filter-area").addEventListener("change", applyFilters);
+      // Filter listeners for single-choice filters (region/area listeners added in populateFilters)
       document.getElementById("filter-zone").addEventListener("change", applyFilters);
       document.getElementById("filter-survey").addEventListener("change", applyFilters);
       document.getElementById("filter-remarks").addEventListener("change", applyFilters);
 
-      document
-        .getElementById("export-btn")
-        .addEventListener("click", exportCurrentView);
+      // Export button listener
+      document.getElementById("export-btn").addEventListener("click", exportCurrentView);
 
-      document
-        .getElementById("table-search")
-        .addEventListener("input", (e) => {
-          tableSearchTerm = e.target.value;
-          renderTable(currentFiltered);
-        });
+      // Table Search listener
+      document.getElementById("table-search").addEventListener("input", (e) => {
+        tableSearchTerm = e.target.value;
+        renderTable(currentFiltered);
+      });
 
+      // Update Date/Time
       updateCurrentDateTime();
       setInterval(updateCurrentDateTime, 30 * 1000);
     });
