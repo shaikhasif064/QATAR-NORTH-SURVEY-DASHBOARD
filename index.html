@@ -529,6 +529,19 @@
             <div class="card-title">Survey Pending</div>
             <div class="card-value" id="kpi-survey-pending">–</div>
           </div>
+
+          <!-- NEW CARD: SITES VISITED (Pole OR Controller survey true) -->
+          <div class="card">
+            <div class="card-title">Sites Visited</div>
+            <div class="card-value" id="kpi-sites-visited">–</div>
+            <div class="progress-wrapper">
+              <div class="progress-bar">
+                <div class="progress-fill" id="sites-visited-progress-fill"></div>
+              </div>
+              <div class="progress-label" id="kpi-sites-visited-pct">–</div>
+            </div>
+          </div>
+          <!-- END NEW CARD -->
         </div>
 
         <div class="card map-card">
@@ -784,7 +797,8 @@
         northCompleted = 0,
         // New Counters
         poleCompleted = 0,
-        ctrlCompleted = 0;
+        ctrlCompleted = 0,
+        sitesVisited = 0; // NEW: sites where pole OR controller survey is done
 
       data.forEach((row) => {
         // Remarks Count
@@ -793,7 +807,7 @@
         else if (remarksType === "projects") proj++;
         else if (remarksType === "off") off++;
 
-        // Survey Count
+        // Survey Count (main Survey Status column)
         const isDone = isTruthy(row[COLS.surveyStatus]);
         if (isDone) {
           surveyCompleted++;
@@ -801,14 +815,21 @@
           surveyPending++;
         }
         
-        // Pole Survey Count
-        if (isTruthy(row[COLS.poleSurvey])) {
+        // Pole & Controller Survey Count
+        const poleDone = isTruthy(row[COLS.poleSurvey]);
+        const ctrlDone = isTruthy(row[COLS.ctrlSurvey]);
+
+        if (poleDone) {
             poleCompleted++;
         }
 
-        // Controller Survey Count
-        if (isTruthy(row[COLS.ctrlSurvey])) {
+        if (ctrlDone) {
             ctrlCompleted++;
+        }
+
+        // NEW: Sites Visited = if ANY of the surveys is done
+        if (poleDone || ctrlDone) {
+            sitesVisited++;
         }
 
         // SCATS Count
@@ -876,6 +897,14 @@
         northTotal > 0 ? `${northPct.toFixed(1)}% Completed` : "0% Completed";
       const northFill = document.getElementById("north-progress-fill");
       if (northFill) northFill.style.width = northPct.toFixed(1) + "%";
+
+      // 5. NEW: Sites Visited KPI (Pole OR Controller)
+      const pctVisited = total > 0 ? (sitesVisited / total) * 100 : 0;
+      document.getElementById("kpi-sites-visited").textContent = sitesVisited;
+      document.getElementById("kpi-sites-visited-pct").textContent =
+        (total > 0 ? pctVisited.toFixed(1) + "%" : "–") + " Visited";
+      const visitedFill = document.getElementById("sites-visited-progress-fill");
+      if (visitedFill) visitedFill.style.width = pctVisited.toFixed(1) + "%";
     }
 
     /* ===== FILTER POPULATION ===== */
