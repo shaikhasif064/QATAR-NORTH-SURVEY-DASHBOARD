@@ -148,11 +148,24 @@
       margin-top: 4px;
     }
 
-    /* ===== UNIFIED KPI GRID (ALL SQUARE, TOP) ===== */
+    /* ===== KPI GRIDS ===== */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       grid-gap: 10px;
+    }
+
+    /* top row: number-only cards */
+    .kpi-grid-numbers .kpi-card {
+      min-height: 110px;
+    }
+
+    /* bottom row: circle cards */
+    .kpi-grid-circles {
+      margin-top: 4px;
+    }
+    .kpi-grid-circles .kpi-card {
+      min-height: 130px;
     }
 
     .kpi-card {
@@ -161,7 +174,6 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      min-height: 130px;
     }
 
     .kpi-number {
@@ -177,7 +189,6 @@
       margin-top: 2px;
     }
 
-    /* circle-style KPI inside same square card */
     .kpi-circle-card .card-title {
       margin-bottom: 6px;
     }
@@ -230,7 +241,7 @@
     /* Map */
     #map {
       width: 100%;
-      height: 430px; /* a bit bigger to use more space */
+      height: 480px; /* bigger to fill right side space */
       border-radius: 12px;
       overflow: hidden;
     }
@@ -548,87 +559,13 @@
     <div class="container">
       <!-- LEFT COLUMN -->
       <div class="left-col">
-        <!-- UNIFIED KPI CARDS (SQUARE) -->
-        <div class="kpi-grid">
-          <!-- pure number -->
+        <!-- TOP: NUMBER-ONLY KPI CARDS -->
+        <div class="kpi-grid kpi-grid-numbers">
           <div class="card kpi-card">
             <div class="card-title">Total Junctions</div>
             <div class="kpi-number" id="kpi-total">–</div>
           </div>
 
-          <!-- circle: survey completion -->
-          <div class="card kpi-card kpi-circle-card">
-            <div class="card-title">Survey Completion</div>
-            <div class="circle-wrapper">
-              <div id="circle-survey-fill" class="circle-fill"></div>
-              <div id="circle-survey-inner" class="circle-inner">0 / 0</div>
-            </div>
-            <div class="circle-caption">
-              <strong id="circle-survey-pct">0%</strong> Completed vs total
-            </div>
-          </div>
-
-          <!-- circle: sites visited -->
-          <div class="card kpi-card kpi-circle-card">
-            <div class="card-title">Sites Visited</div>
-            <div class="circle-wrapper">
-              <div id="circle-sites-fill" class="circle-fill"></div>
-              <div id="circle-sites-inner" class="circle-inner">0 / 0</div>
-            </div>
-            <div class="circle-caption">
-              <strong id="circle-sites-pct">0%</strong> Pole or controller survey done
-            </div>
-          </div>
-
-          <!-- circle: pole -->
-          <div class="card kpi-card kpi-circle-card">
-            <div class="card-title">Pole Survey</div>
-            <div class="circle-wrapper">
-              <div id="circle-pole-fill" class="circle-fill"></div>
-              <div id="circle-pole-inner" class="circle-inner">0 / 0</div>
-            </div>
-            <div class="circle-caption">
-              <strong id="circle-pole-pct">0%</strong> Completion
-            </div>
-          </div>
-
-          <!-- circle: controller -->
-          <div class="card kpi-card kpi-circle-card">
-            <div class="card-title">Controller Survey</div>
-            <div class="circle-wrapper">
-              <div id="circle-ctrl-fill" class="circle-fill"></div>
-              <div id="circle-ctrl-inner" class="circle-inner">0 / 0</div>
-            </div>
-            <div class="circle-caption">
-              <strong id="circle-ctrl-pct">0%</strong> Completion
-            </div>
-          </div>
-
-          <!-- circle: Doha -->
-          <div class="card kpi-card kpi-circle-card">
-            <div class="card-title">Doha Region</div>
-            <div class="circle-wrapper">
-              <div id="circle-doha-fill" class="circle-fill"></div>
-              <div id="circle-doha-inner" class="circle-inner">0 / 0</div>
-            </div>
-            <div class="circle-caption">
-              <strong id="circle-doha-pct">0%</strong> Survey completion in Doha
-            </div>
-          </div>
-
-          <!-- circle: North -->
-          <div class="card kpi-card kpi-circle-card">
-            <div class="card-title">North Region</div>
-            <div class="circle-wrapper">
-              <div id="circle-north-fill" class="circle-fill"></div>
-              <div id="circle-north-inner" class="circle-inner">0 / 0</div>
-            </div>
-            <div class="circle-caption">
-              <strong id="circle-north-pct">0%</strong> Survey completion in North
-            </div>
-          </div>
-
-          <!-- number only cards below -->
           <div class="card kpi-card">
             <div class="card-title">Junctions Under O&amp;M</div>
             <div class="kpi-number" id="kpi-om">–</div>
@@ -655,35 +592,104 @@
           </div>
         </div>
 
-        <!-- MAP CARD -->
-        <div class="card map-card">
-          <div class="map-card-header">
-            <div class="card-title">Junction Map (Satellite Imagery)</div>
-            <button id="map-mode-toggle" class="map-toggle-btn map-toggle-btn-active" type="button">
-              Map Mode: Selected Junction Only
-            </button>
+        <!-- SECOND ROW: ALL CIRCLE (PERCENTAGE) CARDS -->
+        <div class="kpi-grid kpi-grid-circles">
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Survey Completion</div>
+            <div class="circle-wrapper">
+              <div id="circle-survey-fill" class="circle-fill"></div>
+              <div id="circle-survey-inner" class="circle-inner">0 / 0</div>
+            </div>
+            <div class="circle-caption">
+              <strong id="circle-survey-pct">0%</strong> Completed vs total
+            </div>
           </div>
-          <div id="map"></div>
-          <div class="map-meta">
-            <span id="lastUpdated"></span>
+
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Sites Visited</div>
+            <div class="circle-wrapper">
+              <div id="circle-sites-fill" class="circle-fill"></div>
+              <div id="circle-sites-inner" class="circle-inner">0 / 0</div>
+            </div>
+            <div class="circle-caption">
+              <strong id="circle-sites-pct">0%</strong> Pole or controller survey done
+            </div>
           </div>
-          <div class="map-legend">
-            <div class="legend-item">
-              <span class="legend-dot legend-completed"></span>
-              <span>Survey completed</span>
+
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Pole Survey</div>
+            <div class="circle-wrapper">
+              <div id="circle-pole-fill" class="circle-fill"></div>
+              <div id="circle-pole-inner" class="circle-inner">0 / 0</div>
             </div>
-            <div class="legend-item">
-              <span class="legend-dot legend-visited"></span>
-              <span>Site visited (Pole/Controller)</span>
+            <div class="circle-caption">
+              <strong id="circle-pole-pct">0%</strong> Completion
             </div>
-            <div class="legend-item">
-              <span class="legend-dot legend-notvisited"></span>
-              <span>Not visited</span>
+          </div>
+
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Controller Survey</div>
+            <div class="circle-wrapper">
+              <div id="circle-ctrl-fill" class="circle-fill"></div>
+              <div id="circle-ctrl-inner" class="circle-inner">0 / 0</div>
             </div>
-            <div class="legend-item">
-              <span class="legend-dot legend-selected"></span>
-              <span>Selected from junction list</span>
+            <div class="circle-caption">
+              <strong id="circle-ctrl-pct">0%</strong> Completion
             </div>
+          </div>
+
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Doha Region</div>
+            <div class="circle-wrapper">
+              <div id="circle-doha-fill" class="circle-fill"></div>
+              <div id="circle-doha-inner" class="circle-inner">0 / 0</div>
+            </div>
+            <div class="circle-caption">
+              <strong id="circle-doha-pct">0%</strong> Survey completion in Doha
+            </div>
+          </div>
+
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">North Region</div>
+            <div class="circle-wrapper">
+              <div id="circle-north-fill" class="circle-fill"></div>
+              <div id="circle-north-inner" class="circle-inner">0 / 0</div>
+            </div>
+            <div class="circle-caption">
+              <strong id="circle-north-pct">0%</strong> Survey completion in North
+            </div>
+          </div>
+        </div>
+
+        <!-- JUNCTION LIST UNDER CARDS -->
+        <div class="card">
+          <div class="card-title">Junction List</div>
+          <div class="table-controls">
+            <div class="table-search">
+              <input
+                type="text"
+                id="table-search"
+                placeholder="Search junction, street, zone, district or remarks..."
+              />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Junct No</th>
+                  <th>Region</th>
+                  <th>Zone</th>
+                  <th>Area</th>
+                  <th>Street</th>
+                  <th>Remarks</th>
+                  <th>Pole Survey</th>
+                  <th>Ctrl Survey</th>
+                  <th>Survey</th>
+                </tr>
+              </thead>
+              <tbody id="junction-table-body"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -741,40 +747,41 @@
           <div id="attention-list" class="card-sub"></div>
         </div>
 
-        <div class="card">
-          <div class="card-title">Junction List</div>
-          <div class="table-controls">
-            <div class="table-search">
-              <input
-                type="text"
-                id="table-search"
-                placeholder="Search junction, street, zone, district or remarks..."
-              />
-            </div>
+        <!-- MAP NOW ON THE RIGHT, BIGGER -->
+        <div class="card map-card">
+          <div class="map-card-header">
+            <div class="card-title">Junction Map (Satellite Imagery)</div>
+            <button id="map-mode-toggle" class="map-toggle-btn map-toggle-btn-active" type="button">
+              Map Mode: Selected Junction Only
+            </button>
           </div>
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Junct No</th>
-                  <th>Region</th>
-                  <th>Zone</th>
-                  <th>Area</th>
-                  <th>Street</th>
-                  <th>Remarks</th>
-                  <th>Pole Survey</th>
-                  <th>Ctrl Survey</th>
-                  <th>Survey</th>
-                </tr>
-              </thead>
-              <tbody id="junction-table-body"></tbody>
-            </table>
+          <div id="map"></div>
+          <div class="map-meta">
+            <span id="lastUpdated"></span>
+          </div>
+          <div class="map-legend">
+            <div class="legend-item">
+              <span class="legend-dot legend-completed"></span>
+              <span>Survey completed</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-visited"></span>
+              <span>Site visited (Pole/Controller)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-notvisited"></span>
+              <span>Not visited</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-selected"></span>
+              <span>Selected from junction list</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- FULL-WIDTH CHARTS ROW TO FILL BOTTOM SPACE -->
+    <!-- FULL-WIDTH CHARTS ROW -->
     <div class="charts-row">
       <div class="card scope-card">
         <div class="card-title">Scope Distribution</div>
