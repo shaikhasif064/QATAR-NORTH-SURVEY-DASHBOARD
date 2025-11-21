@@ -142,86 +142,56 @@
       margin-bottom: 4px;
     }
 
-    .card-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: #111827;
-    }
-
     .card-sub {
       font-size: 11px;
       color: #4b5563;
       margin-top: 4px;
     }
 
-    /* ===== RECTANGULAR KPI GRID ON TOP ===== */
+    /* ===== UNIFIED KPI GRID (ALL SQUARE, TOP) ===== */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       grid-gap: 10px;
     }
 
-    .progress-wrapper {
-      margin-top: 6px;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #22c55e, #0ea5e9);
-      transition: width 0.6s ease;
-    }
-
-    .progress-label {
-      font-size: 11px;
-      color: #4b5563;
-      margin-top: 3px;
-    }
-
-    /* ===== CIRCULAR KPI ROW ===== */
-    .circular-kpi-grid {
-      margin-top: 6px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      grid-gap: 10px;
-    }
-
-    .circular-kpi-card {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 8px 10px 10px;
+    .kpi-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
+      min-height: 130px;
     }
 
-    .circular-kpi-title {
+    .kpi-number {
+      font-size: 26px;
+      font-weight: 700;
+      color: #111827;
+      margin-top: 4px;
+    }
+
+    .kpi-caption {
       font-size: 11px;
       color: #4b5563;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      margin-top: 2px;
+    }
+
+    /* circle-style KPI inside same square card */
+    .kpi-circle-card .card-title {
+      margin-bottom: 6px;
     }
 
     .circle-wrapper {
       width: 74px;
       height: 74px;
-      margin: 0 auto 4px;
       position: relative;
       border-radius: 50%;
       background: #e5e7eb;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-bottom: 4px;
     }
 
     .circle-fill {
@@ -250,7 +220,6 @@
     .circle-caption {
       font-size: 10px;
       color: #6b7280;
-      margin-top: 2px;
     }
 
     .circle-caption strong {
@@ -261,7 +230,7 @@
     /* Map */
     #map {
       width: 100%;
-      height: 380px;
+      height: 430px; /* a bit bigger to use more space */
       border-radius: 12px;
       overflow: hidden;
     }
@@ -516,7 +485,7 @@
 
     .zone-chart-wrapper,
     .scope-chart-wrapper {
-      height: 220px;
+      height: 230px;
     }
 
     .zone-card {
@@ -579,125 +548,29 @@
     <div class="container">
       <!-- LEFT COLUMN -->
       <div class="left-col">
-        <!-- TOP RECTANGULAR KPI CARDS -->
+        <!-- UNIFIED KPI CARDS (SQUARE) -->
         <div class="kpi-grid">
-          <div class="card">
+          <!-- pure number -->
+          <div class="card kpi-card">
             <div class="card-title">Total Junctions</div>
-            <div class="card-value" id="kpi-total">–</div>
+            <div class="kpi-number" id="kpi-total">–</div>
           </div>
 
-          <div class="card">
-            <div class="card-title">Doha Region</div>
-            <div class="card-value" id="kpi-doha-total">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="doha-progress-fill"></div>
-              </div>
-              <div class="progress-label" id="kpi-doha-pct">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">North Region</div>
-            <div class="card-value" id="kpi-north-total">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="north-progress-fill"></div>
-              </div>
-              <div class="progress-label" id="kpi-north-pct">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Pole Survey Status</div>
-            <div class="card-value" id="kpi-pole-completed">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="pole-progress-fill"></div>
-              </div>
-              <div class="progress-label" id="kpi-pole-pct">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Controller Survey Status</div>
-            <div class="card-value" id="kpi-ctrl-completed">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="ctrl-progress-fill"></div>
-              </div>
-              <div class="progress-label" id="kpi-ctrl-pct">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Junctions Under O&amp;M</div>
-            <div class="card-value" id="kpi-om">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Junctions Under Projects</div>
-            <div class="card-value" id="kpi-projects">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Junctions Switched Off</div>
-            <div class="card-value" id="kpi-off">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">SCATS Operated</div>
-            <div class="card-value" id="kpi-scats-operated">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Non-SCATS (Isolated)</div>
-            <div class="card-value" id="kpi-non-scats">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Survey Completed</div>
-            <div class="card-value" id="kpi-survey-completed">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="survey-progress-fill"></div>
-              </div>
-              <div class="progress-label" id="kpi-survey-pct">–</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Survey Pending</div>
-            <div class="card-value" id="kpi-survey-pending">–</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Sites Visited</div>
-            <div class="card-value" id="kpi-sites-visited">–</div>
-            <div class="progress-wrapper">
-              <div class="progress-bar">
-                <div class="progress-fill" id="sites-visited-progress-fill"></div>
-              </div>
-              <div class="progress-label" id="kpi-sites-visited-pct">–</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- CIRCULAR KPIs UNDERNEATH -->
-        <div class="circular-kpi-grid">
-          <div class="circular-kpi-card">
-            <div class="circular-kpi-title">Survey Completion</div>
+          <!-- circle: survey completion -->
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Survey Completion</div>
             <div class="circle-wrapper">
               <div id="circle-survey-fill" class="circle-fill"></div>
               <div id="circle-survey-inner" class="circle-inner">0 / 0</div>
             </div>
             <div class="circle-caption">
-              <strong id="circle-survey-pct">0%</strong> Completed vs total junctions
+              <strong id="circle-survey-pct">0%</strong> Completed vs total
             </div>
           </div>
 
-          <div class="circular-kpi-card">
-            <div class="circular-kpi-title">Sites Visited</div>
+          <!-- circle: sites visited -->
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Sites Visited</div>
             <div class="circle-wrapper">
               <div id="circle-sites-fill" class="circle-fill"></div>
               <div id="circle-sites-inner" class="circle-inner">0 / 0</div>
@@ -707,30 +580,33 @@
             </div>
           </div>
 
-          <div class="circular-kpi-card">
-            <div class="circular-kpi-title">Pole Survey</div>
+          <!-- circle: pole -->
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Pole Survey</div>
             <div class="circle-wrapper">
               <div id="circle-pole-fill" class="circle-fill"></div>
               <div id="circle-pole-inner" class="circle-inner">0 / 0</div>
             </div>
             <div class="circle-caption">
-              <strong id="circle-pole-pct">0%</strong> Pole survey completion
+              <strong id="circle-pole-pct">0%</strong> Completion
             </div>
           </div>
 
-          <div class="circular-kpi-card">
-            <div class="circular-kpi-title">Controller Survey</div>
+          <!-- circle: controller -->
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Controller Survey</div>
             <div class="circle-wrapper">
               <div id="circle-ctrl-fill" class="circle-fill"></div>
               <div id="circle-ctrl-inner" class="circle-inner">0 / 0</div>
             </div>
             <div class="circle-caption">
-              <strong id="circle-ctrl-pct">0%</strong> Controller survey completion
+              <strong id="circle-ctrl-pct">0%</strong> Completion
             </div>
           </div>
 
-          <div class="circular-kpi-card">
-            <div class="circular-kpi-title">Doha Region</div>
+          <!-- circle: Doha -->
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">Doha Region</div>
             <div class="circle-wrapper">
               <div id="circle-doha-fill" class="circle-fill"></div>
               <div id="circle-doha-inner" class="circle-inner">0 / 0</div>
@@ -740,8 +616,9 @@
             </div>
           </div>
 
-          <div class="circular-kpi-card">
-            <div class="circular-kpi-title">North Region</div>
+          <!-- circle: North -->
+          <div class="card kpi-card kpi-circle-card">
+            <div class="card-title">North Region</div>
             <div class="circle-wrapper">
               <div id="circle-north-fill" class="circle-fill"></div>
               <div id="circle-north-inner" class="circle-inner">0 / 0</div>
@@ -749,6 +626,32 @@
             <div class="circle-caption">
               <strong id="circle-north-pct">0%</strong> Survey completion in North
             </div>
+          </div>
+
+          <!-- number only cards below -->
+          <div class="card kpi-card">
+            <div class="card-title">Junctions Under O&amp;M</div>
+            <div class="kpi-number" id="kpi-om">–</div>
+          </div>
+
+          <div class="card kpi-card">
+            <div class="card-title">Junctions Under Projects</div>
+            <div class="kpi-number" id="kpi-projects">–</div>
+          </div>
+
+          <div class="card kpi-card">
+            <div class="card-title">Junctions Switched Off</div>
+            <div class="kpi-number" id="kpi-off">–</div>
+          </div>
+
+          <div class="card kpi-card">
+            <div class="card-title">SCATS Operated</div>
+            <div class="kpi-number" id="kpi-scats-operated">–</div>
+          </div>
+
+          <div class="card kpi-card">
+            <div class="card-title">Non-SCATS (Isolated)</div>
+            <div class="kpi-number" id="kpi-non-scats">–</div>
           </div>
         </div>
 
@@ -1072,7 +975,6 @@
         proj = 0,
         off = 0,
         surveyCompleted = 0,
-        surveyPending = 0,
         scatsOperated = 0,
         nonScats = 0,
         dohaTotal = 0,
@@ -1091,7 +993,6 @@
 
         const isDone = isTruthy(row[COLS.surveyStatus]);
         if (isDone) surveyCompleted++;
-        else surveyPending++;
 
         const poleDone = isTruthy(row[COLS.poleSurvey]);
         const ctrlDone = isTruthy(row[COLS.ctrlSurvey]);
@@ -1113,58 +1014,23 @@
         }
       });
 
-      // Rectangular KPI values
+      // number KPIs
       document.getElementById("kpi-total").textContent = total;
       document.getElementById("kpi-om").textContent = om;
       document.getElementById("kpi-projects").textContent = proj;
       document.getElementById("kpi-off").textContent = off;
-      document.getElementById("kpi-survey-completed").textContent = surveyCompleted;
-      document.getElementById("kpi-survey-pending").textContent = surveyPending;
       document.getElementById("kpi-scats-operated").textContent = scatsOperated;
       document.getElementById("kpi-non-scats").textContent = nonScats;
-      document.getElementById("kpi-sites-visited").textContent = sitesVisited;
 
+      // percentages
       const pctSurvey = total > 0 ? (surveyCompleted / total) * 100 : 0;
-      document.getElementById("kpi-survey-pct").textContent =
-        (total > 0 ? pctSurvey.toFixed(1) + "%" : "–") + " of total";
-      const surveyFill = document.getElementById("survey-progress-fill");
-      if (surveyFill) surveyFill.style.width = pctSurvey.toFixed(1) + "%";
-
-      const pctPole = total > 0 ? (poleCompleted / total) * 100 : 0;
-      document.getElementById("kpi-pole-completed").textContent = poleCompleted;
-      document.getElementById("kpi-pole-pct").textContent =
-        (total > 0 ? pctPole.toFixed(1) + "%" : "–") + " Completed";
-      const poleFill = document.getElementById("pole-progress-fill");
-      if (poleFill) poleFill.style.width = pctPole.toFixed(1) + "%";
-
-      const pctCtrl = total > 0 ? (ctrlCompleted / total) * 100 : 0;
-      document.getElementById("kpi-ctrl-completed").textContent = ctrlCompleted;
-      document.getElementById("kpi-ctrl-pct").textContent =
-        (total > 0 ? pctCtrl.toFixed(1) + "%" : "–") + " Completed";
-      const ctrlFill = document.getElementById("ctrl-progress-fill");
-      if (ctrlFill) ctrlFill.style.width = pctCtrl.toFixed(1) + "%";
-
-      const dohaPct = dohaTotal > 0 ? (dohaCompleted / dohaTotal) * 100 : 0;
-      document.getElementById("kpi-doha-total").textContent = dohaTotal;
-      document.getElementById("kpi-doha-pct").textContent =
-        dohaTotal > 0 ? `${dohaPct.toFixed(1)}% Completed` : "0% Completed";
-      const dohaFill = document.getElementById("doha-progress-fill");
-      if (dohaFill) dohaFill.style.width = dohaPct.toFixed(1) + "%";
-
-      const northPct = northTotal > 0 ? (northCompleted / northTotal) * 100 : 0;
-      document.getElementById("kpi-north-total").textContent = northTotal;
-      document.getElementById("kpi-north-pct").textContent =
-        northTotal > 0 ? `${northPct.toFixed(1)}% Completed` : "0% Completed";
-      const northFill = document.getElementById("north-progress-fill");
-      if (northFill) northFill.style.width = northPct.toFixed(1) + "%";
-
       const pctVisited = total > 0 ? (sitesVisited / total) * 100 : 0;
-      document.getElementById("kpi-sites-visited-pct").textContent =
-        (total > 0 ? pctVisited.toFixed(1) + "%" : "–") + " Visited";
-      const visitedFill = document.getElementById("sites-visited-progress-fill");
-      if (visitedFill) visitedFill.style.width = pctVisited.toFixed(1) + "%";
+      const pctPole = total > 0 ? (poleCompleted / total) * 100 : 0;
+      const pctCtrl = total > 0 ? (ctrlCompleted / total) * 100 : 0;
+      const dohaPct = dohaTotal > 0 ? (dohaCompleted / dohaTotal) * 100 : 0;
+      const northPct = northTotal > 0 ? (northCompleted / northTotal) * 100 : 0;
 
-      // Circle KPIs
+      // circle KPIs
       updateCircularKpi({
         fillId: "circle-survey-fill",
         innerId: "circle-survey-inner",
