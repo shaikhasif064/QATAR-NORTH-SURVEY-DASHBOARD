@@ -271,7 +271,7 @@
     /* ===== KPI GRID ===== */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
       gap: 8px;
     }
 
@@ -286,9 +286,9 @@
       box-shadow: 0 16px 35px rgba(15, 23, 42, 0.9);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      min-height: 84px;
-      gap: 2px;
+      justify-content: flex-start;
+      gap: 4px;
+      min-height: 100px;
       transition:
         transform var(--transition-fast),
         box-shadow var(--transition-fast),
@@ -328,7 +328,6 @@
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--text-soft);
-      margin-bottom: 4px;
     }
 
     .kpi-value {
@@ -340,29 +339,87 @@
     .kpi-subtext {
       font-size: 11px;
       color: var(--text-subtle);
-      margin-top: 2px;
-    }
-
-    .progress-track {
-      margin-top: 6px;
-      height: 5px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.8);
-      overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-    }
-
-    .progress-bar {
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-      transition: width 0.4s ease-out;
     }
 
     .kpi-pct {
       font-size: 11px;
       color: var(--text-strong);
-      margin-top: 3px;
+      margin-top: 2px;
+    }
+
+    /* ===== CIRCLE KPIs (same style as Traffic) ===== */
+    .kpi-circle-layout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .kpi-circle-compact .circle-wrapper {
+      width: 56px;
+      height: 56px;
+    }
+
+    .kpi-circle-compact .circle-inner {
+      width: 40px;
+      height: 40px;
+      font-size: 10px;
+    }
+
+    .kpi-circle-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .circle-caption {
+      font-size: 10px;
+      color: var(--text-subtle);
+    }
+
+    .circle-caption strong {
+      font-weight: 600;
+      color: var(--accent-green);
+      margin-right: 2px;
+    }
+
+    .circle-wrapper {
+      width: 72px;
+      height: 72px;
+      position: relative;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 10%, #f9fafb, #374151);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 10px 32px rgba(15, 23, 42, 0.9);
+    }
+
+    .circle-fill {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent-green) 0deg, rgba(15, 23, 42, 0.32) 0deg);
+      opacity: 0.96;
+      transition: background 360ms ease-out;
+    }
+
+    .circle-inner {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 0, #f9fafb, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #f9fafb;
+      padding: 0 4px;
+      line-height: 1.2;
+      border: 1px solid rgba(248, 250, 252, 0.25);
     }
 
     /* ===== INSIGHTS BAR ===== */
@@ -439,13 +496,14 @@
     .filters select {
       padding: 6px 12px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.85);
       font-size: 11px;
       min-width: 130px;
-      background:
+      background-color: rgba(15, 23, 42, 0.98) !important;
+      background-image:
         radial-gradient(circle at top left, rgba(248, 250, 252, 0.06), transparent 60%),
-        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.96));
-      color: var(--text-strong);
+        linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98)) !important;
+      color: var(--text-strong) !important;
       outline: none;
       transition:
         border-color var(--transition-fast),
@@ -460,14 +518,14 @@
     .filters select:focus {
       border-color: rgba(56, 189, 248, 0.9);
       box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.8);
-      background:
+      background-image:
         radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 60%),
-        linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98));
+        linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(15, 23, 42, 1)) !important;
       transform: translateY(-1px);
     }
 
     .filters select:hover {
-      border-color: rgba(248, 250, 252, 0.35);
+      border-color: rgba(248, 250, 252, 0.5);
     }
 
     .filters-row-extra {
@@ -938,221 +996,286 @@
         <!-- KPI GRID -->
         <section class="section section-kpis">
           <div class="kpi-grid">
-            <!-- row 1 -->
+            <!-- TOTAL ASSETS -->
             <div class="kpi-card">
               <div class="kpi-label">Total ITS Assets</div>
               <div class="kpi-value" id="total-assets-count">–</div>
             </div>
 
+            <!-- ASSETS SURVEYED -->
             <div class="kpi-card">
               <div class="kpi-label">Assets Surveyed</div>
               <div class="kpi-value" id="assets-surveyed-count">–</div>
-              <div class="kpi-subtext" id="assets-surveyed-percent-text">–</div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-survey-fill" class="circle-fill"></div>
+                  <div id="circle-survey-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-survey-pct">0%</strong> of ITS assets surveyed
+                  </div>
+                  <div class="kpi-pct" id="survey-completion-text">–</div>
+                </div>
+              </div>
             </div>
 
+            <!-- SURVEY COMPLETION % (global) -->
             <div class="kpi-card">
               <div class="kpi-label">Survey Completion</div>
               <div class="kpi-value" id="survey-completion-percent">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="survey-completion-bar"
-                  style="width: 0%"
-                ></div>
+              <!-- Circle already above in Assets Surveyed card, so here just a text summary -->
+              <div class="kpi-subtext">
+                Overall completion rate for all ITS assets in the current filter.
               </div>
-              <div class="kpi-pct" id="survey-completion-text">–</div>
             </div>
 
+            <!-- PENDING -->
             <div class="kpi-card">
               <div class="kpi-label">Assets Pending</div>
               <div class="kpi-value" id="assets-pending-count">–</div>
               <div class="kpi-subtext">Assets with survey status “Pending”.</div>
             </div>
 
+            <!-- CCTV -->
             <div class="kpi-card">
               <div class="kpi-label">CCTV Assets</div>
               <div class="kpi-value" id="cctv-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="cctv-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-cctv-fill" class="circle-fill"></div>
+                  <div id="circle-cctv-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-cctv-pct">0%</strong> CCTV surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="cctv-survey-text">–</div>
             </div>
 
+            <!-- DMS -->
             <div class="kpi-card">
               <div class="kpi-label">DMS Assets</div>
               <div class="kpi-value" id="dms-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="dms-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-dms-fill" class="circle-fill"></div>
+                  <div id="circle-dms-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-dms-pct">0%</strong> DMS surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="dms-survey-text">–</div>
             </div>
 
-            <!-- row 2 -->
+            <!-- RVD -->
             <div class="kpi-card">
               <div class="kpi-label">RVD Assets</div>
               <div class="kpi-value" id="rvd-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="rvd-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-rvd-fill" class="circle-fill"></div>
+                  <div id="circle-rvd-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-rvd-pct">0%</strong> RVD surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="rvd-survey-text">–</div>
             </div>
 
+            <!-- PTZ -->
             <div class="kpi-card">
               <div class="kpi-label">PTZ Assets</div>
               <div class="kpi-value" id="ptz-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="ptz-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-ptz-fill" class="circle-fill"></div>
+                  <div id="circle-ptz-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-ptz-pct">0%</strong> PTZ surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="ptz-survey-text">–</div>
             </div>
 
+            <!-- LPR -->
             <div class="kpi-card">
               <div class="kpi-label">LPR Assets</div>
               <div class="kpi-value" id="lpr-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="lpr-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-lpr-fill" class="circle-fill"></div>
+                  <div id="circle-lpr-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-lpr-pct">0%</strong> LPR surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="lpr-survey-text">–</div>
             </div>
 
+            <!-- AID -->
             <div class="kpi-card">
               <div class="kpi-label">AID Assets</div>
               <div class="kpi-value" id="aid-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="aid-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-aid-fill" class="circle-fill"></div>
+                  <div id="circle-aid-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-aid-pct">0%</strong> AID surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="aid-survey-text">–</div>
             </div>
 
+            <!-- OVDS -->
             <div class="kpi-card">
               <div class="kpi-label">OVDS Assets</div>
               <div class="kpi-value" id="ovds-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="ovds-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-ovds-fill" class="circle-fill"></div>
+                  <div id="circle-ovds-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-ovds-pct">0%</strong> OVDS surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="ovds-survey-text">–</div>
             </div>
 
+            <!-- RWIS -->
             <div class="kpi-card">
               <div class="kpi-label">RWIS Assets</div>
               <div class="kpi-value" id="rwis-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="rwis-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-rwis-fill" class="circle-fill"></div>
+                  <div id="circle-rwis-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-rwis-pct">0%</strong> RWIS surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="rwis-survey-text">–</div>
             </div>
 
-            <!-- row 3 -->
+            <!-- LCS -->
             <div class="kpi-card">
               <div class="kpi-label">LCS Assets</div>
               <div class="kpi-value" id="lcs-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="lcs-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-lcs-fill" class="circle-fill"></div>
+                  <div id="circle-lcs-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-lcs-pct">0%</strong> LCS surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="lcs-survey-text">–</div>
             </div>
 
+            <!-- AQMS -->
             <div class="kpi-card">
               <div class="kpi-label">AQMS Assets</div>
               <div class="kpi-value" id="aqms-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="aqms-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-aqms-fill" class="circle-fill"></div>
+                  <div id="circle-aqms-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-aqms-pct">0%</strong> AQMS surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="aqms-survey-text">–</div>
             </div>
 
+            <!-- Magnetometer AP -->
             <div class="kpi-card">
               <div class="kpi-label">Magnetometer AP</div>
               <div class="kpi-value" id="magap-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="magap-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-magap-fill" class="circle-fill"></div>
+                  <div id="circle-magap-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-magap-pct">0%</strong> AP surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="magap-survey-text">–</div>
             </div>
 
+            <!-- Magnetometer Dots -->
             <div class="kpi-card">
               <div class="kpi-label">Magnetometer Dots</div>
               <div class="kpi-value" id="magdot-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="magdot-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-magdot-fill" class="circle-fill"></div>
+                  <div id="circle-magdot-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-magdot-pct">0%</strong> Dots surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="magdot-survey-text">–</div>
             </div>
 
+            <!-- WIM Sensor -->
             <div class="kpi-card">
               <div class="kpi-label">WIM Sensor</div>
               <div class="kpi-value" id="wim-sensor-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="wim-sensor-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-wim-sensor-fill" class="circle-fill"></div>
+                  <div id="circle-wim-sensor-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-wim-sensor-pct">0%</strong> Sensors surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="wim-sensor-survey-text">–</div>
             </div>
 
+            <!-- WIM Controller -->
             <div class="kpi-card">
               <div class="kpi-label">WIM Controller</div>
               <div class="kpi-value" id="wim-controller-assets-count">–</div>
-              <div class="progress-track">
-                <div
-                  class="progress-bar"
-                  id="wim-controller-survey-bar"
-                  style="width: 0%"
-                ></div>
+              <div class="kpi-circle-layout kpi-circle-compact">
+                <div class="circle-wrapper">
+                  <div id="circle-wim-controller-fill" class="circle-fill"></div>
+                  <div id="circle-wim-controller-inner" class="circle-inner">0 / 0</div>
+                </div>
+                <div class="kpi-circle-text">
+                  <div class="circle-caption">
+                    <strong id="circle-wim-controller-pct">0%</strong> Controllers surveyed
+                  </div>
+                </div>
               </div>
-              <div class="kpi-pct" id="wim-controller-survey-text">–</div>
             </div>
 
+            <!-- REGION COUNTS (no circles, just numbers) -->
             <div class="kpi-card">
               <div class="kpi-label">Assets in Doha Region</div>
               <div class="kpi-value" id="assets-doha-count">–</div>
@@ -1380,6 +1503,31 @@
       });
     }
 
+    // Circular KPI updater (same logic as Traffic dashboard)
+    function updateCircularKpi({ fillId, innerId, pctId, numerator, denominator, pct }) {
+      const fillEl = document.getElementById(fillId);
+      const innerEl = document.getElementById(innerId);
+      const pctEl = document.getElementById(pctId);
+
+      const safeNum = Number.isFinite(numerator) ? numerator : 0;
+      const safeDen = Number.isFinite(denominator) ? denominator : 0;
+      const safePct = Number.isFinite(pct) && pct >= 0
+        ? Math.max(0, Math.min(100, pct))
+        : 0;
+
+      if (fillEl) {
+        const angle = (safePct / 100) * 360;
+        fillEl.style.background =
+          `conic-gradient(#22c55e 0deg ${angle}deg, rgba(15,23,42,0.45) ${angle}deg 360deg)`;
+      }
+      if (innerEl) {
+        innerEl.textContent = safeDen > 0 ? `${safeNum} / ${safeDen}` : `${safeNum} / 0`;
+      }
+      if (pctEl) {
+        pctEl.textContent = `${safePct.toFixed(1)}%`;
+      }
+    }
+
     // === DATA LOADING ====================================================
 
     function loadData() {
@@ -1572,7 +1720,7 @@
       }
     }
 
-    // === SUMMARY CARDS ===================================================
+    // === SUMMARY CARDS & CIRCLES ========================================
 
     function deviceStats(assets, canonicalType) {
       const matching = assets.filter((a) => a.deviceType === canonicalType);
@@ -1584,20 +1732,22 @@
       return { total, completed, percent };
     }
 
-    function setCardStats(type, stats) {
-      const { total, percent } = stats;
-      const countEl = document.getElementById(`${type}-assets-count`);
-      const barEl = document.getElementById(`${type}-survey-bar`);
-      const textEl = document.getElementById(`${type}-survey-text`);
-      if (!countEl || !barEl || !textEl) return;
+    function setCircleStats(prefix, stats) {
+      const { total, completed, percent } = stats;
 
-      countEl.textContent = total.toString();
-      barEl.style.width = percent.toFixed(1) + "%";
-      textEl.textContent =
-        stats.completed +
-        " surveyed (" +
-        formatPercent(isFinite(percent) ? percent : 0) +
-        ")";
+      // main count number
+      const countEl = document.getElementById(`${prefix}-assets-count`);
+      if (countEl) countEl.textContent = total.toString();
+
+      // circle
+      updateCircularKpi({
+        fillId: `circle-${prefix}-fill`,
+        innerId: `circle-${prefix}-inner`,
+        pctId: `circle-${prefix}-pct`,
+        numerator: completed,
+        denominator: total,
+        pct: percent
+      });
     }
 
     function updateSummaryCards(assets) {
@@ -1610,22 +1760,27 @@
 
       document.getElementById("total-assets-count").textContent = total;
       document.getElementById("assets-surveyed-count").textContent = surveyed;
-      document.getElementById(
-        "assets-surveyed-percent-text"
-      ).textContent = formatPercent(completionPct) + " of ITS assets";
       document.getElementById("assets-pending-count").textContent = pending;
 
       document.getElementById("survey-completion-percent").textContent =
         formatPercent(completionPct);
-      document.getElementById("survey-completion-bar").style.width =
-        completionPct.toFixed(1) + "%";
       document.getElementById("survey-completion-text").textContent =
         surveyed +
         " of " +
         total +
-        " assets surveyed (" +
+        " ITS assets surveyed (" +
         formatPercent(completionPct) +
         ").";
+
+      // global circle
+      updateCircularKpi({
+        fillId: "circle-survey-fill",
+        innerId: "circle-survey-inner",
+        pctId: "circle-survey-pct",
+        numerator: surveyed,
+        denominator: total,
+        pct: completionPct
+      });
 
       const assetsDoha = assets.filter((a) =>
         a.zoneArea.toLowerCase().includes("doha")
@@ -1637,20 +1792,21 @@
       document.getElementById("assets-doha-count").textContent = assetsDoha;
       document.getElementById("assets-north-count").textContent = assetsNorth;
 
-      setCardStats("cctv", deviceStats(assets, "CCTV"));
-      setCardStats("dms", deviceStats(assets, "DMS"));
-      setCardStats("rvd", deviceStats(assets, "RVD"));
-      setCardStats("ptz", deviceStats(assets, "PTZ"));
-      setCardStats("lpr", deviceStats(assets, "LPR"));
-      setCardStats("aid", deviceStats(assets, "AID"));
-      setCardStats("ovds", deviceStats(assets, "OVDS"));
-      setCardStats("rwis", deviceStats(assets, "RWIS"));
-      setCardStats("lcs", deviceStats(assets, "LCS"));
-      setCardStats("aqms", deviceStats(assets, "AQMS"));
-      setCardStats("magap", deviceStats(assets, "Magnetometer AP"));
-      setCardStats("magdot", deviceStats(assets, "Magnetometer Dots"));
-      setCardStats("wim-sensor", deviceStats(assets, "WIM Sensor"));
-      setCardStats("wim-controller", deviceStats(assets, "WIM Controller"));
+      // device circles
+      setCircleStats("cctv", deviceStats(assets, "CCTV"));
+      setCircleStats("dms", deviceStats(assets, "DMS"));
+      setCircleStats("rvd", deviceStats(assets, "RVD"));
+      setCircleStats("ptz", deviceStats(assets, "PTZ"));
+      setCircleStats("lpr", deviceStats(assets, "LPR"));
+      setCircleStats("aid", deviceStats(assets, "AID"));
+      setCircleStats("ovds", deviceStats(assets, "OVDS"));
+      setCircleStats("rwis", deviceStats(assets, "RWIS"));
+      setCircleStats("lcs", deviceStats(assets, "LCS"));
+      setCircleStats("aqms", deviceStats(assets, "AQMS"));
+      setCircleStats("magap", deviceStats(assets, "Magnetometer AP"));
+      setCircleStats("magdot", deviceStats(assets, "Magnetometer Dots"));
+      setCircleStats("wim-sensor", deviceStats(assets, "WIM Sensor"));
+      setCircleStats("wim-controller", deviceStats(assets, "WIM Controller"));
     }
 
     // === MAP =============================================================
