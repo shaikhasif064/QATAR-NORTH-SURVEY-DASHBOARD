@@ -2678,5 +2678,197 @@
       }
     });
   </script>
+
+  <script>
+    (function () {
+      // Helper to set and persist theme
+      function setTheme(mode) {
+        var theme = mode === "light" ? "light" : "dark";
+        document.body.setAttribute("data-theme", theme);
+        try {
+          localStorage.setItem("dashboard-theme", theme);
+        } catch (e) {
+          // Ignore storage errors
+        }
+        var btn = document.getElementById("theme-toggle-btn");
+        if (btn) {
+          btn.setAttribute(
+            "aria-label",
+            theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
+          );
+          btn.textContent = theme === "dark" ? "🌙" : "☀️";
+        }
+      }
+
+      // Override the applyTheme function used by system preference listener
+      window.applyTheme = function (prefersDark) {
+        try {
+          var stored = localStorage.getItem("dashboard-theme");
+          if (stored === "dark" || stored === "light") {
+            document.body.setAttribute("data-theme", stored);
+            return;
+          }
+        } catch (e) {
+          // ignore
+        }
+        document.body.setAttribute("data-theme", prefersDark ? "dark" : "light");
+      };
+
+      window.addEventListener("DOMContentLoaded", function () {
+        // Inject theme toggle button into nav
+        var navInner = document.querySelector(".top-nav-inner");
+        if (navInner) {
+          var btn = document.createElement("button");
+          btn.id = "theme-toggle-btn";
+          btn.type = "button";
+          btn.className = "theme-toggle-btn";
+          btn.textContent = "🌙";
+          btn.setAttribute("aria-label", "Toggle light or dark theme");
+          navInner.appendChild(btn);
+
+          btn.addEventListener("click", function () {
+            var current = document.body.getAttribute("data-theme") || "dark";
+            var next = current === "dark" ? "light" : "dark";
+            setTheme(next);
+          });
+
+          // Apply stored theme override, if any, after initial auto-theme
+          try {
+            var stored = localStorage.getItem("dashboard-theme");
+            if (stored === "dark" || stored === "light") {
+              document.body.setAttribute("data-theme", stored);
+              btn.textContent = stored === "dark" ? "🌙" : "☀️";
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        // Lock the map view to Qatar bounds once Leaflet map is ready
+        var qatarBounds = [
+          [24.47, 50.6],
+          [26.32, 52.0]
+        ];
+
+        function tryLockMap() {
+          if (window.map && typeof window.map.setMaxBounds === "function") {
+            window.map.setMaxBounds(qatarBounds);
+            window.map.setMinZoom(7);
+            return true;
+          }
+          return false;
+        }
+
+        if (!tryLockMap()) {
+          var attempts = 0;
+          var intId = setInterval(function () {
+            attempts++;
+            if (tryLockMap() || attempts > 40) {
+              clearInterval(intId);
+            }
+          }, 250);
+        }
+
+        // Dynamic filename builder
+        function buildFilename(base, ext) {
+          var now = new Date();
+          var pad = function (n) {
+            return String(n).padStart(2, "0");
+          };
+          var stamp =
+            now.getFullYear() +
+            "-" +
+            pad(now.getMonth() + 1) +
+            "-" +
+            pad(now.getDate()) +
+            "_" +
+            pad(now.getHours()) +
+            "-" +
+            pad(now.getMinutes());
+          return base + "_" + stamp + "." + ext;
+        }
+
+        // Override export functions to use dynamic filenames
+        if (typeof window.buildTrafficCurrentViewTableData === "function") {
+          window.exportCurrentViewCsv = function () {
+            var data = buildTrafficCurrentViewTableData();
+            if (!data) {
+              alert("No data to export.");
+              return;
+            }
+            var headers = data.headers;
+            var body = data.body;
+            var csvLines = [];
+            csvLines.push(headers.join(","));
+            body.forEach(function (row) {
+              var line = row
+                .map(function (val) {
+                  var v = val == null ? "" : String(val).replace(/"/g, '""');
+                  return '"' + v + '"';
+                })
+                .join(",");
+              csvLines.push(line);
+            });
+            var blob = new Blob([csvLines.join("\n")], {
+              type: "text/csv;charset=utf-8;"
+            });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = buildFilename("qatar_north_junctions_view", "csv");
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          };
+
+          window.exportCurrentViewExcel = function () {
+            var data = buildTrafficCurrentViewTableData();
+            if (!data || !window.XLSX) {
+              alert("No data to export or Excel export library not loaded.");
+              return;
+            }
+            var headers = data.headers;
+            var body = data.body;
+            var wsData = [headers].concat(body);
+            var wb = XLSX.utils.book_new();
+            var ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Current View");
+            XLSX.writeFile(
+              wb,
+              buildFilename("qatar_north_junctions_view", "xlsx")
+            );
+          };
+
+          window.exportCurrentViewPdf = function () {
+            var data = buildTrafficCurrentViewTableData();
+            if (!data || !window.jspdf || !window.jspdf.jsPDF) {
+              alert("No data to export or PDF export library not loaded.");
+              return;
+            }
+            var headers = data.headers;
+            var body = data.body;
+            var doc = new window.jspdf.jsPDF({ orientation: "landscape" });
+            doc.setFontSize(11);
+            doc.text(
+              "Qatar North Traffic Junctions - Current View",
+              14,
+              12
+            );
+            if (doc.autoTable) {
+              doc.autoTable({
+                head: [headers],
+                body: body,
+                startY: 16,
+                styles: { fontSize: 6, cellPadding: 1.2 },
+                headStyles: { fillColor: [15, 23, 42] }
+              });
+            }
+            doc.save(buildFilename("qatar_north_junctions_view", "pdf"));
+          };
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
