@@ -1,27 +1,19 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Qatar North Traffic Junctions Survey Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
+<meta charset="utf-8"/>
+<title>Qatar North Traffic Junctions Survey Dashboard</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link crossorigin="" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
     :root {
       --aktor-blue: #0b1120;
@@ -164,13 +156,10 @@
       min-height: 100vh;
       margin: 0;
       padding-bottom: 24px;
-      /* More colorful multi-layer background */
+      /* Simplified, sober dark background */
       background:
-        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.26), transparent 55%),
-        radial-gradient(circle at 100% 0%, rgba(236, 72, 153, 0.22), transparent 55%),
-        radial-gradient(circle at 0% 100%, rgba(249, 115, 22, 0.18), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.22), transparent 60%),
-        linear-gradient(180deg, #020617 0%, #020617 18%, #020617 100%);
+        radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.16), transparent 55%),
+        linear-gradient(180deg, #020617 0%, #020617 100%);
     }
 
     .shell {
@@ -600,11 +589,11 @@
   border: 1px solid rgba(148, 163, 184, 0.85);
   font-size: 11px;
   min-width: 130px;
-  background-color: rgba(15, 23, 42, 0.98) !important;
+  background-color: rgba(15, 23, 42, 0.98);
   background-image:
     radial-gradient(circle at top left, rgba(248, 250, 252, 0.06), transparent 60%),
-    linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98)) !important;
-  color: var(--text-strong) !important;
+    linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98));
+  color: var(--text-strong);
   outline: none;
   transition:
     border-color var(--transition-fast),
@@ -1341,396 +1330,372 @@
       color: var(--text-soft);
     }
 
-  </style>
-</head>
+  
+    .header-right {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .header-nav {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+    }
+</style>
+</link></head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<nav aria-label="Primary" class="top-nav" style="display:none;">
+<div class="top-nav-inner">
+<div class="top-nav-brand">
+<span aria-hidden="true" class="brand-dot"></span>
 
-  <nav class="top-nav" aria-label="Primary">
-    <div class="top-nav-inner">
-      <div class="top-nav-brand">
-        <span class="brand-dot" aria-hidden="true"></span>
-        <span class="brand-text">Qatar North Survey</span>
-      </div>
-      <ul class="top-nav-links">
-        <li><a href="index.html" data-page="traffic">Traffic Junctions</a></li>
-        <li><a href="its-dashboard.html" data-page="its">ITS Dashboard</a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <div class="page">
-    <div class="shell">
-      <!-- HEADER -->
-      <header>
-        <div class="header-left">
-          <img src="aktor-logo.png" alt="AKTOR Qatar" class="logo-img" />
-        </div>
-
-        <div class="header-center">
-          <h1>Qatar North Traffic Junctions Survey</h1>
-          <div class="subtitle">
+</div>
+<ul class="top-nav-links">
+<li><a data-page="traffic" href="index.html">Traffic Junctions</a></li>
+<li><a data-page="its" href="its-dashboard.html">ITS Dashboard</a></li>
+</ul>
+</div>
+</nav>
+<div class="page">
+<div class="shell">
+<!-- HEADER -->
+<header>
+<div class="header-left">
+<img alt="AKTOR Qatar" class="logo-img" src="aktor-logo.png"/>
+</div>
+<div class="header-center">
+<h1>Qatar North Traffic Junctions Survey</h1>
+<div class="subtitle">
             Live from Google Sheet — Junctions, Survey Completion &amp; Operations Status
           </div>
-          <div class="datetime-header" id="currentDateTime"></div>
-        </div>
-
-        <div class="header-right">
-          <img
-            src="algosystems-logo.png"
-            alt="ALGOSYSTEMS Qatar"
-            class="logo-img logo-img-small"
-          />
-        </div>
-      </header>
-
-      <!-- DASHBOARD BODY -->
-      <main id="main-content" class="dashboard">
-        <!-- KPIs: compact, horizontal -->
-        <section class="section section-kpis">
-          <div class="section-kpis-inner">
-            <!-- Number-only KPIs -->
-            <div class="kpi-strip kpi-strip-compact">
-              <div class="kpi-card">
-                <div class="kpi-label">Total Junctions</div>
-                <div class="kpi-number">
-                  <span id="kpi-total">–</span>
-                </div>
-                <div class="kpi-caption">All junctions in current view</div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-label">Under O&amp;M</div>
-                <div class="kpi-number">
-                  <span id="kpi-om">–</span>
-                  <span class="unit">junctions</span>
-                </div>
-                <div class="kpi-caption">Confirmed in O&amp;M scope</div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-label">Under Projects</div>
-                <div class="kpi-number">
-                  <span id="kpi-projects">–</span>
-                  <span class="unit">junctions</span>
-                </div>
-                <div class="kpi-caption">Yet to be fully handed over</div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-label">Switched Off</div>
-                <div class="kpi-number">
-                  <span id="kpi-off">–</span>
-                  <span class="unit">sites</span>
-                </div>
-                <div class="kpi-caption">Currently non-operational</div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-label">SCATS Operated</div>
-                <div class="kpi-number">
-                  <span id="kpi-scats-operated">–</span>
-                </div>
-                <div class="kpi-caption">Connected to SCATS</div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-label">Non-SCATS (Isolated)</div>
-                <div class="kpi-number">
-                  <span id="kpi-non-scats">–</span>
-                </div>
-                <div class="kpi-caption">Isolated / non-SCATS junctions</div>
-              </div>
-            </div>
-
-            <!-- Circular KPI row -->
-            <div class="kpi-strip kpi-strip-compact">
-              <div class="kpi-card">
-                <div class="kpi-circle-layout">
-                  <div class="circle-wrapper">
-                    <div id="circle-survey-fill" class="circle-fill"></div>
-                    <div id="circle-survey-inner" class="circle-inner">0 / 0</div>
-                  </div>
-                  <div class="kpi-circle-text">
-                    <div class="kpi-circle-text-title">Survey Completion</div>
-                    <div class="circle-caption">
-                      <strong id="circle-survey-pct">0%</strong> completed vs total junctions
+<div class="datetime-header" id="currentDateTime"></div>
+</div>
+<div class="header-right">
+<img alt="ALGOSYSTEMS Qatar" class="logo-img logo-img-small" src="algosystems-logo.png"/>
+<div class="header-nav"><ul class="top-nav-links">
+<li><a data-page="traffic" href="index.html">Traffic Junctions</a></li>
+<li><a data-page="its" href="its-dashboard.html">ITS Dashboard</a></li>
+</ul></div></div>
+</header>
+<!-- DASHBOARD BODY -->
+<main class="dashboard" id="main-content">
+<!-- KPIs: compact, horizontal -->
+<section class="section section-kpis">
+<div class="section-kpis-inner">
+<!-- Number-only KPIs -->
+<div class="kpi-strip kpi-strip-compact">
+<div class="kpi-card">
+<div class="kpi-label">Total Junctions</div>
+<div class="kpi-number">
+<span id="kpi-total">–</span>
+</div>
+<div class="kpi-caption">All junctions in current view</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Under O&amp;M</div>
+<div class="kpi-number">
+<span id="kpi-om">–</span>
+<span class="unit">junctions</span>
+</div>
+<div class="kpi-caption">Confirmed in O&amp;M scope</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Under Projects</div>
+<div class="kpi-number">
+<span id="kpi-projects">–</span>
+<span class="unit">junctions</span>
+</div>
+<div class="kpi-caption">Yet to be fully handed over</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Switched Off</div>
+<div class="kpi-number">
+<span id="kpi-off">–</span>
+<span class="unit">sites</span>
+</div>
+<div class="kpi-caption">Currently non-operational</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">SCATS Operated</div>
+<div class="kpi-number">
+<span id="kpi-scats-operated">–</span>
+</div>
+<div class="kpi-caption">Connected to SCATS</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Non-SCATS (Isolated)</div>
+<div class="kpi-number">
+<span id="kpi-non-scats">–</span>
+</div>
+<div class="kpi-caption">Isolated / non-SCATS junctions</div>
+</div>
+</div>
+<!-- Circular KPI row -->
+<div class="kpi-strip kpi-strip-compact">
+<div class="kpi-card">
+<div class="kpi-circle-layout">
+<div class="circle-wrapper">
+<div class="circle-fill" id="circle-survey-fill"></div>
+<div class="circle-inner" id="circle-survey-inner">0 / 0</div>
+</div>
+<div class="kpi-circle-text">
+<div class="kpi-circle-text-title">Survey Completion</div>
+<div class="circle-caption">
+<strong id="circle-survey-pct">0%</strong> completed vs total junctions
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-circle-layout">
-                  <div class="circle-wrapper">
-                    <div id="circle-sites-fill" class="circle-fill"></div>
-                    <div id="circle-sites-inner" class="circle-inner">0 / 0</div>
-                  </div>
-                  <div class="kpi-circle-text">
-                    <div class="kpi-circle-text-title">Sites Visited</div>
-                    <div class="circle-caption">
-                      <strong id="circle-sites-pct">0%</strong> pole or controller survey done
+</div>
+</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-circle-layout">
+<div class="circle-wrapper">
+<div class="circle-fill" id="circle-sites-fill"></div>
+<div class="circle-inner" id="circle-sites-inner">0 / 0</div>
+</div>
+<div class="kpi-circle-text">
+<div class="kpi-circle-text-title">Sites Visited</div>
+<div class="circle-caption">
+<strong id="circle-sites-pct">0%</strong> pole or controller survey done
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-circle-layout">
-                  <div class="circle-wrapper">
-                    <div id="circle-pole-fill" class="circle-fill"></div>
-                    <div id="circle-pole-inner" class="circle-inner">0 / 0</div>
-                  </div>
-                  <div class="kpi-circle-text">
-                    <div class="kpi-circle-text-title">Pole Survey</div>
-                    <div class="circle-caption">
-                      <strong id="circle-pole-pct">0%</strong> pole survey completion
+</div>
+</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-circle-layout">
+<div class="circle-wrapper">
+<div class="circle-fill" id="circle-pole-fill"></div>
+<div class="circle-inner" id="circle-pole-inner">0 / 0</div>
+</div>
+<div class="kpi-circle-text">
+<div class="kpi-circle-text-title">Pole Survey</div>
+<div class="circle-caption">
+<strong id="circle-pole-pct">0%</strong> pole survey completion
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-circle-layout">
-                  <div class="circle-wrapper">
-                    <div id="circle-ctrl-fill" class="circle-fill"></div>
-                    <div id="circle-ctrl-inner" class="circle-inner">0 / 0</div>
-                  </div>
-                  <div class="kpi-circle-text">
-                    <div class="kpi-circle-text-title">Controller Survey</div>
-                    <div class="circle-caption">
-                      <strong id="circle-ctrl-pct">0%</strong> controller survey completion
+</div>
+</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-circle-layout">
+<div class="circle-wrapper">
+<div class="circle-fill" id="circle-ctrl-fill"></div>
+<div class="circle-inner" id="circle-ctrl-inner">0 / 0</div>
+</div>
+<div class="kpi-circle-text">
+<div class="kpi-circle-text-title">Controller Survey</div>
+<div class="circle-caption">
+<strong id="circle-ctrl-pct">0%</strong> controller survey completion
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-circle-layout">
-                  <div class="circle-wrapper">
-                    <div id="circle-doha-fill" class="circle-fill"></div>
-                    <div id="circle-doha-inner" class="circle-inner">0 / 0</div>
-                  </div>
-                  <div class="kpi-circle-text">
-                    <div class="kpi-circle-text-title">Doha Region</div>
-                    <div class="circle-caption">
-                      <strong id="circle-doha-pct">0%</strong> survey completion in Doha
+</div>
+</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-circle-layout">
+<div class="circle-wrapper">
+<div class="circle-fill" id="circle-doha-fill"></div>
+<div class="circle-inner" id="circle-doha-inner">0 / 0</div>
+</div>
+<div class="kpi-circle-text">
+<div class="kpi-circle-text-title">Doha Region</div>
+<div class="circle-caption">
+<strong id="circle-doha-pct">0%</strong> survey completion in Doha
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="kpi-card">
-                <div class="kpi-circle-layout">
-                  <div class="circle-wrapper">
-                    <div id="circle-north-fill" class="circle-fill"></div>
-                    <div id="circle-north-inner" class="circle-inner">0 / 0</div>
-                  </div>
-                  <div class="kpi-circle-text">
-                    <div class="kpi-circle-text-title">North Region</div>
-                    <div class="circle-caption">
-                      <strong id="circle-north-pct">0%</strong> survey completion in North
+</div>
+</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-circle-layout">
+<div class="circle-wrapper">
+<div class="circle-fill" id="circle-north-fill"></div>
+<div class="circle-inner" id="circle-north-inner">0 / 0</div>
+</div>
+<div class="kpi-circle-text">
+<div class="kpi-circle-text-title">North Region</div>
+<div class="circle-caption">
+<strong id="circle-north-pct">0%</strong> survey completion in North
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- INSIGHTS BAR -->
-        <section class="section section-insights">
-          <div class="glass-card">
-            <div class="insights-bar">
-              <div class="insights-main-label">
-                <span class="badge-pulse"></span>
-                <span>Zones Needing Attention</span>
-              </div>
-              <div id="attention-list" class="card-sub"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- FILTERS: pill bar -->
-        <section class="section section-filters">
-          <div class="glass-card filters-card">
-            <div class="filters-row-title">Filters</div>
-            <div class="filters">
-              <label>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- INSIGHTS BAR -->
+<section class="section section-insights">
+<div class="glass-card">
+<div class="insights-bar">
+<div class="insights-main-label">
+<span class="badge-pulse"></span>
+<span>Zones Needing Attention</span>
+</div>
+<div class="card-sub" id="attention-list"></div>
+</div>
+</div>
+</section>
+<!-- FILTERS: pill bar -->
+<section class="section section-filters">
+<div class="glass-card filters-card">
+<div class="filters-row-title">Filters</div>
+<div class="filters">
+<label>
                 Region
                 <select id="filter-region">
-                  <option value="">All</option>
-                </select>
-              </label>
-              <label>
+<option value="">All</option>
+</select>
+</label>
+<label>
                 Area
                 <select id="filter-area">
-                  <option value="">All</option>
-                </select>
-              </label>
-              <label>
+<option value="">All</option>
+</select>
+</label>
+<label>
                 Zone
                 <select id="filter-zone">
-                  <option value="">All</option>
-                </select>
-              </label>
-              <label>
+<option value="">All</option>
+</select>
+</label>
+<label>
                 Survey
                 <select id="filter-survey">
-                  <option value="">All</option>
-                  <option value="completed">Completed</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </label>
-              <label>
+<option value="">All</option>
+<option value="completed">Completed</option>
+<option value="pending">Pending</option>
+</select>
+</label>
+<label>
                 Remarks
                 <select id="filter-remarks">
-                  <option value="">All</option>
-                  <option value="om">Under O&amp;M</option>
-                  <option value="projects">Under Projects</option>
-                  <option value="off">Switched Off</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="filters-row-extra">
-              <div class="active-filters" id="active-filters"></div>
-              <div class="export-buttons">
-                <button id="export-csv-btn" class="export-btn" type="button">
+<option value="">All</option>
+<option value="om">Under O&amp;M</option>
+<option value="projects">Under Projects</option>
+<option value="off">Switched Off</option>
+<option value="other">Other</option>
+</select>
+</label>
+</div>
+<div class="filters-row-extra">
+<div class="active-filters" id="active-filters"></div>
+<div class="export-buttons">
+<button class="export-btn" id="export-csv-btn" type="button">
                   CSV
                 </button>
-                <button id="export-xlsx-btn" class="export-btn" type="button">
+<button class="export-btn" id="export-xlsx-btn" type="button">
                   Excel (XLSX)
                 </button>
-                <button id="export-pdf-btn" class="export-btn" type="button">
+<button class="export-btn" id="export-pdf-btn" type="button">
                   PDF
                 </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- MAIN: MAP & CHARTS -->
-        <section class="section section-main">
-          <div class="main-grid">
-            <!-- MAP COLUMN -->
-            <div class="glass-card map-card">
-              <div class="map-card-header">
-                <div class="map-title">
-                  <span class="dot"></span>
-                  <span>Junction Map (ESRI Satellite)</span>
-                </div>
-                <button id="map-mode-toggle" class="map-toggle-btn map-toggle-btn-active" type="button">
+</div>
+</div>
+</div>
+</section>
+<!-- MAIN: MAP & CHARTS -->
+<section class="section section-main">
+<div class="main-grid">
+<!-- MAP COLUMN -->
+<div class="glass-card map-card">
+<div class="map-card-header">
+<div class="map-title">
+<span class="dot"></span>
+<span>Junction Map (ESRI Satellite)</span>
+</div>
+<button class="map-toggle-btn map-toggle-btn-active" id="map-mode-toggle" type="button">
                   Map Mode: Selected Junction Only
                 </button>
-              </div>
-              <div id="map"></div>
-              <div class="map-meta">
-                <span id="lastUpdated"></span>
-              </div>
-              <div class="map-legend">
-                <div class="legend-item">
-                  <span class="legend-dot legend-completed"></span>
-                  <span>Survey completed</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-dot legend-visited"></span>
-                  <span>Site visited (Pole/Controller)</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-dot legend-notvisited"></span>
-                  <span>Not visited</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-dot legend-selected"></span>
-                  <span>Selected from junction list</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- CHARTS COLUMN -->
-            <div class="charts-stack">
-              <div class="glass-card chart-card scope-card">
-                <div class="card-header-row">
-                  <p class="card-title">Scope Distribution</p>
-                </div>
-                <div class="scope-chart-wrapper">
-                  <canvas id="scopeChart"></canvas>
-                </div>
-                <div class="card-sub">
+</div>
+<div id="map"></div>
+<div class="map-meta">
+<span id="lastUpdated"></span>
+</div>
+<div class="map-legend">
+<div class="legend-item">
+<span class="legend-dot legend-completed"></span>
+<span>Survey completed</span>
+</div>
+<div class="legend-item">
+<span class="legend-dot legend-visited"></span>
+<span>Site visited (Pole/Controller)</span>
+</div>
+<div class="legend-item">
+<span class="legend-dot legend-notvisited"></span>
+<span>Not visited</span>
+</div>
+<div class="legend-item">
+<span class="legend-dot legend-selected"></span>
+<span>Selected from junction list</span>
+</div>
+</div>
+</div>
+<!-- CHARTS COLUMN -->
+<div class="charts-stack">
+<div class="glass-card chart-card scope-card">
+<div class="card-header-row">
+<p class="card-title">Scope Distribution</p>
+</div>
+<div class="scope-chart-wrapper">
+<canvas id="scopeChart"></canvas>
+</div>
+<div class="card-sub">
                   Split of junctions by Remarks (Under O&amp;M / Under Projects / Switched Off / Other).
                 </div>
-              </div>
-
-              <div class="glass-card chart-card zone-card">
-                <div class="card-header-row">
-                  <p class="card-title">Zone-wise Survey Completion</p>
-                </div>
-                <div class="zone-chart-wrapper">
-                  <canvas id="zoneChart"></canvas>
-                </div>
-                <div class="card-sub">
+</div>
+<div class="glass-card chart-card zone-card">
+<div class="card-header-row">
+<p class="card-title">Zone-wise Survey Completion</p>
+</div>
+<div class="zone-chart-wrapper">
+<canvas id="zoneChart"></canvas>
+</div>
+<div class="card-sub">
                   Percentage of junctions with completed survey status in each zone.
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- TABLE: full-width at bottom -->
-        <section class="section section-table">
-          <div class="glass-card table-card">
-            <div class="table-header-row">
-              <div class="table-header-left">
-                <div class="table-header-title">Junction List</div>
-                <div class="table-header-sub">
+</div>
+</div>
+</div>
+</section>
+<!-- TABLE: full-width at bottom -->
+<section class="section section-table">
+<div class="glass-card table-card">
+<div class="table-header-row">
+<div class="table-header-left">
+<div class="table-header-title">Junction List</div>
+<div class="table-header-sub">
                   Tap a row to highlight on map. Use search to find junctions by ID, region, street, zone, or remarks.
                 </div>
-              </div>
-            </div>
-
-            <div class="table-controls">
-              <div class="table-search">
-                <input
-                  type="text"
-                  id="table-search"
-                  placeholder="Search junction, street, zone, district or remarks..."
-                />
-              </div>
-            </div>
-
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Junct No</th>
-                    <th>Region</th>
-                    <th>Zone</th>
-                    <th>Area</th>
-                    <th>Street</th>
-                    <th>Remarks</th>
-                    <th>Pole Survey</th>
-                    <th>Ctrl Survey</th>
-                    <th>Survey</th>
-                  </tr>
-                </thead>
-                <tbody id="junction-table-body"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
-  </div>
-
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-
-  <script>
+</div>
+</div>
+<div class="table-controls">
+<div class="table-search">
+<input id="table-search" placeholder="Search junction, street, zone, district or remarks..." type="text"/>
+</div>
+</div>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr>
+<th>Junct No</th>
+<th>Region</th>
+<th>Zone</th>
+<th>Area</th>
+<th>Street</th>
+<th>Remarks</th>
+<th>Pole Survey</th>
+<th>Ctrl Survey</th>
+<th>Survey</th>
+</tr>
+</thead>
+<tbody id="junction-table-body"></tbody>
+</table>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+<script crossorigin="" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
     const SHEET_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vS5pFct4J8nDgw7VLuUJpfVgxewoZSkjh-cNxjgtOOZcjEM5Hx0xyJsziL9MUrEmK6wuls0C2Ffd1ku/pub?gid=1921347271&single=true&output=csv";
 
@@ -2571,18 +2536,14 @@
       setInterval(updateCurrentDateTime, 30 * 1000);
     });
   </script>
-
-  <div class="modal-backdrop" id="detailModal" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <button class="modal-close" type="button" aria-label="Close details">&times;</button>
-      <h2 id="modalTitle" class="modal-title">Details</h2>
-      <div id="modalBody" class="modal-body"></div>
-    </div>
-  </div>
-
-
-  
-  <script>
+<div aria-hidden="true" class="modal-backdrop" id="detailModal">
+<div aria-labelledby="modalTitle" aria-modal="true" class="modal" role="dialog">
+<button aria-label="Close details" class="modal-close" type="button">×</button>
+<h2 class="modal-title" id="modalTitle">Details</h2>
+<div class="modal-body" id="modalBody"></div>
+</div>
+</div>
+<script>
     (function () {
       function applyTheme(prefersDark) {
         document.body.setAttribute("data-theme", prefersDark ? "dark" : "light");
@@ -2604,7 +2565,6 @@
       }
     })();
   </script>
-
 <script>
     // Global Chart.js hover glow plugin
     if (window.Chart) {
@@ -2678,197 +2638,19 @@
       }
     });
   </script>
-
-  <script>
-    (function () {
-      // Helper to set and persist theme
-      function setTheme(mode) {
-        var theme = mode === "light" ? "light" : "dark";
-        document.body.setAttribute("data-theme", theme);
-        try {
-          localStorage.setItem("dashboard-theme", theme);
-        } catch (e) {
-          // Ignore storage errors
-        }
-        var btn = document.getElementById("theme-toggle-btn");
-        if (btn) {
-          btn.setAttribute(
-            "aria-label",
-            theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
-          );
-          btn.textContent = theme === "dark" ? "🌙" : "☀️";
-        }
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    if (window.map && typeof window.map.setMaxBounds === "function") {
+      var qatarBounds = [[24.47, 50.60],[26.32, 52.00]]; // SW / NE approx
+      window.map.setMaxBounds(qatarBounds);
+      if (typeof window.map.setMinZoom === "function") {
+        window.map.setMinZoom(7);
       }
-
-      // Override the applyTheme function used by system preference listener
-      window.applyTheme = function (prefersDark) {
-        try {
-          var stored = localStorage.getItem("dashboard-theme");
-          if (stored === "dark" || stored === "light") {
-            document.body.setAttribute("data-theme", stored);
-            return;
-          }
-        } catch (e) {
-          // ignore
-        }
-        document.body.setAttribute("data-theme", prefersDark ? "dark" : "light");
-      };
-
-      window.addEventListener("DOMContentLoaded", function () {
-        // Inject theme toggle button into nav
-        var navInner = document.querySelector(".top-nav-inner");
-        if (navInner) {
-          var btn = document.createElement("button");
-          btn.id = "theme-toggle-btn";
-          btn.type = "button";
-          btn.className = "theme-toggle-btn";
-          btn.textContent = "🌙";
-          btn.setAttribute("aria-label", "Toggle light or dark theme");
-          navInner.appendChild(btn);
-
-          btn.addEventListener("click", function () {
-            var current = document.body.getAttribute("data-theme") || "dark";
-            var next = current === "dark" ? "light" : "dark";
-            setTheme(next);
-          });
-
-          // Apply stored theme override, if any, after initial auto-theme
-          try {
-            var stored = localStorage.getItem("dashboard-theme");
-            if (stored === "dark" || stored === "light") {
-              document.body.setAttribute("data-theme", stored);
-              btn.textContent = stored === "dark" ? "🌙" : "☀️";
-            }
-          } catch (e) {
-            // ignore
-          }
-        }
-
-        // Lock the map view to Qatar bounds once Leaflet map is ready
-        var qatarBounds = [
-          [24.47, 50.6],
-          [26.32, 52.0]
-        ];
-
-        function tryLockMap() {
-          if (window.map && typeof window.map.setMaxBounds === "function") {
-            window.map.setMaxBounds(qatarBounds);
-            window.map.setMinZoom(7);
-            return true;
-          }
-          return false;
-        }
-
-        if (!tryLockMap()) {
-          var attempts = 0;
-          var intId = setInterval(function () {
-            attempts++;
-            if (tryLockMap() || attempts > 40) {
-              clearInterval(intId);
-            }
-          }, 250);
-        }
-
-        // Dynamic filename builder
-        function buildFilename(base, ext) {
-          var now = new Date();
-          var pad = function (n) {
-            return String(n).padStart(2, "0");
-          };
-          var stamp =
-            now.getFullYear() +
-            "-" +
-            pad(now.getMonth() + 1) +
-            "-" +
-            pad(now.getDate()) +
-            "_" +
-            pad(now.getHours()) +
-            "-" +
-            pad(now.getMinutes());
-          return base + "_" + stamp + "." + ext;
-        }
-
-        // Override export functions to use dynamic filenames
-        if (typeof window.buildTrafficCurrentViewTableData === "function") {
-          window.exportCurrentViewCsv = function () {
-            var data = buildTrafficCurrentViewTableData();
-            if (!data) {
-              alert("No data to export.");
-              return;
-            }
-            var headers = data.headers;
-            var body = data.body;
-            var csvLines = [];
-            csvLines.push(headers.join(","));
-            body.forEach(function (row) {
-              var line = row
-                .map(function (val) {
-                  var v = val == null ? "" : String(val).replace(/"/g, '""');
-                  return '"' + v + '"';
-                })
-                .join(",");
-              csvLines.push(line);
-            });
-            var blob = new Blob([csvLines.join("\n")], {
-              type: "text/csv;charset=utf-8;"
-            });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url;
-            a.download = buildFilename("qatar_north_junctions_view", "csv");
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          };
-
-          window.exportCurrentViewExcel = function () {
-            var data = buildTrafficCurrentViewTableData();
-            if (!data || !window.XLSX) {
-              alert("No data to export or Excel export library not loaded.");
-              return;
-            }
-            var headers = data.headers;
-            var body = data.body;
-            var wsData = [headers].concat(body);
-            var wb = XLSX.utils.book_new();
-            var ws = XLSX.utils.aoa_to_sheet(wsData);
-            XLSX.utils.book_append_sheet(wb, ws, "Current View");
-            XLSX.writeFile(
-              wb,
-              buildFilename("qatar_north_junctions_view", "xlsx")
-            );
-          };
-
-          window.exportCurrentViewPdf = function () {
-            var data = buildTrafficCurrentViewTableData();
-            if (!data || !window.jspdf || !window.jspdf.jsPDF) {
-              alert("No data to export or PDF export library not loaded.");
-              return;
-            }
-            var headers = data.headers;
-            var body = data.body;
-            var doc = new window.jspdf.jsPDF({ orientation: "landscape" });
-            doc.setFontSize(11);
-            doc.text(
-              "Qatar North Traffic Junctions - Current View",
-              14,
-              12
-            );
-            if (doc.autoTable) {
-              doc.autoTable({
-                head: [headers],
-                body: body,
-                startY: 16,
-                styles: { fontSize: 6, cellPadding: 1.2 },
-                headStyles: { fillColor: [15, 23, 42] }
-              });
-            }
-            doc.save(buildFilename("qatar_north_junctions_view", "pdf"));
-          };
-        }
-      });
-    })();
-  </script>
-</body>
+    }
+  } catch (e) {
+    if (window.console && console.warn) console.warn("Map bounds lock failed:", e);
+  }
+});
+</script></body>
 </html>
