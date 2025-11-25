@@ -2618,7 +2618,8 @@
           day: "numeric",
           hour: "2-digit",
           minute: "2-digit",
-		  second: "2-digit"
+          second: "2-digit",
+          hour12: true,
         });
     }
 
@@ -2651,13 +2652,15 @@
       const el = document.getElementById("currentDateTime");
       if (!el) return;
       const now = new Date();
-      el.textContent = now.toLocaleString(undefined, {
+      el.textContent = now.toLocaleString("en-US", {
         weekday: "short",
         year: "numeric",
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
       });
     }
 
