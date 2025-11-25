@@ -2242,16 +2242,49 @@
       markerLayer = L.layerGroup().addTo(map);
     }
 
-    function buildPopupHtml(asset) {
-      return `
-        <strong>${asset.id || ""} - ${asset.name || ""}</strong><br/>
-        <strong>Device:</strong> ${asset.deviceType || ""}<br/>
-        <strong>Zone Area:</strong> ${asset.zoneArea || ""}<br/>
-        <strong>Zone:</strong> ${asset.zone || ""}<br/>
-        <strong>Survey:</strong> ${asset.surveyStatus}<br/>
-        <strong>Remarks:</strong> ${asset.remarks || "—"}
-      `;
-    }
+	function buildPopupHtml(asset) {
+	  const lat = asset.latitude;
+	  const lon = asset.longitude;
+
+	  const hasCoords =
+		lat !== null &&
+		lon !== null &&
+		lat !== undefined &&
+		lon !== undefined &&
+		lat !== "" &&
+		lon !== "";
+
+	  const navLink = hasCoords
+		? `<br/><br/>
+		   <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+			 lat
+		   )},${encodeURIComponent(
+			 lon
+		   )}"
+			  target="_blank"
+			  style="
+				display:inline-block;
+				padding:6px 12px;
+				background:#38bdf8;
+				color:#020617;
+				border-radius:999px;
+				font-weight:600;
+				text-decoration:none;
+				box-shadow:0 10px 20px rgba(56,189,248,0.35);
+			  ">
+			  🚗 Navigate to Site
+		   </a>`
+		: "";
+
+	  return `
+		<strong>${asset.id || ""} - ${asset.name || ""}</strong><br/>
+		<strong>Device:</strong> ${asset.deviceType || ""}<br/>
+		<strong>Zone Area:</strong> ${asset.zoneArea || ""}<br/>
+		<strong>Zone:</strong> ${asset.zone || ""}<br/>
+		<strong>Survey:</strong> ${asset.surveyStatus}<br/>
+		<strong>Remarks:</strong> ${asset.remarks || "—"}${navLink}
+	  `;
+	}
 
     function updateMap(assets) {
       if (!map) initMap();
