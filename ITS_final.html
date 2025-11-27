@@ -2761,8 +2761,9 @@
     }
 
     
-    async async function downloadCurrentViewExcel() {
-      // Build an Excel file with text-only header rows (no embedded logos).
+    async 
+async function downloadCurrentViewExcel() {
+      // Build an Excel file with text-only header rows (no images).
       const data = buildItsCurrentViewTableData();
       if (!data) {
         alert("No assets in the current view to export.");
@@ -2785,27 +2786,27 @@
 
       // ===== HEADER ROWS (TEXT ONLY) ======================================
       const now = new Date();
-      const dateStr = now.toLocaleString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      const dateStr = now.toLocaleString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
         hour12: true,
       });
 
-      const title = 'QATAR NORTH ITS SURVEY DASHBOARD';
+      const title = "QATAR NORTH ITS SURVEY DASHBOARD";
       const subtitle =
-        'Live from Google Sheet — ITS Assets, Survey Completion & Operations Status';
+        "Live from Google Sheet — ITS Assets, Survey Completion & Operations Status";
 
-      const makeRow = () => new Array(colCount).fill('');
+      const makeRow = () => new Array(colCount).fill("");
 
-      // Row 0: branding (left & right, not merged)
+      // Row 0: branding (left & right, NOT merged so both texts are preserved)
       const row0 = makeRow();
-      row0[0] = 'AKTOR QATAR';
-      row0[colCount - 1] = 'MRTC-AKTOR JV';
+      row0[0] = "AKTOR QATAR";
+      row0[colCount - 1] = "MRTC-AKTOR JV";
 
       // Row 1: main dashboard title (merged across all columns)
       const row1 = makeRow();
@@ -2854,7 +2855,7 @@
         { hpt: 8 },  // row 4 spacer
       ];
 
-      // Column widths (same as previous setup)
+      // Column widths (same as your existing ITS setup)
       ws['!cols'] = [
         { wch: 6 },  // Sr.No
         { wch: 10 }, // ID
@@ -2868,10 +2869,10 @@
         { wch: 30 }, // Remarks
       ];
 
-      // Append worksheet and write file
       XLSX.utils.book_append_sheet(wb, ws, 'Current View');
       XLSX.writeFile(wb, 'its-dashboard-current-view.xlsx');
     }
+
 
     
     function downloadCurrentViewPdf() {

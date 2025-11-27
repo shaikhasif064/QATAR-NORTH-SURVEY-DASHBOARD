@@ -2662,8 +2662,9 @@
     }
 
     
-    async async function exportCurrentViewExcel() {
-      // Build an Excel file with text-only header rows (no embedded logos).
+    async 
+async function exportCurrentViewExcel() {
+      // Build an Excel file with text-only header rows (no images).
       const data = buildTrafficCurrentViewTableData();
       if (!data) {
         alert("No data to export.");
@@ -2686,27 +2687,27 @@
 
       // ===== HEADER ROWS (TEXT ONLY) ======================================
       const now = new Date();
-      const dateStr = now.toLocaleString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      const dateStr = now.toLocaleString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
         hour12: true,
       });
 
-      const title = 'Qatar North Traffic Junctions Survey';
+      const title = "Qatar North Traffic Junctions Survey";
       const subtitle =
-        'Live from Google Sheet — Junctions, Survey Completion & Operations Status';
+        "Live from Google Sheet — Junctions, Survey Completion & Operations Status";
 
-      const makeRow = () => new Array(colCount).fill('');
+      const makeRow = () => new Array(colCount).fill("");
 
-      // Row 0: branding (left & right, not merged)
+      // Row 0: branding (left & right, NOT merged so both texts are preserved)
       const row0 = makeRow();
-      row0[0] = 'AKTOR QATAR';
-      row0[colCount - 1] = 'MRTC-AKTOR JV';
+      row0[0] = "AKTOR QATAR";
+      row0[colCount - 1] = "MRTC-AKTOR JV";
 
       // Row 1: main dashboard title (merged across all columns)
       const row1 = makeRow();
@@ -2755,13 +2756,13 @@
         { hpt: 8 },  // row 4 spacer
       ];
 
-      // Set column widths (same as previous setup)
+      // Column widths (same as your existing Traffic setup)
       ws['!cols'] = [
-        { wch: 7 },
-        { wch: 15 },
-        { wch: 7 },
-        { wch: 5 },
-        { wch: 50 },
+        { wch: 7 },  // Junct No
+        { wch: 15 }, // Region
+        { wch: 7 },  // Zone
+        { wch: 5 },  // Area
+        { wch: 50 }, // Description / Location
         { wch: 15 },
         { wch: 10 },
         { wch: 12 },
@@ -2771,10 +2772,10 @@
         { wch: 11 },
       ];
 
-      // Append worksheet and write file
       XLSX.utils.book_append_sheet(wb, ws, 'Current View');
       XLSX.writeFile(wb, 'qatar_north_junctions_view.xlsx');
     }
+
 
     
     function exportCurrentViewPdf() {
