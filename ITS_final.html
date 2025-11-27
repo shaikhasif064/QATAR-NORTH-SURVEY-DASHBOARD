@@ -2732,8 +2732,9 @@
       }
 
       const { header, body } = data;
-      // Only include the table header and body in the CSV output
-      const allRows = [header, ...body];
+      const { headerRows } = buildItsExportHeaderRows(header.length);
+
+      const allRows = [...headerRows, header, ...body];
 
       const csvContent = allRows
         .map((r) =>
@@ -2761,51 +2762,21 @@
     }
 
     
-    async function downloadCurrentViewExcel() {
-      // Build an Excel file with embedded logos and merged header rows.
+    function downloadCurrentViewExcel() {
       const data = buildItsCurrentViewTableData();
       if (!data) {
         alert("No assets in the current view to export.");
         return;
       }
 
-      const { header, body } = data;
-
-      // Ensure the XLSX library is loaded. If it's unavailable, dynamically load it.
-      if (typeof XLSX === 'undefined') {
-        await new Promise((resolve) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js';
-          script.onload = resolve;
-          document.head.appendChild(script);
-        });
+      if (typeof XLSX === "undefined") {
+        alert("Excel library (XLSX) is not loaded. Please check the script tag in the <head> section.");
+        return;
       }
+
+      const { header, body } = data;
       const colCount = header.length;
 
-      // Helper to convert an image URL to a Data URI (base64)
-      async function toDataURI(url) {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        return await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-      }
-
-      // Get logo image sources from the page header
-      const leftImgEl = document.querySelector("header .header-left img");
-      const rightImgEl = document.querySelector("header .header-right img");
-      const leftSrc = leftImgEl ? leftImgEl.src : null;
-      const rightSrc = rightImgEl ? rightImgEl.src : null;
-
-      // Convert logos to data URIs
-      const [leftDataUri, rightDataUri] = await Promise.all([
-        leftSrc ? toDataURI(leftSrc) : Promise.resolve(null),
-        rightSrc ? toDataURI(rightSrc) : Promise.resolve(null),
-      ]);
-
-      // Define header rows: row1 with formulas for images, row2 title, row3 subtitle, row4 date, row5 blank
       const now = new Date();
       const dateStr = now.toLocaleString("en-US", {
         weekday: "short",
@@ -2822,17 +2793,14 @@
         "Live from Google Sheet — ITS Assets, Survey Completion & Operations Status";
 
       const headerRows = [];
-      // Row 1: images formulas (if available)
+
+      // Row 1: company names as text (logos remain only in PDF)
       const row1 = new Array(colCount).fill("");
-      if (leftDataUri) {
-        row1[0] = { f: `IMAGE("${leftDataUri}")` };
-      }
-      if (rightDataUri) {
-        row1[colCount - 1] = { f: `IMAGE("${rightDataUri}")` };
-      }
+      row1[0] = "AKTOR";
+      row1[colCount - 1] = "MRTC–AKTOR JV";
       headerRows.push(row1);
 
-      // Row 2: title (we'll merge across all columns later)
+      // Row 2: title
       const row2 = new Array(colCount).fill("");
       row2[0] = title;
       headerRows.push(row2);
@@ -2842,39 +2810,38 @@
       row3[0] = subtitle;
       headerRows.push(row3);
 
-      // Row 4: date string
+      // Row 4: date/time
       const row4 = new Array(colCount).fill("");
       row4[0] = dateStr;
       headerRows.push(row4);
 
-      // Row 5: blank spacer
+      // Row 5: spacer
       const row5 = new Array(colCount).fill("");
       headerRows.push(row5);
 
-      // Assemble worksheet data: header rows + table header + body
       const wsData = [...headerRows, header, ...body];
 
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-      // Define merges for title, subtitle and date rows (rows are zero-indexed)
-      ws['!merges'] = [
-        { s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } }, // title row
-        { s: { r: 2, c: 0 }, e: { r: 2, c: colCount - 1 } }, // subtitle row
-        { s: { r: 3, c: 0 }, e: { r: 3, c: colCount - 1 } }, // date row
+      // Merge title, subtitle and date rows across all columns
+      ws["!merges"] = [
+        { s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } }, // title
+        { s: { r: 2, c: 0 }, e: { r: 2, c: colCount - 1 } }, // subtitle
+        { s: { r: 3, c: 0 }, e: { r: 3, c: colCount - 1 } }, // date
       ];
 
-      // Set row heights (in points) for the header rows to allow space for images and text
-      ws['!rows'] = [
-        { hpt: 80 }, // row 1 for logos
-        { hpt: 20 }, // row 2 title
-        { hpt: 18 }, // row 3 subtitle
-        { hpt: 16 }, // row 4 date
-        { hpt: 8 },  // row 5 spacer
+      // Row heights
+      ws["!rows"] = [
+        { hpt: 20 },
+        { hpt: 20 },
+        { hpt: 18 },
+        { hpt: 16 },
+        { hpt: 8 },
       ];
 
-      // Set column widths approximated for ITS dashboard
-      ws['!cols'] = [
+      // Column widths (approximation based on your sample)
+      ws["!cols"] = [
         { wch: 6 },  // Sr.No
         { wch: 10 }, // ID
         { wch: 25 }, // Name
@@ -2887,9 +2854,8 @@
         { wch: 30 }, // Remarks
       ];
 
-      // Append worksheet and write file
-      XLSX.utils.book_append_sheet(wb, ws, 'Current View');
-      XLSX.writeFile(wb, 'its-dashboard-current-view.xlsx');
+      XLSX.utils.book_append_sheet(wb, ws, "Current View");
+      XLSX.writeFile(wb, "its-dashboard-current-view.xlsx");
     }
 
     
