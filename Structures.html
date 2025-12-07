@@ -1,1664 +1,2499 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Qatar North Structures Survey Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <title>Qatar North Structures Survey Dashboard</title>
 
-    <!-- Leaflet (ESRI map) -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-o9N1j7kGStb6ZkGZ1uuBlxLZpVjLwH8hHzyBbs6ragE="
-      crossorigin=""
-    />
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-o8U4QvQZ9ZCkHkMuGxYZc13Nha5T0SYJ1QnYQuY+0SY="
-      crossorigin=""
-    ></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- PapaParse (CSV from Google Sheet) -->
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
 
-    <!-- SheetJS (XLSX) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- jsPDF + autotable -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+    :root {
+      --aktor-blue: #0b1120;
+      --aktor-red: #e0283b;
+      --algo-blue: #38bdf8;
 
-    <style>
-      :root {
-        --bg-page: radial-gradient(circle at top left, #020617 0, #020617 40%, #000 100%);
-        --bg-shell: rgba(15, 23, 42, 0.88);
-        --bg-surface: rgba(15, 23, 42, 0.96);
-        --bg-surface-soft: rgba(15, 23, 42, 0.9);
-        --glass-border: rgba(148, 163, 184, 0.35);
-        --glass-radius-lg: 22px;
-        --glass-radius-md: 18px;
-        --glass-radius-sm: 14px;
-        --shadow-soft: 0 24px 55px rgba(15, 23, 42, 0.9);
+      --bg-surface: rgba(15, 23, 42, 0.88);
 
-        --accent-cyan: #22d3ee;
-        --accent-sky: #38bdf8;
-        --accent-violet: #8b5cf6;
-        --accent-emerald: #22c55e;
-        --accent-green: #22c55e;
-        --accent-amber: #fbbf24;
-        --accent-rose: #fb7185;
+      --glass-bg: rgba(15, 23, 42, 0.72);
+      --glass-border: rgba(148, 163, 184, 0.45);
+      --glass-shadow-soft: 0 22px 45px rgba(15, 23, 42, 0.65);
+      --glass-radius-lg: 18px;
+      --glass-radius-md: 14px;
 
-        --text-stronger: #e5e7eb;
-        --text-strong: #cbd5f5;
-        --text-soft: #9ca3af;
-        --text-muted: #6b7280;
+      --text-soft: #9ca3af;
+      --text-subtle: #6b7280;
+      --text-strong: #e5e7eb;
+      --text-stronger: #f9fafb;
 
-        --border-subtle: rgba(148, 163, 184, 0.35);
+      --accent-green: #22c55e;
+      --accent-amber: #fbbf24;
+      --accent-blue: #38bdf8;
+      --accent-red: #ef4444;
+      --accent-purple: #a855f7;
+      --accent-pink: #ec4899;
+      --accent-orange: #f97316;
 
-        --kpi-radius: 18px;
+      --transition-fast: 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+      --transition-med: 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
 
-        --map-height: 420px;
-      }
 
-      body[data-theme="light"] {
-        --bg-page: radial-gradient(circle at top left, #e5f2ff 0, #e5f2ff 40%, #eef2ff 100%);
-        --bg-shell: rgba(249, 250, 251, 0.95);
-        --bg-surface: rgba(255, 255, 255, 0.96);
-        --bg-surface-soft: rgba(248, 250, 252, 0.96);
-        --glass-border: rgba(148, 163, 184, 0.45);
-        --shadow-soft: 0 18px 40px rgba(148, 163, 184, 0.45);
+    /* ===== THEME: AUTO DARK/LIGHT BASED ON SYSTEM PREFERENCE ===== */
+    body[data-theme="dark"] {
+      /* default (existing) dark theme */
+    }
 
-        --text-stronger: #020617;
-        --text-strong: #0f172a;
-        --text-soft: #4b5563;
-        --text-muted: #6b7280;
-      }
+    body[data-theme="light"] {
+      --bg-surface: rgba(255, 255, 255, 0.92);
+      --glass-bg: rgba(255, 255, 255, 0.9);
+      --glass-border: rgba(148, 163, 184, 0.55);
+      --text-soft: #6b7280;
+      --text-subtle: #9ca3af;
+      --text-strong: #111827;
+      --text-stronger: #020617;
+    }
 
-      * {
-        box-sizing: border-box;
-      }
+    body[data-theme="light"] {
+      background: #f3f4f6;
+      color: var(--text-stronger);
+    }
 
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-          "Segoe UI", sans-serif;
-        background: #020617;
-        color: var(--text-strong);
-      }
+    body[data-theme="light"] .page {
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.09), transparent 55%),
+        linear-gradient(135deg, #e5e7eb, #f9fafb);
+    }
 
-      body {
-        background-image: var(--bg-page);
-        background-attachment: fixed;
-        min-height: 100vh;
-      }
+    body[data-theme="light"] header,
+    body[data-theme="light"] .glass-card,
+    body[data-theme="light"] .kpi-card {
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), transparent 55%),
+        linear-gradient(145deg, #ffffff, #e5e7eb);
+      border-color: rgba(148, 163, 184, 0.55);
+      color: var(--text-stronger);
+    }
 
-      .page {
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        padding: 12px;
-      }
+    body[data-theme="light"] .kpi-badge,
+    body[data-theme="light"] .filter-chip {
+      background-color: rgba(15, 23, 42, 0.08);
+      border-color: rgba(148, 163, 184, 0.8);
+      color: var(--text-strong);
+    }
 
-      .shell {
-        width: 100%;
-        max-width: 1880px;
-        margin: 0 auto;
-        padding: 14px 18px 22px;
-        background: radial-gradient(circle at top left, rgba(248, 250, 252, 0.04), transparent 55%),
-          radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.08), transparent 60%),
-          var(--bg-shell);
-        border-radius: 26px;
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        position: relative;
-        overflow: hidden;
-      }
+    body[data-theme="light"] .filters-card,
+    body[data-theme="light"] .table-card,
+    body[data-theme="light"] .map-card,
+    body[data-theme="light"] .chart-card {
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
+    }
 
-      header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 12px 18px 14px;
-        border-radius: 20px;
-        background: linear-gradient(
-              120deg,
-              rgba(15, 23, 42, 0.98),
-              rgba(15, 23, 42, 0.9)
-            ),
-          radial-gradient(circle at top left, rgba(56, 189, 248, 0.35), transparent 55%),
-          radial-gradient(circle at bottom right, rgba(129, 140, 248, 0.3), transparent 55%);
-        border: 1px solid rgba(148, 163, 184, 0.55);
-        box-shadow: 0 18px 55px rgba(15, 23, 42, 0.95);
-      }
+    body[data-theme="light"] input,
+    body[data-theme="light"] select {
+      background-color: #ffffff;
+      border-color: rgba(148, 163, 184, 0.9);
+      color: var(--text-strong);
+    }
 
-      .header-left,
-      .header-right {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
+    body[data-theme="light"] .table-wrapper {
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), rgba(243, 244, 246, 0.98));
+      border-color: rgba(148, 163, 184, 0.8);
+    }
 
-      .header-center {
-        text-align: center;
-        flex: 1;
-      }
+    body[data-theme="light"] th {
+      background: linear-gradient(180deg, #e5e7eb, #d1d5db);
+      color: #4b5563;
+    }
 
-      .header-title {
-        margin: 0;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        font-size: 19px;
-        color: #e5e7eb;
-      }
+    body[data-theme="light"] tbody tr:nth-child(even) {
+      background: #f9fafb;
+    }
 
-      .header-subtitle {
-        margin-top: 4px;
-        font-size: 12px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--text-soft);
-      }
+    body[data-theme="light"] tbody tr:nth-child(odd) {
+      background: #f3f4f6;
+    }
 
-      .header-datetime {
-        margin-top: 6px;
-        font-size: 11px;
-        color: var(--text-muted);
-      }
+    body[data-theme="light"] tbody tr:hover {
+      background:
+        radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.12), transparent 55%),
+        #ffffff;
+    }
 
-      .header-logo {
-        max-height: 52px;
-      }
 
-      .header-logo-small {
-        max-height: 42px;
-      }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
 
-      /* Page nav: theme toggle + tabs */
-      .page-nav {
-        max-width: 1880px;
-        margin: 8px auto 16px;
-        padding: 0 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 24px;
-      }
+    html,
+    body {
+      height: 100%;
+    }
 
-      .theme-toggle {
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.6);
-        padding: 6px 14px;
-        font-size: 12px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.35), transparent 55%),
-          linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.94));
-        color: #e5e7eb;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
-      }
+    body {
+      min-height: 100vh;
+      background-color: #020617;
+      background-attachment: fixed;
+      background-size: cover;
+      color: var(--text-strong);
+    }
 
-      .theme-toggle span.dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 999px;
-        background: radial-gradient(circle at 30% 0, #38bdf8, #a855f7);
-        box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
-      }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding-bottom: 24px;
+      /* Colorful multi-layer background */
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.26), transparent 55%),
+        radial-gradient(circle at 100% 0%, rgba(236, 72, 153, 0.22), transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(249, 115, 22, 0.18), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.22), transparent 60%),
+        linear-gradient(180deg, #020617 0%, #020617 18%, #020617 100%);
+    }
 
-      .top-nav-links {
-        list-style: none;
-        display: flex;
-        gap: 8px;
-        margin: 0;
-        padding: 0;
-      }
+    .shell {
+      max-width: 1880px;
+      margin: 0 auto;
+      padding: 12px 16px 24px;
+    }
 
-      .top-nav-links a {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 14px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--text-soft);
-        text-decoration: none;
-        border: 1px solid transparent;
-        transition:
-          color 200ms cubic-bezier(0.22, 0.61, 0.36, 1),
-          background 200ms cubic-bezier(0.22, 0.61, 0.36, 1),
-          border-color 200ms cubic-bezier(0.22, 0.61, 0.36, 1),
-          transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
-      }
+    /* ===== HEADER ===== */
+    header {
+      width: 100%;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      padding: 10px 20px;
+      background:
+        linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.92)),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.35), rgba(168, 85, 247, 0.35), rgba(236, 72, 153, 0.26));
+      box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.85),
+        0 0 0 1px rgba(148, 163, 184, 0.35);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      position: relative;
+      top: auto;
+      z-index: auto;
+    }
 
-      .top-nav-links a::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: radial-gradient(
-          circle at 0 0,
-          rgba(56, 189, 248, 0.15),
-          transparent 55%
-        );
+    .header-left,
+    .header-right {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-center {
+      flex: 1 1 auto;
+      text-align: center;
+    }
+
+    .header-logo {
+      max-height: 52px;
+      height: auto;
+      filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.8));
+    }
+
+    .header-logo-small {
+      max-height: 42px;
+    }
+
+    .header-title {
+      font-size: clamp(20px, 2vw, 26px);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-stronger);
+      text-transform: uppercase;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-top: 4px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .header-meta {
+      font-size: 11px;
+      color: #c7d2fe;
+      margin-top: 4px;
+    }
+
+    .header-meta-separator {
+      margin: 0 6px;
+      opacity: 0.75;
+    }
+
+    /* ===== NAV LINKS (if used) ===== */
+    .top-nav-links {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .top-nav-links a {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: var(--text-soft);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.8);
+      transition: all var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-nav-links a:hover {
+      color: var(--text-strong);
+      border-color: rgba(148, 163, 184, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .top-nav-links a.is-active {
+      color: var(--text-stronger);
+      border-color: var(--accent-blue);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.3), transparent 60%),
+        rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 1px var(--accent-blue), 0 8px 15px rgba(56, 189, 248, 0.2);
+    }
+
+
+    /* ===== THEME TOGGLE BUTTON (from ITS.html) ===== */
+    .theme-toggle {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      background-image:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 60%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
+      color: var(--text-soft);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-strong);
+      box-shadow: 0 0 0 1px var(--accent-blue), 0 8px 18px rgba(56, 189, 248, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .theme-toggle .icon {
+      font-size: 14px;
+    }
+
+    /* Light mode styling for toggle */
+    body[data-theme="light"] .theme-toggle {
+      border-color: rgba(148, 163, 184, 0.75);
+      color: var(--text-strong);
+      background-image:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 60%),
+        linear-gradient(135deg, #ffffff, #f9fafb);
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.25);
+    }
+
+    body[data-theme="light"] .theme-toggle:hover {
+      border-color: rgba(37, 99, 235, 0.85);
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.45);
+    }
+
+    /* ===== LAYOUT: HIERARCHY ===== */
+    main.dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .section {
+      display: block;
+      animation: fade-slide-up 0.65s var(--transition-med);
+    }
+
+    .section-kpis {
+      margin-top: 4px;
+    }
+
+    .section-insights,
+    .section-filters,
+    .section-main,
+    .section-table {
+      margin-top: 2px;
+    }
+
+    /* ===== GLASS CARD BASE ===== */
+    .glass-card {
+      position: relative;
+      background:
+        radial-gradient(circle at top left, rgba(248, 250, 252, 0.16), transparent 40%),
+        linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+      border-radius: var(--glass-radius-lg);
+      padding: 10px 14px;
+      box-shadow: var(--glass-shadow-soft);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      overflow: hidden;
+      transition:
+        transform var(--transition-med),
+        box-shadow var(--transition-med),
+        border-color var(--transition-med),
+        background var(--transition-med);
+    }
+
+    .glass-card::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      opacity: 0;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.16), transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.16), transparent 45%);
+      transition: opacity var(--transition-med);
+      pointer-events: none;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 26px 55px rgba(15, 23, 42, 0.95), 0 0 0 1px var(--glass-border);
+    }
+
+    .glass-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Map and Chart cards don't use hover effect */
+    .map-card,
+    .chart-card {
+      transform: none !important;
+      box-shadow: var(--glass-shadow-soft) !important;
+    }
+
+    /* === Card Header elements === */
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-stronger);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0;
+    }
+
+    .card-sub {
+      font-size: 10px;
+      color: var(--text-subtle);
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--glass-border);
+      text-align: center;
+    }
+
+
+    /* ===== KPI CARDS ===== */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .kpi-card {
+      padding: 12px 14px;
+      border-radius: var(--glass-radius-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .kpi-card.kpi-primary {
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 40%),
+        linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.92));
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: -4px;
+    }
+
+    .kpi-value {
+      font-size: clamp(20px, 1.8vw, 28px);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text-stronger);
+    }
+
+    .kpi-subtext {
+      font-size: 10px;
+      color: var(--text-soft);
+      line-height: 1.4;
+      margin-top: 4px;
+      flex-grow: 1;
+    }
+
+    .kpi-number {
+      font-size: clamp(16px, 1.2vw, 20px);
+      font-weight: 600;
+      line-height: 1;
+      color: var(--text-stronger);
+      margin-top: 2px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .kpi-number span.unit {
+      font-size: 11px;
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+
+    .kpi-caption {
+      font-size: 11px;
+      color: var(--text-subtle);
+      margin-top: 2px;
+    }
+
+    /* Circle KPI cards */
+    .kpi-circle-layout {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .kpi-circle-compact {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .kpi-circle-compact .circle-wrapper {
+      width: 92px;
+      height: 92px;
+      position: relative;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 10%, #f9fafb, #374151);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.9);
+    }
+
+    body[data-theme="light"] .kpi-circle-compact .circle-wrapper {
+      background: radial-gradient(circle at 30% 10%, #ffffff, #d1d5db);
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.15);
+    }
+
+    .kpi-circle-compact .circle-inner {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-soft);
+      z-index: 2;
+      background: var(--bg-surface);
+    }
+
+    .kpi-circle-compact .circle-fill {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--accent-green) 0%,
+        var(--accent-green) 0%,
+        var(--text-subtle) 0%
+      );
+      transition: background 1s ease-in-out;
+      z-index: 1;
+    }
+
+    .kpi-circle-compact .circle-caption {
+      font-size: 11px;
+      color: var(--text-soft);
+      line-height: 1.4;
+    }
+
+    .kpi-circle-compact .circle-caption strong {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent-green);
+      margin-right: 4px;
+    }
+
+
+    /* ===== FILTERS & SEARCH SECTION ===== */
+    .section-filters .glass-card {
+      padding: 14px 18px;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px 20px;
+    }
+
+    .filters label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .filters select,
+    .filters input[type="search"] {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid var(--glass-border);
+      background:
+        radial-gradient(circle at top left, rgba(248, 250, 252, 0.06), transparent 60%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98)) !important;
+      color: var(--text-strong) !important;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+      appearance: none;
+      -webkit-appearance: none;
+      position: relative;
+    }
+
+    .filters select:focus {
+      border-color: rgba(56, 189, 248, 0.9);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5), 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+
+    /* Light theme styling for dropdowns */
+    body[data-theme="light"] .filters select,
+    body[data-theme="light"] .filters input[type="search"] {
+      background-color: #ffffff !important;
+      background-image:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 60%),
+        linear-gradient(135deg, #ffffff, #f9fafb) !important;
+      color: var(--text-stronger) !important;
+      border-color: rgba(148, 163, 184, 0.75);
+    }
+
+
+    /* Filter Tags / Chips */
+    .filter-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-strong);
+      background-color: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .filter-chip strong {
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    .filters-note {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    /* ===== MAP + CHARTS LAYOUT ===== */
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    /* MAP CARD */
+    .map-card {
+      padding: 14px 18px;
+    }
+
+    .map-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .map-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-stronger);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .map-title .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #38bdf8, #22c55e);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+    }
+
+    .map-toggle-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 5px 12px;
+      font-size: 11px;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 60%),
+        rgba(15, 23, 42, 0.95);
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .map-toggle-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-strong);
+      transform: translateY(-1px);
+    }
+
+    .map-toggle-btn-active {
+      color: var(--text-stronger) !important;
+      border-color: var(--accent-green) !important;
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.25), transparent 60%),
+        rgba(15, 23, 42, 0.98) !important;
+      box-shadow: 0 0 0 1px var(--accent-green), 0 8px 15px rgba(34, 197, 94, 0.15);
+    }
+
+    body[data-theme="light"] .map-toggle-btn {
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-strong);
+    }
+
+    body[data-theme="light"] .map-toggle-btn-active {
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.1), transparent 60%),
+        #ffffff !important;
+    }
+
+
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+    }
+
+    .map-footer {
+      font-size: 10px;
+      color: var(--text-subtle);
+      margin-top: 10px;
+      padding-top: 6px;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .map-legend {
+      display: flex;
+      gap: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .legend-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background-color: var(--text-subtle);
+    }
+
+    .legend-surveyed {
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .legend-pending {
+      background: var(--accent-amber);
+      box-shadow: 0 0 8px var(--accent-amber);
+    }
+
+    .legend-selected {
+      width: 10px;
+      height: 10px;
+      background: var(--accent-blue);
+      box-shadow: 0 0 10px var(--accent-blue);
+      animation: pulse 1.5s infinite;
+    }
+
+
+    /* CHARTS COLUMN */
+    .charts-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chart-card {
+      padding: 14px 18px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 200px; /* Standard chart height */
+      width: 100%;
+      margin: 10px auto;
+    }
+
+    /* INSIGHTS / STATS */
+    .insights-card {
+      padding: 14px 18px;
+    }
+
+    .insights-content {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.6;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .insights-content strong {
+      color: var(--text-stronger);
+      font-weight: 700;
+    }
+
+    /* ===== TABLE SECTION ===== */
+    .table-card {
+      padding: 14px 18px;
+      border-radius: var(--glass-radius-lg);
+    }
+
+    .table-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .table-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .table-header-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-soft);
+    }
+
+    .table-header-sub {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-stronger);
+    }
+
+    .table-export-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .export-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 5px 12px;
+      font-size: 11px;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 60%),
+        rgba(15, 23, 42, 0.95);
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .export-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-strong);
+      transform: translateY(-1px);
+    }
+
+    body[data-theme="light"] .export-btn {
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-strong);
+    }
+
+
+    .table-wrapper {
+      width: 100%;
+      max-height: 500px;
+      overflow: auto;
+      border-radius: var(--glass-radius-md);
+      border: 1px solid var(--glass-border);
+      background:
+        radial-gradient(circle at top left, rgba(248, 250, 252, 0.02), rgba(15, 23, 42, 0.98));
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    th,
+    td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+
+    th {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.95));
+      font-weight: 600;
+      color: var(--text-soft);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      color: var(--text-soft);
+    }
+
+    tbody tr:hover {
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.12), transparent 55%),
+        rgba(15, 23, 42, 0.85);
+      color: var(--text-strong);
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    td.status-completed {
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    td.status-pending {
+      color: var(--accent-amber);
+      font-weight: 600;
+    }
+
+    td.status-in-progress {
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+
+    /* ===== MODAL DETAIL VIEW ===== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 300ms ease, visibility 0ms 300ms;
+    }
+
+    .modal-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 300ms ease, visibility 0ms 0ms;
+    }
+
+    .modal-content {
+      background: var(--bg-surface);
+      border-radius: var(--glass-radius-lg);
+      padding: 20px 24px;
+      max-width: 600px;
+      width: 90%;
+      position: relative;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+      transform: scale(0.9);
+      transition: transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .modal-backdrop.is-open .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: var(--text-stronger);
+    }
+
+    .modal-body {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      border: none;
+      background: transparent;
+      color: var(--text-soft);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .detail-list {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+    }
+
+    .detail-list dt {
+      font-weight: 600;
+      color: var(--text-strong);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 11px;
+    }
+
+    .detail-list dd {
+      margin: 0;
+      color: var(--text-soft);
+      font-weight: 500;
+      font-size: 12px;
+    }
+
+    .detail-list dd a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .detail-list dd a:hover {
+      text-decoration: underline;
+    }
+
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fade-slide-up {
+      from {
         opacity: 0;
-        transition: opacity 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        transform: translateY(8px);
       }
-
-      .top-nav-links a:hover,
-      .top-nav-links a:focus-visible {
-        color: var(--text-stronger);
-        border-color: rgba(148, 163, 184, 0.7);
-        background: rgba(15, 23, 42, 0.9);
-        transform: translateY(-1px);
-      }
-
-      .top-nav-links a.is-active {
-        color: #e0f2fe;
-        border-color: rgba(56, 189, 248, 0.95);
-        background:
-          radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.25), transparent 55%),
-          linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.94));
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
-      }
-
-      .top-nav-links a.is-active::after {
+      to {
         opacity: 1;
+        transform: translateY(0);
       }
+    }
 
-      /* Main */
-      .dashboard {
-        margin-top: 4px;
-        display: flex;
+    @keyframes pulse {
+      0% {
+        opacity: 0.55;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0;
+        transform: scale(1.4);
+      }
+      100% {
+        opacity: 0.55;
+        transform: scale(1);
+      }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+      .main-grid {
+        grid-template-columns: minmax(0, 1fr); /* Stack map and charts vertically */
+      }
+      #map {
+        height: 380px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .shell {
+        padding: 8px;
+      }
+      header {
         flex-direction: column;
-        gap: 16px;
+        text-align: center;
+        gap: 10px;
+        padding: 10px 14px;
       }
-
-      .section {
-        margin-top: 4px;
+      .header-left, .header-right {
+        gap: 6px;
       }
-
-      .glass-card {
-        border-radius: var(--glass-radius-lg);
-        background: linear-gradient(
-            135deg,
-            rgba(15, 23, 42, 0.96),
-            rgba(15, 23, 42, 0.9)
-          );
-        border: 1px solid var(--glass-border);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        box-shadow: var(--shadow-soft);
+      .header-center {
+        order: -1;
       }
-
-      /* KPIs */
-      .section-kpis {
-        padding: 4px 4px;
-      }
-
-      .kpi-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-
-      .kpi-card {
-        flex: 1;
-        min-width: 180px;
-        padding: 12px 14px;
-        border-radius: var(--kpi-radius);
-        background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 55%),
-          radial-gradient(circle at bottom right, rgba(129, 140, 248, 0.08), transparent 55%),
-          rgba(15, 23, 42, 0.96);
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.8);
-      }
-
-      .kpi-label {
-        font-size: 11px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: 6px;
-      }
-
-      .kpi-value {
+      .header-title {
         font-size: 20px;
-        font-weight: 600;
-        color: var(--text-stronger);
       }
-
-      .kpi-subtext {
-        margin-top: 4px;
-        font-size: 11px;
-        color: var(--text-soft);
+      .kpi-row {
+        grid-template-columns: 1fr 1fr;
       }
-
-      .kpi-strip-subsystems {
-        margin-top: 10px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 10px;
+      .filters-grid {
+        grid-template-columns: 1fr;
       }
-
-      .kpi-card-circle {
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .kpi-circle-layout {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .circle-wrapper {
-        position: relative;
-        width: 52px;
-        height: 52px;
-        border-radius: 999px;
-        background: radial-gradient(circle at 30% 0, #0f172a, #020617);
-        border: 1px solid rgba(148, 163, 184, 0.5);
-        overflow: hidden;
-      }
-
-      .circle-fill {
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        --value: 0%;
-        background: conic-gradient(
-          rgba(34, 197, 94, 0.85) 0 var(--value),
-          rgba(31, 41, 55, 0.9) 0
-        );
-      }
-
-      .circle-inner {
-        position: relative;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 600;
-        color: #e5e7eb;
-        text-shadow: 0 1px 2px rgba(15, 23, 42, 0.8);
-      }
-
-      .kpi-circle-text {
-        font-size: 11px;
-        color: var(--text-soft);
-      }
-
-      .kpi-circle-text strong {
-        font-size: 12px;
-        color: var(--accent-emerald);
-      }
-
-      /* Filters & export bar */
-      .section-filters {
-        padding: 10px 12px;
-      }
-
-      .filters-inner {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .filters-row-main {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: flex-end;
-      }
-
-      .filters-row-main label {
-        font-size: 11px;
-        color: var(--text-muted);
-        display: flex;
+      .map-legend {
         flex-direction: column;
         gap: 4px;
       }
+    }
 
-      .filters select,
-      .filters input[type="text"] {
-        min-width: 140px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.7);
-        background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
-        color: var(--text-stronger);
-        font-size: 12px;
+    @media (max-width: 480px) {
+      .kpi-row {
+        grid-template-columns: 1fr;
       }
-
-      body[data-theme="light"] .filters select,
-      body[data-theme="light"] .filters input[type="text"] {
-        background: linear-gradient(135deg, #ffffff, #f9fafb);
-        color: var(--text-stronger);
-      }
-
-      .filters input[type="text"]::placeholder {
-        color: var(--text-muted);
-      }
-
-      .filters-row-extra {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        font-size: 11px;
-      }
-
-      .filters-note {
-        color: var(--text-muted);
-      }
-
-      .export-buttons {
-        display: flex;
-        gap: 6px;
-      }
-
-      .export-btn {
-        padding: 6px 10px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.7);
-        background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.18), transparent 55%),
-          rgba(15, 23, 42, 0.98);
-        color: #e5e7eb;
-        font-size: 11px;
-        cursor: pointer;
-      }
-
-      /* Main: map + table */
-      .section-main {
-        display: grid;
-        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.2fr);
-        gap: 14px;
-      }
-
-      .map-card {
-        padding: 10px 12px;
-      }
-
-      .map-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-      }
-
-      .map-title {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: var(--text-soft);
-      }
-
-      .map-title .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: radial-gradient(circle at 30% 0, #22c55e, #38bdf8);
-        box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
-      }
-
-      #map {
-        width: 100%;
-        height: var(--map-height);
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid rgba(148, 163, 184, 0.35);
-      }
-
-      .map-footer {
-        margin-top: 6px;
-        font-size: 11px;
-        color: var(--text-muted);
-      }
-
-      .table-card {
-        padding: 10px 12px;
-        display: flex;
+      .table-header-row {
         flex-direction: column;
-        height: 100%;
+        align-items: flex-start;
       }
-
-      .table-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-      }
-
-      .table-title {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-stronger);
-      }
-
-      .table-count {
-        font-size: 11px;
-        color: var(--text-muted);
-      }
-
-      .table-wrapper {
-        flex: 1;
-        border-radius: 16px;
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        overflow: auto;
-        background: rgba(15, 23, 42, 0.98);
-      }
-
-      table {
+      .table-export-buttons {
+        margin-top: 8px;
         width: 100%;
-        border-collapse: collapse;
-        font-size: 11px;
+        justify-content: space-between;
       }
+    }
 
-      thead {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
-      }
-
-      thead th {
-        padding: 6px 8px;
-        text-align: left;
-        white-space: nowrap;
-        border-bottom: 1px solid rgba(71, 85, 105, 0.9);
-        color: var(--text-soft);
-      }
-
-      tbody tr {
-        border-bottom: 1px solid rgba(30, 64, 175, 0.4);
-        cursor: pointer;
-      }
-
-      tbody tr:hover {
-        background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.1), transparent 55%);
-      }
-
-      tbody td {
-        padding: 6px 8px;
-        white-space: nowrap;
-        color: var(--text-strong);
-      }
-
-      /* Modal */
-      .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.8);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 100;
-      }
-
-      .modal-backdrop.is-open {
-        display: flex;
-      }
-
-      .modal {
-        position: relative;
-        background: var(--bg-surface);
-        border-radius: var(--glass-radius-lg);
-        padding: 16px 20px;
-        max-width: 580px;
-        width: 96%;
-        box-shadow: 0 26px 55px rgba(15, 23, 42, 0.95);
-        border: 1px solid var(--glass-border);
-      }
-
-      .modal-title {
-        font-size: 16px;
-        margin-bottom: 8px;
-        color: var(--text-stronger);
-      }
-
-      .modal-body {
-        font-size: 12px;
-        color: var(--text-soft);
-      }
-
-      .modal-close {
-        position: absolute;
-        top: 10px;
-        right: 14px;
-        border: none;
-        background: transparent;
-        color: var(--text-soft);
-        font-size: 20px;
-        cursor: pointer;
-      }
-
-      .detail-list {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 4px 12px;
-      }
-
-      .detail-list dt {
-        font-weight: 600;
-        color: var(--text-strong);
-      }
-
-      .detail-list dd {
-        margin: 0;
-        color: var(--text-soft);
-      }
-
-      /* Responsive */
-      @media (max-width: 1200px) {
-        .section-main {
-          grid-template-columns: 1fr;
-        }
-        #map {
-          height: 360px;
-        }
-      }
-
-      @media (max-width: 768px) {
-        header {
-          flex-wrap: wrap;
-          align-items: flex-start;
-        }
-        .header-center {
-          text-align: left;
-        }
-        .page-nav {
-          flex-direction: column;
-        }
-        .filters-row-main {
-          flex-direction: column;
-          align-items: stretch;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .header-logo {
-          max-height: 44px;
-        }
-        .header-logo-small {
-          max-height: 34px;
-        }
-        .header-title {
-          font-size: 17px;
-          letter-spacing: 0.08em;
-        }
-      }
     </style>
   </head>
-  <body>
+<body data-theme="dark">
+
     <div class="page">
-      <div class="shell">
-        <header>
-          <div class="header-left">
-            <img src="aktor-logo.png" alt="AKTOR Qatar" class="header-logo" />
-          </div>
-          <div class="header-center">
-            <h1 class="header-title">Qatar North Structures Survey</h1>
-            <div class="header-subtitle">
-              Live from Google Sheet — Pedestrian Bridges &amp; Underpasses, Structures &amp; MEP/ELV Systems
-            </div>
-            <div class="header-datetime" id="currentDateTime"></div>
-          </div>
-          <div class="header-right">
-            <img
-              src="MRTC-AKTOR JV.png"
-              alt="MRTC-AKTOR JV"
-              class="header-logo header-logo-small"
-            />
-          </div>
-        </header>
-
-        <div class="page-nav">
-          <button class="theme-toggle" type="button" aria-label="Toggle theme">
-            <span class="dot"></span>
-            <span>Dark</span>
-          </button>
-
-          <ul class="top-nav-links">
-            <li>
-              <a href="TRAFFIC.html" data-page="traffic">Traffic Junctions</a>
-            </li>
-            <li>
-              <a href="ITS.html" data-page="its">ITS Dashboard</a>
-            </li>
-            <li>
-              <a href="STRUCTURES.html" data-page="structures">Structures Dashboard</a>
-            </li>
-          </ul>
-        </div>
-
-        <main id="main-content" class="dashboard">
-          <!-- KPI row -->
-          <section class="section section-kpis">
-            <div class="glass-card" style="padding: 12px 14px;">
-              <div class="kpi-row">
-                <div class="kpi-card">
-                  <div class="kpi-label">Total Structures</div>
-                  <div class="kpi-value" id="kpi-total-structures">–</div>
-                  <div class="kpi-subtext">All structures in the current filter</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">Survey Completed</div>
-                  <div class="kpi-value" id="kpi-completed">–</div>
-                  <div class="kpi-subtext">
-                    Structures with Survey Status marked as COMPLETED
-                  </div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">No Access / Pending</div>
-                  <div class="kpi-value" id="kpi-noaccess">–</div>
-                  <div class="kpi-subtext">
-                    Structures with NO ACCESS or other open status
-                  </div>
-                </div>
-              </div>
-
-              <!-- Subsystem cards -->
-              <div class="kpi-strip-subsystems">
-                <!-- MEP -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">MEP</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-mep-fill" class="circle-fill"></div>
-                      <div id="circle-mep-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div><strong id="circle-mep-pct">0%</strong> of structures with MEP</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Lights -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">Lights</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-lights-fill" class="circle-fill"></div>
-                      <div id="circle-lights-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div>
-                        <strong id="circle-lights-pct">0%</strong> of structures with Lights
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- UPS -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">UPS</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-ups-fill" class="circle-fill"></div>
-                      <div id="circle-ups-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div><strong id="circle-ups-pct">0%</strong> of structures with UPS</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Electrical DB -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">Electrical DB</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-edb-fill" class="circle-fill"></div>
-                      <div id="circle-edb-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div>
-                        <strong id="circle-edb-pct">0%</strong> with Electrical DB
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- FF -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">FF</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-ff-fill" class="circle-fill"></div>
-                      <div id="circle-ff-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div><strong id="circle-ff-pct">0%</strong> with Fire Fighting</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- FA -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">FA</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-fa-fill" class="circle-fill"></div>
-                      <div id="circle-fa-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div><strong id="circle-fa-pct">0%</strong> with Fire Alarm</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- HVAC -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">HVAC</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-hvac-fill" class="circle-fill"></div>
-                      <div id="circle-hvac-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div><strong id="circle-hvac-pct">0%</strong> with HVAC</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Elevators -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">Elevators</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-elevators-fill" class="circle-fill"></div>
-                      <div id="circle-elevators-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div>
-                        <strong id="circle-elevators-pct">0%</strong> with Elevators
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Escalator -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">Escalator</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-escalator-fill" class="circle-fill"></div>
-                      <div id="circle-escalator-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div>
-                        <strong id="circle-escalator-pct">0%</strong> with Escalators
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- ITS -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">ITS</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-its-fill" class="circle-fill"></div>
-                      <div id="circle-its-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div><strong id="circle-its-pct">0%</strong> with ITS systems</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- ELV -->
-                <div class="kpi-card kpi-card-circle">
-                  <div class="kpi-label">ELV</div>
-                  <div class="kpi-circle-layout">
-                    <div class="circle-wrapper">
-                      <div id="circle-elv-fill" class="circle-fill"></div>
-                      <div id="circle-elv-inner" class="circle-inner">0 / 0</div>
-                    </div>
-                    <div class="kpi-circle-text">
-                      <div><strong id="circle-elv-pct">0%</strong> with ELV systems</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Filters -->
-          <section class="section section-filters">
-            <div class="glass-card filters">
-              <div class="filters-inner">
-                <div class="filters-row-main">
-                  <label>
-                    Zone
-                    <select id="zoneFilter">
-                      <option value="All">All</option>
-                    </select>
-                  </label>
-                  <label>
-                    Type of Site
-                    <select id="siteTypeFilter">
-                      <option value="All">All</option>
-                    </select>
-                  </label>
-                  <label>
-                    Survey Status
-                    <select id="surveyStatusFilter">
-                      <option value="All">All</option>
-                    </select>
-                  </label>
-                  <label style="flex: 1;">
-                    Search (Site / Name / Remarks)
-                    <input
-                      type="text"
-                      id="structureSearch"
-                      placeholder="Search by site, name, project, remarks..."
+        <div class="shell">
+            <header>
+                <div class="header-left">
+                    <img
+                        src="https://via.placeholder.com/100x52.png?text=LOGO+1"
+                        alt="Logo 1"
+                        class="header-logo"
                     />
-                  </label>
+                    <div class="top-nav-links">
+                        <a href="ITS.html">ITS</a>
+                        <a href="TRAFFIC.html">Traffic</a>
+                        <a href="Structures.html" class="is-active">Structures</a>
+                    </div>
                 </div>
-                <div class="filters-row-extra">
-                  <div class="filters-note" id="filtersNote">No filters applied.</div>
-                  <div class="export-buttons">
-                    <button id="downloadCsvBtn" class="export-btn" type="button">
-                      CSV
-                    </button>
-                    <button id="downloadExcelBtn" class="export-btn" type="button">
-                      Excel (XLSX)
-                    </button>
-                    <button id="downloadPdfBtn" class="export-btn" type="button">
-                      PDF
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
 
-          <!-- Map + table -->
-          <section class="section section-main">
-            <div class="glass-card map-card">
-              <div class="map-card-header">
-                <div class="map-title">
-                  <span class="dot"></span>
-                  <span>Structures Map (ESRI World Imagery)</span>
+                <div class="header-center">
+                    <h1 class="header-title">QATAR NORTH INFRASTRUCTURE</h1>
+                    <div class="header-subtitle">STRUCTURES SURVEY DASHBOARD</div>
+                    <div class="header-meta">
+                        Last Updated: <span id="currentDateTime">--</span>
+                        <span class="header-meta-separator">|</span>
+                        Total Structures: <span id="total-structures-count">0</span>
+                    </div>
                 </div>
-              </div>
-              <div id="map"></div>
-              <div class="map-footer">
-                ESRI World Imagery centered on Qatar North. Green markers are completed
-                structures; red markers are pending / no access. Map respects current
-                filters &amp; search.
-              </div>
-            </div>
 
-            <div class="glass-card table-card">
-              <div class="table-header">
-                <div class="table-title">Structures Asset List</div>
-                <div class="table-count">
-                  <span id="tableCount">0</span> structures in current view
+                <div class="header-right">
+                    <button class="theme-toggle" id="themeToggle" type="button">
+                        <span class="icon">💡</span>
+                        <span id="themeText">LIGHT MODE</span>
+                    </button>
+                    <img
+                        src="https://via.placeholder.com/80x42.png?text=LOGO+2"
+                        alt="Logo 2"
+                        class="header-logo-small"
+                    />
                 </div>
-              </div>
-              <div class="table-wrapper">
-                <table>
-                  <thead>
-                    <tr id="structuresTableHeader"></tr>
-                  </thead>
-                  <tbody id="structuresTableBody"></tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-        </main>
+            </header>
 
-        <!-- Modal -->
-        <div class="modal-backdrop" id="detailModal" aria-hidden="true">
-          <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-            <button class="modal-close" type="button" aria-label="Close details">
-              &times;
-            </button>
-            <h2 id="modalTitle" class="modal-title">Structure Details</h2>
-            <div id="modalBody" class="modal-body"></div>
-          </div>
+            <main class="dashboard">
+
+                <section class="section section-kpis">
+                    <div class="kpi-row">
+                        <div class="glass-card kpi-card kpi-primary">
+                            <div class="kpi-label">Total Structures in Scope</div>
+                            <div class="kpi-value" id="total-structures-count-kpi">0</div>
+                            <div class="kpi-circle-layout kpi-circle-compact">
+                                <div class="circle-wrapper">
+                                    <div id="circle-survey-fill" class="circle-fill"></div>
+                                    <div id="circle-survey-inner" class="circle-inner">0 / 0</div>
+                                </div>
+                                <div class="kpi-circle-text">
+                                    <div class="circle-caption">
+                                        <strong id="circle-survey-pct">0%</strong> of structures surveyed
+                                    </div>
+                                    <div class="kpi-caption" id="survey-completion-text">--</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card kpi-card">
+                            <div class="kpi-label">Survey Completion Rate</div>
+                            <div class="kpi-value" id="survey-completion-percent">--</div>
+                            <div class="kpi-subtext"> Overall completion rate for all structures in the current filter. </div>
+                        </div>
+
+                        <div class="glass-card kpi-card">
+                            <div class="kpi-label">Structures Completed</div>
+                            <div class="kpi-value" id="structures-completed-count">0</div>
+                            <div class="kpi-subtext">Structures with survey status “Completed”.</div>
+                        </div>
+
+                        <div class="glass-card kpi-card">
+                            <div class="kpi-label">Structures Pending</div>
+                            <div class="kpi-value" id="structures-pending-count">0</div>
+                            <div class="kpi-subtext">Structures with survey status “Pending”.</div>
+                        </div>
+
+                        <div class="glass-card kpi-card">
+                            <div class="kpi-label">MEP Assets</div>
+                            <div class="kpi-circle-layout kpi-circle-compact">
+                                <div class="circle-wrapper">
+                                    <div id="circle-mep-fill" class="circle-fill"></div>
+                                    <div id="circle-mep-inner" class="circle-inner">0 / 0</div>
+                                </div>
+                                <div class="kpi-circle-text">
+                                    <div class="circle-caption">
+                                        <strong id="circle-mep-pct">0%</strong> MEP surveyed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card kpi-card">
+                            <div class="kpi-label">Lighting Assets</div>
+                            <div class="kpi-circle-layout kpi-circle-compact">
+                                <div class="circle-wrapper">
+                                    <div id="circle-lights-fill" class="circle-fill"></div>
+                                    <div id="circle-lights-inner" class="circle-inner">0 / 0</div>
+                                </div>
+                                <div class="kpi-circle-text">
+                                    <div class="circle-caption">
+                                        <strong id="circle-lights-pct">0%</strong> Lights surveyed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card kpi-card">
+                            <div class="kpi-label">UPS Assets</div>
+                            <div class="kpi-circle-layout kpi-circle-compact">
+                                <div class="circle-wrapper">
+                                    <div id="circle-ups-fill" class="circle-fill"></div>
+                                    <div id="circle-ups-inner" class="circle-inner">0 / 0</div>
+                                </div>
+                                <div class="kpi-circle-text">
+                                    <div class="circle-caption">
+                                        <strong id="circle-ups-pct">0%</strong> UPS surveyed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card kpi-card">
+                            <div class="kpi-label">Electrical DB Assets</div>
+                            <div class="kpi-circle-layout kpi-circle-compact">
+                                <div class="circle-wrapper">
+                                    <div id="circle-electricalDb-fill" class="circle-fill"></div>
+                                    <div id="circle-electricalDb-inner" class="circle-inner">0 / 0</div>
+                                </div>
+                                <div class="kpi-circle-text">
+                                    <div class="circle-caption">
+                                        <strong id="circle-electricalDb-pct">0%</strong> Electrical DB surveyed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card kpi-card">
+                            <div class="kpi-label">FF / FA Assets</div>
+                            <div class="kpi-circle-layout kpi-circle-compact">
+                                <div class="circle-wrapper">
+                                    <div id="circle-ff-fill" class="circle-fill"></div>
+                                    <div id="circle-ff-inner" class="circle-inner">0 / 0</div>
+                                </div>
+                                <div class="kpi-circle-text">
+                                    <div class="circle-caption">
+                                        <strong id="circle-ff-pct">0%</strong> FF/FA surveyed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <section class="section section-filters">
+                    <div class="glass-card filters-card">
+                        <div class="card-header-row">
+                            <p class="card-title">Filter Structures</p>
+                        </div>
+                        <div class="filters-grid">
+                            <div class="filters">
+                                <label for="zoneFilter">Zone</label>
+                                <select id="zoneFilter">
+                                    <option value="All">All Zones</option>
+                                </select>
+                            </div>
+
+                            <div class="filters">
+                                <label for="siteTypeFilter">Site Type</label>
+                                <select id="siteTypeFilter">
+                                    <option value="All">All Site Types</option>
+                                </select>
+                            </div>
+
+                            <div class="filters">
+                                <label for="surveyStatusFilter">Survey Status</label>
+                                <select id="surveyStatusFilter">
+                                    <option value="All">All Statuses</option>
+                                </select>
+                            </div>
+
+                            <div class="filters">
+                                <label for="structureSearch">Search by Site / Reference / Name</label>
+                                <input type="search" id="structureSearch" placeholder="Enter keyword..." />
+                            </div>
+                        </div>
+                        <div class="filter-tags-row" id="activeFiltersContainer">
+                            <div class="filter-chip">No active filters.</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section section-main">
+                    <div class="main-grid">
+                        <div class="glass-card map-card">
+                            <div class="map-card-header">
+                                <div class="map-title">
+                                    <span class="dot"></span> <span>Structures Map (Satellite Imagery)</span>
+                                </div>
+                                <button id="mapModeToggle" class="map-toggle-btn map-toggle-btn-active" type="button" > Map Mode: Selected Structure Only </button>
+                            </div>
+                            <div id="map"></div>
+                            <div class="map-footer" id="map-footer">
+                                <p>ESRI World Imagery showing surveyed (green) and pending (amber) structures.</p>
+                                <div class="map-legend">
+                                    <div class="legend-item">
+                                        <span class="legend-dot legend-surveyed"></span> <span>Completed</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-dot legend-pending"></span> <span>Pending / In-Progress</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-dot legend-selected"></span> <span>Selected from table</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="charts-stack">
+                            <div class="glass-card chart-card site-type-card">
+                                <div class="card-header-row">
+                                    <p class="card-title">Type of Site Distribution</p>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="siteTypeChart"></canvas>
+                                </div>
+                                <div class="card-sub"> Distribution of structures by 'Type of Site' for the current filter. </div>
+                            </div>
+
+                            <div class="glass-card chart-card zone-completion-card">
+                                <div class="card-header-row">
+                                    <p class="card-title">Zone-wise Survey Completion (%)</p>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="zoneCompletionChart"></canvas>
+                                </div>
+                                <div class="card-sub"> Completion percentage for each Zone in the current filter. </div>
+                            </div>
+
+                            <div class="glass-card insights-card">
+                                <div class="card-header-row">
+                                    <p class="card-title">Insights: Lowest Completion</p>
+                                </div>
+                                <div class="insights-content" id="insightsContent">
+                                    Loading insights...
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section section-table">
+                    <div class="glass-card table-card">
+                        <div class="table-header-row">
+                            <div class="table-header-left">
+                                <div class="table-header-title">Filtered Structures List</div>
+                                <div class="table-header-sub">Showing <span id="filtered-count">0</span> of <span id="total-count">0</span> Structures</div>
+                            </div>
+                            <div class="table-export-buttons">
+                                <button id="downloadCsvBtn" class="export-btn" type="button"> CSV </button>
+                                <button id="downloadExcelBtn" class="export-btn" type="button"> Excel (XLSX) </button>
+                                <button id="downloadPdfBtn" class="export-btn" type="button"> PDF </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="structuresTable">
+                                <thead>
+                                    <tr id="tableHeaderRow">
+                                        </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
         </div>
-      </div>
+    </div>
+
+    <div id="detailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Structure Details</h3>
+                <button class="modal-close" aria-label="Close modal">×</button>
+            </div>
+            <div id="modalBody" class="modal-body">
+                </div>
+        </div>
     </div>
 
     <script>
-      // === Theme handling (same style as TRAFFIC/ITS) =======================
-      (function () {
-        const THEME_KEY = "qn-dashboard-theme";
+        // === CONFIG =========================================================
+        const DATA_SOURCE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSILhpftsWRLXkhsD_yvv_2oeNtFRYSsKq9PtNF4PKnZQLNYu6xjFEU4W5OuavcIx9gRN5UprrNdfT1/pub?gid=1074651700&single=true&output=csv";
 
-        function setTheme(theme) {
-          const isDark = theme === "dark";
-          document.body.setAttribute("data-theme", isDark ? "dark" : "light");
-        }
-
-        function applyPreferredTheme() {
-          try {
-            const stored = localStorage.getItem(THEME_KEY);
-            if (stored === "dark" || stored === "light") {
-              setTheme(stored);
-              return;
-            }
-          } catch (e) {}
-
-          try {
-            const mql =
-              window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
-            if (mql && typeof mql.matches === "boolean") {
-              setTheme(mql.matches ? "dark" : "light");
-            } else {
-              setTheme("dark");
-            }
-          } catch (e) {
-            setTheme("dark");
-          }
-        }
-
-        function updateToggleLabel() {
-          const btn = document.querySelector(".theme-toggle span:last-child");
-          if (!btn) return;
-          const isDark = document.body.getAttribute("data-theme") !== "light";
-          btn.textContent = isDark ? "Dark" : "Light";
-        }
-
-        window.qnSetTheme = function (theme) {
-          try {
-            localStorage.setItem(THEME_KEY, theme);
-          } catch (e) {}
-          setTheme(theme);
-          updateToggleLabel();
+        // Column names (from original Structures.html)
+        const COLS = {
+            sn: "Sr.No",
+            site: "Site",
+            siteReference: "Site Reference",
+            siteName: "Site Name",
+            projectCode: "Project Code",
+            surveyStatus: "Survey Status",
+            typeOfSite: "Type of Site",
+            maximoId: "Maximo ID",
+            zone: "Zone",
+            lat: "Latitude",
+            lon: "Longitude",
+            remarks: "Remarks",
+            mep: "MEP",
+            lights: "Lights",
+            ups: "UPS",
+            electricalDb: "Electrical DB",
+            ff: "FF",
+            fa: "FA", // Includes FA for completeness, will combine with FF
+            hvac: "HVAC",
+            elevators: "Elevators",
+            escalator: "Escalator",
+            its: "ITS",
+            elv: "ELV",
         };
 
-        document.addEventListener("click", function (e) {
-          const btn = e.target.closest(".theme-toggle");
-          if (!btn) return;
-          const current =
-            document.body.getAttribute("data-theme") === "light" ? "light" : "dark";
-          const next = current === "dark" ? "light" : "dark";
-          window.qnSetTheme(next);
-        });
+        const SUBSYSTEM_KPIS = [
+            { key: "mep", col: COLS.mep, label: "MEP", pctId: "circle-mep-pct", fillId: "circle-mep-fill", innerId: "circle-mep-inner" },
+            { key: "lights", col: COLS.lights, label: "Lights", pctId: "circle-lights-pct", fillId: "circle-lights-fill", innerId: "circle-lights-inner" },
+            { key: "ups", col: COLS.ups, label: "UPS", pctId: "circle-ups-pct", fillId: "circle-ups-fill", innerId: "circle-ups-inner" },
+            { key: "electricalDb", col: COLS.electricalDb, label: "Electrical DB", pctId: "circle-electricalDb-pct", fillId: "circle-electricalDb-fill", innerId: "circle-electricalDb-inner" },
+            // Combining FF/FA for a single KPI
+            { key: "ff", col: COLS.ff, col2: COLS.fa, label: "FF / FA", pctId: "circle-ff-pct", fillId: "circle-ff-fill", innerId: "circle-ff-inner" },
+            // Add more if needed, but keeping the list short for the template:
+            // { key: "hvac", col: COLS.hvac, label: "HVAC" },
+            // { key: "elevators", col: COLS.elevators, label: "Elevators" },
+        ];
 
-        applyPreferredTheme();
-        updateToggleLabel();
-      })();
+        const MAP_TILE_URL =
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+        const MAP_ATTRIBUTION =
+            'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
 
-      // === Data & dashboard logic ==========================================
-      const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSILhpftsWRLXkhsD_yvv_2oeNtFRYSsKq9PtNF4PKnZQLNYu6xjFEU4W5OuavcIx9gRN5UprrNdfT1/pub?output=csv";
+        let mapInstance = null;
+        let mapMarkers = L.layerGroup();
+        let allStructures = [];
+        let currentFiltered = [];
+        let mapModeSelectedOnly = true;
+        let siteTypeChartInstance = null;
+        let zoneCompletionChartInstance = null;
+        let lastSelectedMarker = null;
 
-      const COL = {
-        sn: "S.N",
-        site: "Site",
-        siteReference: "Site Reference",
-        siteName: "Site Name",
-        projectCode: "Project Code",
-        surveyStatus: "Survey Status",
-        typeOfSite: "Type of Site",
-        maximoId: "Maximo ID",
-        zone: "Zone",
-        lat: "Latitude ",
-        lon: "Longitude",
-        remarks: "Remarks",
-        mep: "MEP",
-        lights: "Lights",
-        ups: "UPS",
-        electricalDb: "Electrical DB",
-        ff: "FF",
-        fa: "FA",
-        hvac: "HVAC",
-        elevators: "Elevators",
-        escalator: "Escalator",
-        its: "ITS",
-        elv: "ELV",
-      };
+        // === UTILS ==========================================================
 
-      const TABLE_COLUMNS = [
-        COL.sn,
-        COL.site,
-        COL.siteReference,
-        COL.siteName,
-        COL.projectCode,
-        COL.surveyStatus,
-        COL.typeOfSite,
-        COL.maximoId,
-        COL.zone,
-        COL.lat,
-        COL.lon,
-        COL.remarks,
-        COL.mep,
-        COL.lights,
-        COL.ups,
-        COL.electricalDb,
-        COL.ff,
-        COL.fa,
-        COL.hvac,
-        COL.elevators,
-        COL.escalator,
-        COL.its,
-        COL.elv,
-      ];
-
-      const SUBSYSTEMS = [
-        { key: "mep", col: COL.mep, innerId: "circle-mep-inner", pctId: "circle-mep-pct", fillId: "circle-mep-fill" },
-        { key: "lights", col: COL.lights, innerId: "circle-lights-inner", pctId: "circle-lights-pct", fillId: "circle-lights-fill" },
-        { key: "ups", col: COL.ups, innerId: "circle-ups-inner", pctId: "circle-ups-pct", fillId: "circle-ups-fill" },
-        { key: "electricalDb", col: COL.electricalDb, innerId: "circle-edb-inner", pctId: "circle-edb-pct", fillId: "circle-edb-fill" },
-        { key: "ff", col: COL.ff, innerId: "circle-ff-inner", pctId: "circle-ff-pct", fillId: "circle-ff-fill" },
-        { key: "fa", col: COL.fa, innerId: "circle-fa-inner", pctId: "circle-fa-pct", fillId: "circle-fa-fill" },
-        { key: "hvac", col: COL.hvac, innerId: "circle-hvac-inner", pctId: "circle-hvac-pct", fillId: "circle-hvac-fill" },
-        { key: "elevators", col: COL.elevators, innerId: "circle-elevators-inner", pctId: "circle-elevators-pct", fillId: "circle-elevators-fill" },
-        { key: "escalator", col: COL.escalator, innerId: "circle-escalator-inner", pctId: "circle-escalator-pct", fillId: "circle-escalator-fill" },
-        { key: "its", col: COL.its, innerId: "circle-its-inner", pctId: "circle-its-pct", fillId: "circle-its-fill" },
-        { key: "elv", col: COL.elv, innerId: "circle-elv-inner", pctId: "circle-elv-pct", fillId: "circle-elv-fill" },
-      ];
-
-      let allSites = [];
-      let filteredSites = [];
-      let mapInstance;
-      let markersLayer;
-
-      function normalizeSurveyStatus(val) {
-        if (val == null) return "Unknown";
-        const v = String(val).trim().toUpperCase();
-        if (v.includes("COMPLETED")) return "COMPLETED";
-        if (v.includes("NO ACCESS")) return "NO ACCESS";
-        return val.toString();
-      }
-
-      function hasSubsystem(value) {
-        if (value == null) return false;
-        const v = String(value).trim().toUpperCase();
-        if (!v) return false;
-        if (v === "N" || v === "NO" || v === "0") return false;
-        return true;
-      }
-
-      function buildSiteObjects(rows) {
-        return rows.map((row) => {
-          const surveyStatus = normalizeSurveyStatus(row[COL.surveyStatus]);
-          const latRaw = row[COL.lat];
-          const lonRaw = row[COL.lon];
-          const lat = latRaw != null && latRaw !== "" ? Number(latRaw) : null;
-          const lon = lonRaw != null && lonRaw !== "" ? Number(lonRaw) : null;
-
-          const site = {
-            raw: row,
-            sn: row[COL.sn] ?? "",
-            site: row[COL.site] ?? "",
-            siteReference: row[COL.siteReference] ?? "",
-            siteName: row[COL.siteName] ?? "",
-            projectCode: row[COL.projectCode] ?? "",
-            surveyStatus,
-            typeOfSite: row[COL.typeOfSite] ?? "",
-            maximoId: row[COL.maximoId] ?? "",
-            zone: row[COL.zone] ?? "",
-            lat,
-            lon,
-            remarks: row[COL.remarks] ?? "",
-            flags: {},
-          };
-
-          SUBSYSTEMS.forEach((s) => {
-            site.flags[s.key] = hasSubsystem(row[s.col]);
-          });
-
-          return site;
-        });
-      }
-
-      function updateCurrentDateTime() {
-        const el = document.getElementById("currentDateTime");
-        if (!el) return;
-        const now = new Date();
-        el.textContent = now.toLocaleString("en-US", {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        });
-      }
-
-      function initMap() {
-        if (mapInstance) return;
-        mapInstance = L.map("map", {
-          zoomControl: true,
-        }).setView([25.32, 51.53], 11);
-
-        // ESRI World Imagery
-        L.tileLayer(
-          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          {
-            attribution:
-              "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, " +
-              "Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
-            maxZoom: 19,
-          }
-        ).addTo(mapInstance);
-
-        markersLayer = L.layerGroup().addTo(mapInstance);
-      }
-
-      function updateMarkers(sites) {
-        if (!markersLayer || !mapInstance) return;
-        markersLayer.clearLayers();
-
-        const bounds = [];
-        sites.forEach((s) => {
-          if (typeof s.lat === "number" && typeof s.lon === "number") {
-            const color = s.surveyStatus === "COMPLETED" ? "#22c55e" : "#ef4444";
-            const marker = L.circleMarker([s.lat, s.lon], {
-              radius: 6,
-              color,
-              weight: 1,
-              fillColor: color,
-              fillOpacity: 0.85,
-            }).addTo(markersLayer);
-            marker.bindPopup(
-              `<strong>${s.siteName || s.site}</strong><br/>` +
-                `Site: ${s.site || "-"}<br/>` +
-                `Zone: ${s.zone || "-"}<br/>` +
-                `Status: ${s.surveyStatus || "-"}`
-            );
-            bounds.push([s.lat, s.lon]);
-          }
-        });
-
-        if (bounds.length) {
-          mapInstance.fitBounds(bounds, { padding: [20, 20] });
+        function normalizeStatus(rawStatus) {
+            const s = (rawStatus || "").toString().trim().toLowerCase();
+            if (s.includes("completed")) return "Completed";
+            if (s.includes("pending")) return "Pending";
+            if (s.includes("in progress")) return "In-Progress";
+            return s || "Unknown";
         }
-      }
 
-      function updateSummaryCards(sites) {
-        const total = sites.length;
-        const completed = sites.filter((s) => s.surveyStatus === "COMPLETED").length;
-        const noAccess = sites.filter((s) => s.surveyStatus === "NO ACCESS").length;
-        const other = total - completed - noAccess;
+        function hasSubsystem(rawValue) {
+            const val = (rawValue || "").toString().trim().toLowerCase();
+            return val === "yes" || val === "1" || val === "true" || val === "y";
+        }
 
-        const totalEl = document.getElementById("kpi-total-structures");
-        const compEl = document.getElementById("kpi-completed");
-        const naEl = document.getElementById("kpi-noaccess");
+        function formatPercent(value) {
+            if (!isFinite(value) || value < 0) return "0.0%";
+            return value.toFixed(1) + "%";
+        }
 
-        if (totalEl) totalEl.textContent = total.toString();
-        if (compEl)
-          compEl.textContent =
-            completed.toString() +
-            (total ? ` (${Math.round((completed / total) * 100)}%)` : "");
-        if (naEl)
-          naEl.textContent =
-            (noAccess + other).toString() +
-            (total ? ` (${Math.round(((noAccess + other) / total) * 100)}%)` : "");
-      }
+        function updateCurrentDateTime() {
+            const span = document.getElementById("currentDateTime");
+            if (!span) return;
+            const now = new Date();
+            span.textContent = now.toLocaleString("en-US", {
+                weekday: "short",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true,
+            });
+        }
 
-      function updateSubsystemCircles(sites) {
-        const total = sites.length || 0;
-        SUBSYSTEMS.forEach((s) => {
-          const count = sites.filter((st) => st.flags[s.key]).length;
-          const pct = total ? Math.round((count / total) * 100) : 0;
+        // === DATA LOADING & PROCESSING ======================================
 
-          const inner = document.getElementById(s.innerId);
-          const pctEl = document.getElementById(s.pctId);
-          const fill = document.getElementById(s.fillId);
+        function loadData() {
+            Papa.parse(DATA_SOURCE_URL, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    allStructures = results.data
+                        .map((row) => {
+                            // Ensure basic structure and required fields exist
+                            if (!row[COLS.lat] || !row[COLS.lon]) return null;
 
-          if (inner) inner.textContent = `${count} / ${total}`;
-          if (pctEl) pctEl.textContent = `${pct}%`;
-          if (fill) fill.style.setProperty("--value", pct + "%");
-        });
-      }
+                            const lat = parseFloat(row[COLS.lat]);
+                            const lon = parseFloat(row[COLS.lon]);
 
-      function updateFiltersUI(sites) {
-        const zoneEl = document.getElementById("zoneFilter");
-        const typeEl = document.getElementById("siteTypeFilter");
-        const statusEl = document.getElementById("surveyStatusFilter");
+                            if (isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return null;
 
-        if (!zoneEl || !typeEl || !statusEl) return;
+                            const status = normalizeStatus(row[COLS.surveyStatus]);
+                            const hasCoords = isFinite(lat) && isFinite(lon);
 
-        const zones = new Set();
-        const types = new Set();
-        const statuses = new Set();
+                            const structure = {
+                                sn: row[COLS.sn] || "",
+                                site: row[COLS.site] || "",
+                                siteReference: row[COLS.siteReference] || "",
+                                siteName: row[COLS.siteName] || "",
+                                projectCode: row[COLS.projectCode] || "",
+                                surveyStatus: status,
+                                typeOfSite: row[COLS.typeOfSite] || "Unknown Type",
+                                maximoId: row[COLS.maximoId] || "",
+                                zone: row[COLS.zone] || "Unknown Zone",
+                                lat: lat,
+                                lon: lon,
+                                remarks: row[COLS.remarks] || "",
+                                hasCoords: hasCoords,
+                                // Subsystem flags
+                                flags: {
+                                    mep: hasSubsystem(row[COLS.mep]),
+                                    lights: hasSubsystem(row[COLS.lights]),
+                                    ups: hasSubsystem(row[COLS.ups]),
+                                    electricalDb: hasSubsystem(row[COLS.electricalDb]),
+                                    // Combine FF and FA
+                                    ff: hasSubsystem(row[COLS.ff]) || hasSubsystem(row[COLS.fa]),
+                                    hvac: hasSubsystem(row[COLS.hvac]),
+                                    elevators: hasSubsystem(row[COLS.elevators]),
+                                    escalator: hasSubsystem(row[COLS.escalator]),
+                                    its: hasSubsystem(row[COLS.its]),
+                                    elv: hasSubsystem(row[COLS.elv]),
+                                },
+                                raw: row, // Keep raw data for modal
+                            };
 
-        sites.forEach((s) => {
-          if (s.zone) zones.add(s.zone);
-          if (s.typeOfSite) types.add(s.typeOfSite);
-          if (s.surveyStatus) statuses.add(s.surveyStatus);
-        });
+                            // Calculate subsystem totals for KPI denominators (only if they are 'Yes' in the data)
+                            structure.subsystemsInScope = {};
+                            SUBSYSTEM_KPIS.forEach(s => {
+                                // A subsystem is "in scope" if the column value is 'Yes' (indicating the structure has this asset)
+                                // In the context of this dashboard, we are tracking the completion *of* the subsystem survey.
+                                // For simplicity and based on the provided data structure, we'll assume the number of total rows is the denominator
+                                // and the numerator is the number of rows where the asset is 'Yes' AND the survey status is 'Completed'.
 
-        function populateSelect(el, values, includeAllLabel) {
-          const current = el.value;
-          el.innerHTML = "";
-          const allOpt = document.createElement("option");
-          allOpt.value = "All";
-          allOpt.textContent = "All";
-          el.appendChild(allOpt);
+                                // However, based on the original logic: the KPI is "X% of structures *with* Y surveyed".
+                                // This means: Numerator = (Structure Status == 'Completed' AND Subsystem == 'Yes')
+                                // Denominator = (Subsystem == 'Yes')
+                                const isSubsystemPresent = s.key === 'ff'
+                                    ? structure.flags.ff
+                                    : structure.flags[s.key];
+                                structure.subsystemsInScope[s.key] = isSubsystemPresent;
+                            });
 
-          Array.from(values)
-            .sort()
-            .forEach((v) => {
-              const opt = document.createElement("option");
-              opt.value = v;
-              opt.textContent = v;
-              el.appendChild(opt);
+                            return structure;
+                        })
+                        .filter(Boolean);
+
+                    initFilters();
+                    applyFilters();
+                    document.getElementById("total-structures-count").textContent = allStructures.length.toString();
+                    document.getElementById("total-count").textContent = allStructures.length.toString();
+                    document.getElementById("total-structures-count-kpi").textContent = allStructures.length.toString();
+                },
+                error: (error) => {
+                    console.error("Error loading data:", error);
+                    alert("Could not load data from Google Sheet. Please check the URL and network connection.");
+                },
+            });
+        }
+
+        // === FILTERS & SEARCH ===============================================
+
+        function initFilters() {
+            const zoneSelect = document.getElementById("zoneFilter");
+            const typeSelect = document.getElementById("siteTypeFilter");
+            const statusSelect = document.getElementById("surveyStatusFilter");
+
+            const zones = Array.from(new Set(allStructures.map((a) => a.zone).filter((x) => x))).sort();
+            const types = Array.from(new Set(allStructures.map((a) => a.typeOfSite).filter((x) => x))).sort();
+            const statuses = Array.from(new Set(allStructures.map((a) => a.surveyStatus).filter((x) => x))).sort((a,b) => {
+                if(a === "Completed") return -1;
+                if(b === "Completed") return 1;
+                return a.localeCompare(b);
             });
 
-          if (Array.from(values).includes(current)) {
-            el.value = current;
-          } else {
-            el.value = "All";
-          }
-        }
-
-        populateSelect(zoneEl, zones);
-        populateSelect(typeEl, types);
-        populateSelect(statusEl, statuses);
-      }
-
-      function applyFilters() {
-        const zoneVal = document.getElementById("zoneFilter").value;
-        const typeVal = document.getElementById("siteTypeFilter").value;
-        const statusVal = document.getElementById("surveyStatusFilter").value;
-        const searchText = document
-          .getElementById("structureSearch")
-          .value.toLowerCase()
-          .trim();
-
-        filteredSites = allSites.filter((s) => {
-          if (zoneVal !== "All" && s.zone !== zoneVal) return false;
-          if (typeVal !== "All" && s.typeOfSite !== typeVal) return false;
-          if (statusVal !== "All" && s.surveyStatus !== statusVal) return false;
-
-          if (!searchText) return true;
-
-          const haystack = (
-            (s.site || "") +
-            " " +
-            (s.siteName || "") +
-            " " +
-            (s.projectCode || "") +
-            " " +
-            (s.typeOfSite || "") +
-            " " +
-            (s.zone || "") +
-            " " +
-            (s.remarks || "")
-          )
-            .toLowerCase()
-            .trim();
-
-          return haystack.includes(searchText);
-        });
-
-        updateSummaryCards(filteredSites);
-        updateSubsystemCircles(filteredSites);
-        updateMarkers(filteredSites);
-        updateTable(filteredSites);
-        updateFiltersNote();
-      }
-
-      function updateFiltersNote() {
-        const zoneVal = document.getElementById("zoneFilter").value;
-        const typeVal = document.getElementById("siteTypeFilter").value;
-        const statusVal = document.getElementById("surveyStatusFilter").value;
-        const searchText = document
-          .getElementById("structureSearch")
-          .value.toLowerCase()
-          .trim();
-
-        const active = [];
-        if (zoneVal !== "All") active.push("Zone: " + zoneVal);
-        if (typeVal !== "All") active.push("Type: " + typeVal);
-        if (statusVal !== "All") active.push("Status: " + statusVal);
-        if (searchText) active.push("Search text");
-
-        const el = document.getElementById("filtersNote");
-        if (!el) return;
-        if (!active.length) {
-          el.textContent = "No filters applied.";
-        } else {
-          el.textContent = "Active filters — " + active.join(" · ");
-        }
-      }
-
-      function buildTableHeader() {
-        const headerRow = document.getElementById("structuresTableHeader");
-        if (!headerRow) return;
-
-        headerRow.innerHTML = "";
-        TABLE_COLUMNS.forEach((colName) => {
-          const th = document.createElement("th");
-          th.textContent = colName;
-          headerRow.appendChild(th);
-        });
-      }
-
-      function updateTable(sites) {
-        const body = document.getElementById("structuresTableBody");
-        const countEl = document.getElementById("tableCount");
-        if (!body) return;
-
-        body.innerHTML = "";
-        if (countEl) countEl.textContent = sites.length.toString();
-
-        sites.forEach((s) => {
-          const tr = document.createElement("tr");
-          TABLE_COLUMNS.forEach((colName) => {
-            const td = document.createElement("td");
-            td.textContent = s.raw[colName] != null ? String(s.raw[colName]) : "";
-            tr.appendChild(td);
-          });
-
-          tr.addEventListener("click", () => {
-            openDetailModal(s.raw);
-          });
-
-          body.appendChild(tr);
-        });
-      }
-
-      // === Modal ============================================================
-      function setupModal() {
-        const modalBackdrop = document.getElementById("detailModal");
-        const modalBody = document.getElementById("modalBody");
-        const modalCloseBtn = modalBackdrop
-          ? modalBackdrop.querySelector(".modal-close")
-          : null;
-
-        function closeDetailModal() {
-          if (!modalBackdrop) return;
-          modalBackdrop.classList.remove("is-open");
-          modalBackdrop.setAttribute("aria-hidden", "true");
-        }
-
-        window.openDetailModal = function (record) {
-          if (!modalBackdrop || !modalBody) return;
-          let html = '<dl class="detail-list">';
-          for (const [key, value] of Object.entries(record || {})) {
-            html += `<div><dt>${key}</dt><dd>${value ?? "-"}</dd></div>`;
-          }
-          html += "</dl>";
-          modalBody.innerHTML = html;
-          modalBackdrop.classList.add("is-open");
-          modalBackdrop.setAttribute("aria-hidden", "false");
-          if (modalCloseBtn) modalCloseBtn.focus();
-        };
-
-        if (modalCloseBtn && modalBackdrop) {
-          modalCloseBtn.addEventListener("click", closeDetailModal);
-          modalBackdrop.addEventListener("click", (e) => {
-            if (e.target === modalBackdrop) closeDetailModal();
-          });
-          document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && modalBackdrop.classList.contains("is-open")) {
-              closeDetailModal();
+            function populateSelect(el, values) {
+                el.innerHTML = '<option value="All">All</option>';
+                values.forEach((v) => {
+                    const opt = document.createElement("option");
+                    opt.value = v;
+                    opt.textContent = v;
+                    el.appendChild(opt);
+                });
             }
-          });
+
+            populateSelect(zoneSelect, zones);
+            populateSelect(typeSelect, types);
+            populateSelect(statusSelect, statuses);
         }
-      }
 
-      // === Exports ==========================================================
-      function getCurrentViewTableData() {
-        const header = TABLE_COLUMNS.slice();
-        const body = filteredSites.map((s) =>
-          TABLE_COLUMNS.map((c) => (s.raw[c] != null ? String(s.raw[c]) : ""))
-        );
-        return { header, body };
-      }
+        function applyFilters() {
+            const zoneFilter = document.getElementById("zoneFilter").value;
+            const typeFilter = document.getElementById("siteTypeFilter").value;
+            const statusFilter = document.getElementById("surveyStatusFilter").value;
+            const searchTerm = document.getElementById("structureSearch").value.toLowerCase();
 
-      function downloadCurrentViewCsv() {
-        const data = getCurrentViewTableData();
-        const rows = [data.header, ...data.body];
+            const filtered = allStructures.filter((s) => {
+                const zoneMatch = zoneFilter === "All" || s.zone === zoneFilter;
+                const typeMatch = typeFilter === "All" || s.typeOfSite === typeFilter;
+                const statusMatch = statusFilter === "All" || s.surveyStatus === statusFilter;
+                const searchMatch = searchTerm === "" ||
+                    s.site.toLowerCase().includes(searchTerm) ||
+                    s.siteReference.toLowerCase().includes(searchTerm) ||
+                    s.siteName.toLowerCase().includes(searchTerm);
 
-        const csvContent = rows
-          .map((r) =>
-            r
-              .map((v) => {
-                const s = v == null ? "" : String(v);
-                if (/[",\n]/.test(s)) {
-                  return '"' + s.replace(/"/g, '""') + '"';
+                return zoneMatch && typeMatch && statusMatch && searchMatch;
+            });
+
+            currentFiltered = filtered;
+            updateKPIs(filtered);
+            addMarkers(filtered);
+            renderTable(filtered);
+            updateStructureCharts(filtered);
+            updateFilterTags();
+        }
+
+        function updateFilterTags() {
+            const container = document.getElementById("activeFiltersContainer");
+            const zoneFilter = document.getElementById("zoneFilter").value;
+            const typeFilter = document.getElementById("siteTypeFilter").value;
+            const statusFilter = document.getElementById("surveyStatusFilter").value;
+            const searchTerm = document.getElementById("structureSearch").value;
+            const activeFilters = [];
+
+            if (zoneFilter !== "All") activeFilters.push(`Zone: <strong>${zoneFilter}</strong>`);
+            if (typeFilter !== "All") activeFilters.push(`Site Type: <strong>${typeFilter}</strong>`);
+            if (statusFilter !== "All") activeFilters.push(`Status: <strong>${statusFilter}</strong>`);
+            if (searchTerm !== "") activeFilters.push(`Search: <strong>"${searchTerm}"</strong>`);
+
+            container.innerHTML = "";
+            if (activeFilters.length === 0) {
+                const chip = document.createElement("div");
+                chip.className = "filter-chip";
+                chip.textContent = "No active filters.";
+                container.appendChild(chip);
+            } else {
+                activeFilters.forEach((text) => {
+                    const chip = document.createElement("div");
+                    chip.className = "filter-chip";
+                    chip.innerHTML = text;
+                    container.appendChild(chip);
+                });
+            }
+        }
+
+        // === SUMMARY CARDS & CIRCLES ========================================
+
+        function subsystemStats(assets, subsystemKey) {
+            const structuresInScope = assets.filter((a) => a.subsystemsInScope[subsystemKey]);
+            const total = structuresInScope.length;
+            const completed = structuresInScope.filter((a) => a.surveyStatus === "Completed").length;
+            const percent = total > 0 ? (completed / total) * 100 : 0;
+            return { total, completed, percent };
+        }
+
+        function updateCircularKpi({ fillId, innerId, pctId, numerator, denominator, pct }) {
+            const fillEl = document.getElementById(fillId);
+            const innerEl = document.getElementById(innerId);
+            const pctEl = document.getElementById(pctId);
+            const safeNum = Number.isFinite(numerator) ? numerator : 0;
+            const safeDen = Number.isFinite(denominator) ? denominator : 0;
+            const safePct = Number.isFinite(pct) && pct >= 0 ? Math.max(0, Math.min(100, pct)) : 0;
+
+            if (fillEl) {
+                fillEl.style.background = `conic-gradient(
+                    var(--accent-green) ${safePct}%,
+                    var(--text-subtle) ${safePct}%
+                )`;
+            }
+            if (innerEl) {
+                innerEl.textContent = `${safeNum} / ${safeDen}`;
+            }
+            if (pctEl) {
+                pctEl.textContent = formatPercent(safePct);
+                pctEl.style.color = safePct >= 80 ? 'var(--accent-green)' : safePct >= 40 ? 'var(--accent-amber)' : 'var(--accent-red)';
+            }
+        }
+
+        function updateKPIs(assets) {
+            const total = assets.length;
+            const completed = assets.filter((a) => a.surveyStatus === "Completed").length;
+            const pending = assets.filter((a) => a.surveyStatus === "Pending").length;
+            const pctSurvey = total > 0 ? (completed / total) * 100 : 0;
+
+            // Update main counts
+            document.getElementById("filtered-count").textContent = total.toString();
+            document.getElementById("structures-completed-count").textContent = completed.toString();
+            document.getElementById("structures-pending-count").textContent = pending.toString();
+            document.getElementById("survey-completion-percent").textContent = formatPercent(pctSurvey);
+            document.getElementById("survey-completion-percent").style.color = pctSurvey >= 80 ? 'var(--accent-green)' : pctSurvey >= 40 ? 'var(--accent-amber)' : 'var(--accent-red)';
+
+
+            // Update main survey completion circle
+            updateCircularKpi({
+                fillId: "circle-survey-fill",
+                innerId: "circle-survey-inner",
+                pctId: "circle-survey-pct",
+                numerator: completed,
+                denominator: total,
+                pct: pctSurvey,
+            });
+
+            // Update subsystem circles
+            SUBSYSTEM_KPIS.forEach(s => {
+                const stats = subsystemStats(assets, s.key);
+                updateCircularKpi({
+                    fillId: s.fillId,
+                    innerId: s.innerId,
+                    pctId: s.pctId,
+                    numerator: stats.completed,
+                    denominator: stats.total,
+                    pct: stats.percent,
+                });
+            });
+        }
+
+        // === MAP ============================================================
+
+        function initMap() {
+            if (mapInstance) return;
+
+            mapInstance = L.map("map", {
+                zoomControl: true,
+            }).setView([25.32, 51.27], 10); // Center on Qatar North
+
+            L.tileLayer(MAP_TILE_URL, {
+                attribution: MAP_ATTRIBUTION,
+                maxZoom: 18,
+            }).addTo(mapInstance);
+
+            mapMarkers.addTo(mapInstance);
+
+            document.getElementById("mapModeToggle").addEventListener("click", toggleMapMode);
+        }
+
+        function getMarkerIcon(status, isSelected) {
+            let color = status === "Completed" ? "green" : status === "Pending" ? "orange" : "blue";
+            if (isSelected) color = "cyan"; // Custom color for selection
+
+            return L.circleMarker([0, 0], {
+                radius: isSelected ? 8 : 6,
+                fillColor: color,
+                color: isSelected ? "#020617" : "#000",
+                weight: isSelected ? 3 : 1,
+                opacity: 1,
+                fillOpacity: isSelected ? 1 : 0.75,
+            });
+        }
+
+        function buildMarkerPopupHtml(structure) {
+            const hasCoords = structure.hasCoords;
+            const lat = structure.lat;
+            const lon = structure.lon;
+            const navLink = hasCoords ? `<br/><br/> <a href="http://googleusercontent.com/maps/search/?api=1&query=${encodeURIComponent(lat)},${encodeURIComponent(lon)}" target="_blank" style=" display:inline-block; padding:6px 12px; background:#38bdf8; color:#020617; border-radius:999px; font-weight:600; text-decoration:none; box-shadow:0 10px 20px rgba(56,189,248,0.35); "> 🚗 Navigate to Site </a>` : '';
+
+            let html = `
+                <div style="font-family: sans-serif; font-size: 13px; max-width: 250px;">
+                    <h4 style="margin: 0 0 6px 0; font-size: 14px; color: #38bdf8;">${structure.siteName || structure.site}</h4>
+                    <p style="margin: 0 0 4px 0;"><strong>Status:</strong> <span style="font-weight: 700; color: ${structure.surveyStatus === 'Completed' ? '#22c55e' : '#fbbf24'};">${structure.surveyStatus}</span></p>
+                    <p style="margin: 0 0 4px 0;"><strong>Site Ref:</strong> ${structure.siteReference}</p>
+                    <p style="margin: 0 0 4px 0;"><strong>Type:</strong> ${structure.typeOfSite}</p>
+                    <p style="margin: 0 0 4px 0;"><strong>Zone:</strong> ${structure.zone}</p>
+                    ${navLink}
+                </div>
+            `;
+            return html;
+        }
+
+        function flyToAsset(structure) {
+            if (lastSelectedMarker) {
+                lastSelectedMarker.setStyle(getMarkerIcon(lastSelectedMarker.options.status, false).options);
+            }
+
+            // Find the marker that matches the asset
+            mapMarkers.eachLayer(function (layer) {
+                if (layer.options.siteReference === structure.siteReference) {
+                    layer.setStyle(getMarkerIcon(structure.surveyStatus, true).options);
+                    lastSelectedMarker = layer;
+                    mapInstance.flyTo(layer.getLatLng(), 15);
+                    layer.openPopup();
                 }
-                return s;
-              })
-              .join(",")
-          )
-          .join("\n");
+            });
+        }
 
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "structures-dashboard-current-view.csv";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
+        function addMarkers(assets) {
+            mapMarkers.clearLayers();
+            const bounds = [];
 
-      async function downloadCurrentViewExcel() {
-        const data = getCurrentViewTableData();
-        const rows = [data.header, ...data.body];
+            assets.forEach((s) => {
+                if (!s.hasCoords) return;
 
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(rows);
+                const marker = L.circleMarker([s.lat, s.lon], getMarkerIcon(s.surveyStatus, false).options);
 
-        XLSX.utils.book_append_sheet(wb, ws, "Current View");
-        XLSX.writeFile(wb, "structures-dashboard-current-view.xlsx");
-      }
+                // Attach metadata to the marker for easy lookup/selection
+                marker.options.siteReference = s.siteReference;
+                marker.options.status = s.surveyStatus;
 
-      function downloadCurrentViewPdf() {
-        const data = getCurrentViewTableData();
-        const { header, body } = data;
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: "landscape" });
+                marker.bindPopup(buildMarkerPopupHtml(s));
 
-        const title = "QATAR NORTH STRUCTURES SURVEY DASHBOARD";
-        const subtitle =
-          "Live from Google Sheet — Structures, Bridges & Underpasses, MEP / ELV Systems";
-        const now = new Date();
-        const dateStr = now.toLocaleString("en-US", {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
+                marker.on('click', () => {
+                    if (lastSelectedMarker) {
+                        // Reset the style of the previously selected marker
+                        lastSelectedMarker.setStyle(getMarkerIcon(lastSelectedMarker.options.status, false).options);
+                    }
+                    // Apply selected style to the current marker
+                    marker.setStyle(getMarkerIcon(s.surveyStatus, true).options);
+                    lastSelectedMarker = marker;
+                });
+
+                mapMarkers.addLayer(marker);
+                bounds.push([s.lat, s.lon]);
+            });
+
+            if (bounds.length > 0) {
+                mapInstance.fitBounds(bounds, { padding: [20, 20], maxZoom: 14 });
+            } else {
+                mapInstance.setView([25.32, 51.27], 10);
+            }
+            lastSelectedMarker = null; // Reset selection after re-render
+        }
+
+        function toggleMapMode() {
+            const btn = document.getElementById("mapModeToggle");
+
+            if (mapModeSelectedOnly) {
+                mapModeSelectedOnly = false;
+                btn.textContent = "Map Mode: All Filtered Markers";
+                btn.classList.remove("map-toggle-btn-active");
+                // Re-add markers to fit all filtered on map
+                addMarkers(currentFiltered);
+            } else {
+                mapModeSelectedOnly = true;
+                btn.textContent = "Map Mode: Selected Structure Only";
+                btn.classList.add("map-toggle-btn-active");
+                // Reset to show only one asset if one is selected, or fit all otherwise
+                if (lastSelectedMarker) {
+                    mapMarkers.clearLayers();
+                    mapMarkers.addLayer(lastSelectedMarker);
+                    mapInstance.flyTo(lastSelectedMarker.getLatLng(), 15);
+                } else {
+                    addMarkers(currentFiltered);
+                }
+            }
+        }
+
+        // === TABLE ===========================================================
+
+        function buildTableHeader() {
+            const headerRow = document.getElementById("tableHeaderRow");
+            const headers = [
+                { key: "sn", label: COLS.sn },
+                { key: "siteReference", label: COLS.siteReference },
+                { key: "siteName", label: COLS.siteName },
+                { key: "zone", label: COLS.zone },
+                { key: "typeOfSite", label: COLS.typeOfSite },
+                { key: "surveyStatus", label: COLS.surveyStatus },
+                { key: "mep", label: COLS.mep },
+                { key: "lights", label: COLS.lights },
+                { key: "ups", label: COLS.ups },
+                { key: "remarks", label: COLS.remarks },
+                { key: "maximoId", label: COLS.maximoId },
+            ];
+            headerRow.innerHTML = headers.map((h) => `<th>${h.label}</th>`).join("");
+            return headers;
+        }
+
+        function renderTable(assets) {
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+            const headers = buildTableHeader(); // Re-fetch for column keys
+
+            assets.forEach((structure, index) => {
+                const tr = document.createElement("tr");
+
+                headers.forEach((h) => {
+                    const td = document.createElement("td");
+                    let displayValue = structure[h.key] || structure.flags[h.key];
+
+                    if (typeof displayValue === 'boolean') {
+                        displayValue = displayValue ? 'Yes' : 'No';
+                    }
+
+                    if (h.key === "surveyStatus") {
+                        td.className = `status-${structure.surveyStatus.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+                    }
+
+                    if (h.key === "mep" || h.key === "lights" || h.key === "ups") {
+                        displayValue = structure.flags[h.key] ? 'Yes' : 'No';
+                        td.style.color = structure.flags[h.key] ? 'var(--accent-green)' : 'var(--text-subtle)';
+                    }
+
+                    td.textContent = displayValue;
+                    td.title = displayValue; // Show full content on hover
+                    tr.appendChild(td);
+                });
+
+                // clicking a row moves map to that asset and opens modal
+                tr.addEventListener("click", () => {
+                    if (structure.hasCoords) {
+                        flyToAsset(structure);
+                    }
+                    openDetailModal(structure.raw); // Open the modal with the full raw data
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // === CHARTS & INSIGHTS ===============================================
+
+        function updateStructureCharts(assets) {
+            // Chart 1: Site Type Distribution (Donut Chart)
+            const typeCounts = {};
+            assets.forEach((a) => {
+                const type = a.typeOfSite || "Unknown";
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+            buildSiteTypeChart(typeCounts);
+
+            // Chart 2: Zone-wise Survey Completion (Bar Chart)
+            const zoneCompletion = new Map();
+            assets.forEach((s) => {
+                const zone = s.zone || "Unknown Zone";
+                const entry = zoneCompletion.get(zone) || { total: 0, completed: 0 };
+                entry.total++;
+                if (s.surveyStatus === "Completed") entry.completed++;
+                zoneCompletion.set(zone, entry);
+            });
+            buildZoneCompletionChart(zoneCompletion);
+
+            // Insights: Lowest Completion Zones
+            updateInsights(zoneCompletion);
+        }
+
+        function buildSiteTypeChart(counts) {
+            const ctxDonut = document.getElementById("siteTypeChart").getContext("2d");
+            const labels = Object.keys(counts).sort();
+            const data = labels.map(label => counts[label]);
+            const backgroundColors = labels.map((_, i) => `hsl(${i * 45}, 70%, 50%)`); // Simple color generation
+
+            if (siteTypeChartInstance) {
+                siteTypeChartInstance.data.labels = labels;
+                siteTypeChartInstance.data.datasets[0].data = data;
+                siteTypeChartInstance.data.datasets[0].backgroundColor = backgroundColors;
+                siteTypeChartInstance.update();
+                return;
+            }
+
+            siteTypeChartInstance = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: 'var(--text-soft)' }
+                        },
+                        title: { display: false }
+                    }
+                }
+            });
+        }
+
+        function buildZoneCompletionChart(zoneMap) {
+            const ctxBar = document.getElementById("zoneCompletionChart").getContext("2d");
+
+            const labels = Array.from(zoneMap.keys()).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            const values = labels.map((z) => {
+                const { total, completed } = zoneMap.get(z);
+                return total > 0 ? +(completed / total * 100).toFixed(1) : 0;
+            });
+
+            if (zoneCompletionChartInstance) {
+                zoneCompletionChartInstance.data.labels = labels;
+                zoneCompletionChartInstance.data.datasets[0].data = values;
+                zoneCompletionChartInstance.update();
+                return;
+            }
+
+            zoneCompletionChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Completion %',
+                        data: values,
+                        backgroundColor: values.map(v => v >= 80 ? 'var(--accent-green)' : v >= 40 ? 'var(--accent-amber)' : 'var(--accent-red)'),
+                        borderColor: 'transparent',
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (context) => context.dataset.label + ': ' + context.parsed.y + '%' } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Completion Percentage', color: 'var(--text-soft)' },
+                            ticks: { color: 'var(--text-soft)' },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'var(--text-soft)' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateInsights(zoneMap) {
+            const el = document.getElementById("insightsContent");
+            const threshold = 60;
+            const zonesArr = Array.from(zoneMap.entries()).map(([zone, { total, completed }]) => ({
+                zone,
+                total,
+                completed,
+                pct: total > 0 ? (completed / total) * 100 : 0
+            }));
+
+            // Sort by percentage completion (lowest first)
+            zonesArr.sort((a, b) => a.pct - b.pct);
+
+            const needing = zonesArr.filter((x) => x.pct < threshold);
+
+            if (!needing.length) {
+                el.textContent = "All Zones have survey completion ≥ " + threshold + "%.";
+                return;
+            }
+
+            const top5 = needing.slice(0, 5);
+            el.innerHTML = "<strong>Lowest completion Zones (under " + threshold + "%):</strong><br/>";
+            top5.forEach((z) => {
+                const line = `Zone ${z.zone}: ${z.completed}/${z.total} (${z.pct.toFixed(1)}%)`;
+                const div = document.createElement("div");
+                div.textContent = line;
+                el.appendChild(div);
+            });
+        }
+
+        // === Modal ============================================================
+
+        function setupModal() {
+            const modalBackdrop = document.getElementById("detailModal");
+            const modalBody = document.getElementById("modalBody");
+            const modalCloseBtn = modalBackdrop ? modalBackdrop.querySelector(".modal-close") : null;
+
+            function closeDetailModal() {
+                if (!modalBackdrop) return;
+                modalBackdrop.classList.remove("is-open");
+                modalBackdrop.setAttribute("aria-hidden", "true");
+            }
+
+            window.openDetailModal = function(record) {
+                if (!modalBackdrop || !modalBody) return;
+
+                let html = "<dl class=\"detail-list\">";
+
+                // Use the COLS mapping to display fields in a readable format
+                for (const [key, label] of Object.entries(COLS)) {
+                    const value = record[label] ?? "-";
+                    let displayValue = value;
+
+                    // Special handling for Lat/Lon to create a link
+                    if (key === 'lat' || key === 'lon') {
+                        // Skip raw lat/lon, they are handled with the map link
+                        continue;
+                    } else if (key === 'siteName' && record[COLS.lat] && record[COLS.lon]) {
+                        const lat = record[COLS.lat];
+                        const lon = record[COLS.lon];
+                        displayValue += ` <a href="http://googleusercontent.com/maps/search/?api=1&query=${encodeURIComponent(lat)},${encodeURIComponent(lon)}" target="_blank">(View on Map)</a>`;
+                    }
+
+                    // Special handling for Yes/No fields
+                    if (["mep", "lights", "ups", "electricalDb", "ff", "fa", "hvac", "elevators", "escalator", "its", "elv"].includes(key)) {
+                        displayValue = hasSubsystem(value) ? `<span style="color: var(--accent-green); font-weight: 700;">Yes</span>` : `<span style="color: var(--text-subtle);">No</span>`;
+                    }
+
+                    if (key !== 'sn' && key !== 'lat' && key !== 'lon') { // Skip Serial No and raw coordinates
+                        html += `<div><dt>${label}</dt><dd>${displayValue}</dd></div>`;
+                    }
+                }
+
+                html += "</dl>";
+                modalBody.innerHTML = html;
+                modalBackdrop.classList.add("is-open");
+                modalBackdrop.setAttribute("aria-hidden", "false");
+                if (modalCloseBtn) modalCloseBtn.focus();
+            };
+
+            if (modalCloseBtn && modalBackdrop) {
+                modalCloseBtn.addEventListener("click", closeDetailModal);
+                modalBackdrop.addEventListener("click", (e) => {
+                    if (e.target === modalBackdrop) closeDetailModal();
+                });
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && modalBackdrop.classList.contains("is-open")) {
+                        closeDetailModal();
+                    }
+                });
+            }
+        }
+
+
+        // === EXPORT LOGIC (Matching ITS.html/TRAFFIC.html implementation) ====
+
+        function buildCurrentViewTableData() {
+            const rows = currentFiltered.length > 0 ? currentFiltered : allStructures;
+            if (!rows || !rows.length) return null;
+
+            const tableHeaders = [
+                COLS.sn, COLS.site, COLS.siteReference, COLS.siteName, COLS.projectCode,
+                COLS.surveyStatus, COLS.typeOfSite, COLS.maximoId, COLS.zone,
+                COLS.lat, COLS.lon, COLS.remarks, COLS.mep, COLS.lights, COLS.ups,
+                COLS.electricalDb, COLS.ff, COLS.fa, COLS.hvac, COLS.elevators,
+                COLS.escalator, COLS.its, COLS.elv
+            ];
+
+            const body = rows.map((s) => tableHeaders.map((col) => {
+                // Get the value from the raw data for export simplicity
+                return s.raw[col] ?? '';
+            }));
+
+            return { headers: tableHeaders, body: body };
+        }
+
+        function downloadCurrentViewCsv() {
+            const data = buildCurrentViewTableData();
+            if (!data) { alert("No data to export."); return; }
+
+            const { headers, body } = data;
+            const allRows = [headers, ...body];
+
+            const csvContent = allRows
+                .map((row) => row
+                    .map((val) => {
+                        const v = val == null ? "" : String(val);
+                        // Escape double quotes by doubling them, and wrap in quotes if it contains separator, quote, or newline
+                        if (/[",\n]/.test(v)) {
+                            return `"${v.replace(/"/g, '""')}"`;
+                        }
+                        return v;
+                    })
+                    .join(",")
+                )
+                .join("\n");
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Structures_Survey_Data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function downloadCurrentViewExcel() {
+            const data = buildCurrentViewTableData();
+            if (!data) { alert("No data to export."); return; }
+
+            const { headers, body } = data;
+            const worksheet = XLSX.utils.aoa_to_sheet([headers, ...body]);
+
+            // Add logos and header rows (matching ITS template)
+            const title = "QATAR NORTH INFRASTRUCTURE STRUCTURES SURVEY DASHBOARD";
+            const subtitle = "Filtered Data Export";
+            const date = "Export Date: " + new Date().toLocaleString();
+
+            const leftImgEl = document.querySelector("header .header-left img");
+            const rightImgEl = document.querySelector("header .header-right img");
+            const leftSrc = leftImgEl ? leftImgEl.src : null;
+            const rightSrc = rightImgEl ? rightImgEl.src : null;
+
+            // Utility to convert image URL to data URI (or null)
+            const toDataURI = (url) => new Promise(resolve => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    canvas.getContext('2d').drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = () => resolve(null); // Resolve with null on error
+                img.src = url;
+            });
+
+            // Convert logos to data URIs
+            const [leftDataUri, rightDataUri] = await Promise.all([
+                leftSrc ? toDataURI(leftSrc) : Promise.resolve(null),
+                rightSrc ? toDataURI(rightSrc) : Promise.resolve(null),
+            ]);
+
+            const colCount = headers.length;
+            const headerRows = [];
+
+            // Row 1: images formulas
+            const row1 = new Array(colCount).fill(null);
+            if (leftDataUri) {
+                row1[0] = { f: `IMAGE("${leftDataUri}")`, v: 'Logo 1', t: 's' };
+            }
+            if (rightDataUri) {
+                row1[colCount - 1] = { f: `IMAGE("${rightDataUri}")`, v: 'Logo 2', t: 's' };
+            }
+            headerRows.push(row1);
+
+            // Row 2: title
+            const row2 = new Array(colCount).fill(null);
+            row2[0] = { v: title, t: 's', s: { font: { sz: 18, bold: true }, alignment: { horizontal: "center" } } };
+            headerRows.push(row2);
+
+            // Row 3: subtitle
+            const row3 = new Array(colCount).fill(null);
+            row3[0] = { v: subtitle, t: 's', s: { font: { sz: 16 }, alignment: { horizontal: "center" } } };
+            headerRows.push(row3);
+
+            // Row 4: date
+            const row4 = new Array(colCount).fill(null);
+            row4[0] = { v: date, t: 's', s: { font: { sz: 8 }, alignment: { horizontal: "center" } } };
+            headerRows.push(row4);
+
+            // Row 5: spacer
+            headerRows.push(new Array(colCount).fill(null));
+
+            // Prepend header rows
+            XLSX.utils.sheet_add_aoa(worksheet, headerRows, { origin: "A1" });
+
+            // Merge cells for the title, subtitle, and date rows
+            if (!worksheet['!merges']) worksheet['!merges'] = [];
+            worksheet['!merges'].push(
+                { s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } }, // Title
+                { s: { r: 2, c: 0 }, e: { r: 2, c: colCount - 1 } }, // Subtitle
+                { s: { r: 3, c: 0 }, e: { r: 3, c: colCount - 1 } }  // Date
+            );
+
+            // Set column widths (approximated for ITS dashboard)
+            worksheet['!cols'] = [
+                { wch: 6 }, // Sr.No
+                { wch: 15 }, // Site
+                { wch: 18 }, // Site Reference
+                { wch: 25 }, // Site Name
+                { wch: 12 }, // Project Code
+                { wch: 15 }, // Survey Status
+                { wch: 15 }, // Type of Site
+                { wch: 15 }, // Maximo ID
+                { wch: 12 }, // Zone
+                { wch: 12 }, // Lat
+                { wch: 12 }, // Lon
+                { wch: 30 }, // Remarks
+                { wch: 8 },  // MEP
+                { wch: 8 },  // Lights
+                { wch: 8 },  // UPS
+                { wch: 12 }, // Electrical DB
+                { wch: 8 },  // FF
+                { wch: 8 },  // FA
+                { wch: 8 },  // HVAC
+                { wch: 8 },  // Elevators
+                { wch: 8 },  // Escalator
+                { wch: 8 },  // ITS
+                { wch: 8 },  // ELV
+            ].slice(0, colCount);
+
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Structures Data");
+            XLSX.writeFile(workbook, "Structures_Survey_Data.xlsx");
+        }
+
+        async function downloadCurrentViewPdf() {
+            const { jsPDF } = window.jspdf;
+            const data = buildCurrentViewTableData();
+            if (!data) { alert("No data to export."); return; }
+
+            const { headers, body } = data;
+            const doc = new jsPDF({ orientation: "landscape" });
+
+            const title = "QATAR NORTH INFRASTRUCTURE STRUCTURES SURVEY DASHBOARD";
+            const subtitle = "Filtered Data Export";
+            const date = new Date().toLocaleString();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const marginX = 10;
+            const logoHeight = 12;
+
+            const leftImgEl = document.querySelector("header .header-left img");
+            const rightImgEl = document.querySelector("header .header-right img");
+
+            // Utility to convert image URL to data URI (or null)
+            const toDataURI = (url) => new Promise(resolve => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    canvas.getContext('2d').drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = () => resolve(null); // Resolve with null on error
+                img.src = url;
+            });
+
+            // Handle images
+            if (leftImgEl) {
+                const leftDataUri = await toDataURI(leftImgEl.src);
+                if (leftDataUri) {
+                    const ratio = (leftImgEl.naturalWidth || 150) / (leftImgEl.naturalHeight || 50);
+                    const w = logoHeight * ratio;
+                    doc.addImage(leftDataUri, "PNG", marginX, 10, w, logoHeight);
+                }
+            }
+
+            if (rightImgEl) {
+                const rightDataUri = await toDataURI(rightImgEl.src);
+                if (rightDataUri) {
+                    const ratio = (rightImgEl.naturalWidth || 150) / (rightImgEl.naturalHeight || 50);
+                    const w = logoHeight * ratio;
+                    doc.addImage(rightDataUri, "PNG", pageWidth - marginX - w, 10, w, logoHeight);
+                }
+            }
+
+            // Title
+            doc.setFontSize(18);
+            doc.text(title, pageWidth / 2, 20, { align: "center" });
+
+            // Subtitle
+            doc.setFontSize(14);
+            doc.text(subtitle, pageWidth / 2, 26, { align: "center" });
+
+            // Date
+            doc.setFontSize(8);
+            doc.text(date, pageWidth / 2, 32, { align: "center" });
+
+            doc.autoTable({
+                head: [headers],
+                body: body,
+                startY: 38,
+                margin: { top: 10, left: marginX, right: marginX },
+                styles: { fontSize: 6, cellPadding: 1.2 },
+                headStyles: { fillColor: [15, 23, 42] },
+                didDrawPage: function(data) {
+                    // Footer
+                    doc.setFontSize(8);
+                    const pageCount = doc.internal.getNumberOfPages();
+                    doc.text("Page " + data.pageNumber + " of " + pageCount, pageWidth / 2, doc.internal.pageSize.getHeight() - 5, { align: "center" });
+                }
+            });
+
+            doc.save("Structures_Survey_Data.pdf");
+        }
+
+
+        // === INITIALIZATION =================================================
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Theme setup (default to dark, but check system preference)
+            const themeToggle = document.getElementById("themeToggle");
+            const themeText = document.getElementById("themeText");
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+
+            document.body.setAttribute('data-theme', currentTheme);
+            themeText.textContent = currentTheme === 'dark' ? 'LIGHT MODE' : 'DARK MODE';
+
+            themeToggle.addEventListener('click', () => {
+                currentTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                document.body.setAttribute('data-theme', currentTheme);
+                localStorage.setItem('theme', currentTheme);
+                themeText.textContent = currentTheme === 'dark' ? 'LIGHT MODE' : 'DARK MODE';
+                // Trigger chart and map re-render to pick up new CSS variables
+                if(siteTypeChartInstance) siteTypeChartInstance.destroy();
+                if(zoneCompletionChartInstance) zoneCompletionChartInstance.destroy();
+                updateStructureCharts(currentFiltered);
+                // Re-render map markers to update colors/styles
+                addMarkers(currentFiltered);
+            });
+
+
+            initMap();
+            buildTableHeader();
+            loadData();
+            updateCurrentDateTime();
+            setInterval(updateCurrentDateTime, 30 * 1000);
+
+            // Filter event listeners
+            document.getElementById("zoneFilter").addEventListener("change", applyFilters);
+            document.getElementById("siteTypeFilter").addEventListener("change", applyFilters);
+            document.getElementById("surveyStatusFilter").addEventListener("change", applyFilters);
+            document.getElementById("structureSearch").addEventListener("input", applyFilters);
+
+            // Export buttons
+            document.getElementById("downloadCsvBtn").addEventListener("click", downloadCurrentViewCsv);
+            document.getElementById("downloadExcelBtn").addEventListener("click", downloadCurrentViewExcel);
+            document.getElementById("downloadPdfBtn").addEventListener("click", downloadCurrentViewPdf);
+
+            // Map Mode Toggle
+            document.getElementById("mapModeToggle").addEventListener("click", toggleMapMode);
+
+            setupModal();
         });
-
-        doc.setFontSize(13);
-        doc.text(title, doc.internal.pageSize.getWidth() / 2, 14, { align: "center" });
-        doc.setFontSize(10);
-        doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 20, { align: "center" });
-        doc.text(dateStr, doc.internal.pageSize.getWidth() / 2, 26, { align: "center" });
-
-        doc.autoTable({
-          head: [header],
-          body,
-          startY: 32,
-          styles: { fontSize: 7 },
-          headStyles: { fillColor: [15, 23, 42] },
-        });
-
-        doc.save("structures-dashboard-current-view.pdf");
-      }
-
-      // === Load data ========================================================
-      function loadData() {
-        Papa.parse(SHEET_CSV_URL, {
-          download: true,
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            const rows = results.data || [];
-            allSites = buildSiteObjects(rows);
-            updateFiltersUI(allSites);
-            applyFilters();
-          },
-          error: (err) => {
-            console.error("Error loading CSV:", err);
-            alert("Error loading data. Please check the Google Sheet link.");
-          },
-        });
-      }
-
-      // === Initialisation ===================================================
-      document.addEventListener("DOMContentLoaded", () => {
-        // Highlight active nav item based on filename
-        const path = location.pathname.toLowerCase();
-        document.querySelectorAll(".top-nav-links a").forEach((link) => {
-          const href = link.getAttribute("href").toLowerCase();
-          if (path.endsWith(href)) {
-            link.classList.add("is-active");
-          }
-        });
-
-        initMap();
-        buildTableHeader();
-        loadData();
-        updateCurrentDateTime();
-        setInterval(updateCurrentDateTime, 30 * 1000);
-
-        document
-          .getElementById("zoneFilter")
-          .addEventListener("change", applyFilters);
-        document
-          .getElementById("siteTypeFilter")
-          .addEventListener("change", applyFilters);
-        document
-          .getElementById("surveyStatusFilter")
-          .addEventListener("change", applyFilters);
-        document
-          .getElementById("structureSearch")
-          .addEventListener("input", applyFilters);
-
-        document
-          .getElementById("downloadCsvBtn")
-          .addEventListener("click", downloadCurrentViewCsv);
-        document
-          .getElementById("downloadExcelBtn")
-          .addEventListener("click", downloadCurrentViewExcel);
-        document
-          .getElementById("downloadPdfBtn")
-          .addEventListener("click", downloadCurrentViewPdf);
-
-        setupModal();
-      });
     </script>
-  </body>
+</body>
 </html>
