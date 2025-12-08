@@ -1,13 +1,13 @@
 <!DOCTYPE html>
+<!--  -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Qatar North Structures Survey Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -19,14 +19,21 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
+
+  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+
+  <!-- jsPDF + autotable -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-<style>
-    /* Cloned CSS from TRAFFIC.html/ITS.html */
+  <style>
     :root {
       --aktor-blue: #0b1120;
       --aktor-red: #e0283b;
@@ -57,8 +64,11 @@
       --transition-med: 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
     }
 
+    /* THEME HANDLING */
+    body[data-theme="dark"] {
+      /* dark theme is the default defined by base tokens */
+    }
 
-    /* ===== THEME: AUTO DARK/LIGHT BASED ON SYSTEM PREFERENCE (Dark is default) ===== */
     body[data-theme="light"] {
       --bg-surface: rgba(255, 255, 255, 0.92);
       --glass-bg: rgba(255, 255, 255, 0.9);
@@ -67,6 +77,9 @@
       --text-subtle: #9ca3af;
       --text-strong: #111827;
       --text-stronger: #020617;
+    }
+
+    body[data-theme="light"] {
       background: #f3f4f6;
       color: var(--text-stronger);
     }
@@ -108,12 +121,6 @@
       border-color: rgba(148, 163, 184, 0.9);
       color: var(--text-strong);
     }
-     body[data-theme="light"] .filters select {
-      background-color: #ffffff !important;
-      background-image: radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 60%), linear-gradient(135deg, #ffffff, #f9fafb) !important;
-      color: var(--text-stronger) !important;
-      border-color: rgba(148, 163, 184, 0.85);
-    }
 
     body[data-theme="light"] .table-wrapper {
       background:
@@ -140,26 +147,25 @@
         #ffffff;
     }
 
-
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
     }
 
     html,
     body {
-      margin: 0;
-      padding: 0;
       height: 100%;
     }
 
     body {
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
-      color: var(--text-strong);
+      min-height: 100vh;
       background-color: #020617;
       background-attachment: fixed;
       background-size: cover;
-      -webkit-font-smoothing: antialiased;
+      color: var(--text-strong);
     }
 
     .page {
@@ -167,7 +173,6 @@
       min-height: 100vh;
       margin: 0;
       padding-bottom: 24px;
-      /* More colorful multi-layer background */
       background:
         radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.26), transparent 55%),
         radial-gradient(circle at 100% 0%, rgba(236, 72, 153, 0.22), transparent 55%),
@@ -182,13 +187,13 @@
       padding: 12px 16px 24px;
     }
 
-    /* ===== HEADER ===== */
+    /* HEADER */
+
     header {
       width: 100%;
       border-radius: 20px;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       padding: 10px 20px;
-      /* Slightly richer gradient in header */
       background:
         linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.92)),
         linear-gradient(90deg, rgba(56, 189, 248, 0.35), rgba(168, 85, 247, 0.35), rgba(236, 72, 153, 0.26));
@@ -202,8 +207,6 @@
       justify-content: space-between;
       gap: 18px;
       position: relative;
-      top: auto;
-      z-index: auto;
     }
 
     .header-left,
@@ -219,18 +222,17 @@
       text-align: center;
     }
 
-    .logo-img {
+    .header-logo {
       max-height: 52px;
       height: auto;
       filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.8));
     }
 
-    .logo-img-small {
+    .header-logo-small {
       max-height: 42px;
     }
 
-    header h1 {
-      margin: 0;
+    .header-title {
       font-size: clamp(20px, 2vw, 26px);
       font-weight: 700;
       letter-spacing: 0.06em;
@@ -238,7 +240,7 @@
       text-transform: uppercase;
     }
 
-    header .subtitle {
+    .header-subtitle {
       font-size: 11px;
       color: var(--text-soft);
       margin-top: 4px;
@@ -246,73 +248,111 @@
       text-transform: uppercase;
     }
 
-    .datetime-header {
+    .header-meta {
       font-size: 11px;
       color: #c7d2fe;
       margin-top: 4px;
     }
 
-    /* Top Nav Links (for TRAFFIC / ITS / STRUCTURES) */
-    .top-nav-links {
+    .header-meta-separator {
+      margin: 0 6px;
+      opacity: 0.75;
+    }
+
+    /* PAGE NAV (THEME + LINKS) */
+
+    .page-nav {
+      margin-bottom: 8px;
       display: flex;
-      gap: 8px;
-      padding-top: 8px;
-      justify-content: center;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
-    .top-nav-links a {
+    .page-nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .page-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .theme-toggle-btn {
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      font-size: 11px;
+      background:
+        radial-gradient(circle at top left, rgba(248, 250, 252, 0.06), transparent 60%),
+        rgba(15, 23, 42, 0.96);
+      color: var(--text-soft);
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      padding: 6px 14px;
-      border-radius: 999px;
-      text-decoration: none;
+      gap: 6px;
+      transition:
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast),
+        color var(--transition-fast);
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: rgba(248, 250, 252, 0.6);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+    }
+
+    .top-nav-links {
+      list-style: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0;
+      margin: 0;
+    }
+
+    .top-nav-links a {
       font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.04em;
       text-transform: uppercase;
+      letter-spacing: 0.16em;
       color: var(--text-soft);
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      background: rgba(15, 23, 42, 0.7);
-      transition: color 200ms cubic-bezier(0.22, 0.61, 0.36, 1), background 200ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
-      position: relative;
-      overflow: hidden;
-      z-index: 1;
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition:
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        transform var(--transition-fast);
     }
 
-    .top-nav-links a.active {
-      color: var(--text-stronger);
-      border-color: rgba(56, 189, 248, 0.85);
-      background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 60%),
-        rgba(15, 23, 42, 0.95);
-      font-weight: 700;
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
-    }
-
-    .top-nav-links a::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: radial-gradient(circle at 0 0, rgba(56,189,248,0.15), transparent 55%);
-      opacity: 0;
-      transition: opacity 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
-      z-index: -1;
-    }
-
-    .top-nav-links a:hover, .top-nav-links a:focus-visible {
-      color: var(--text-strong);
-      border-color: rgba(148,163,184,0.7);
-      background: rgba(15,23,42,0.9);
+    .top-nav-links a:hover {
+      color: #e5e7eb;
+      border-color: rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.8);
       transform: translateY(-1px);
     }
-     .top-nav-links a:hover::after {
-        opacity: 1;
+
+    .top-nav-links a.nav-active {
+      border-color: rgba(56, 189, 248, 0.9);
+      color: #e0f2fe;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.35), transparent 55%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.95);
     }
 
-    /* ===== LAYOUT: HIERARCHY ===== */
     main.dashboard {
       display: flex;
       flex-direction: column;
@@ -329,12 +369,6 @@
       margin-top: 4px;
     }
 
-    .section-kpis-inner {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-    }
-
     .section-insights,
     .section-filters,
     .section-main,
@@ -342,20 +376,6 @@
       margin-top: 2px;
     }
 
-    .main-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
-      gap: 12px;
-      align-items: stretch;
-    }
-
-    .charts-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* ===== GLASS CARD BASE ===== */
     .glass-card {
       position: relative;
       background:
@@ -373,7 +393,6 @@
         box-shadow var(--transition-med),
         border-color var(--transition-med),
         background var(--transition-med);
-      isolation: isolate; /* Ensures pseudo-elements don't bleed */
     }
 
     .glass-card::before {
@@ -386,7 +405,6 @@
         radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.16), transparent 45%);
       transition: opacity var(--transition-med);
       pointer-events: none;
-      z-index: -1;
     }
 
     .glass-card:hover {
@@ -421,105 +439,111 @@
       gap: 6px;
     }
 
-    /* KPI Cards - Top Strip */
-    .kpi-card {
-      min-height: 100px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+    .card-title::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #38bdf8, #22c55e);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.75);
     }
 
-    .kpi-label {
-      font-size: 11px;
-      color: var(--text-soft);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 4px;
-    }
-
-    .kpi-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-stronger);
-      line-height: 1;
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-    }
-
-    .kpi-number span.unit {
-      font-size: 11px;
-      color: var(--text-soft);
-      font-weight: 500;
-    }
-
-    .kpi-caption {
+    .card-sub {
       font-size: 11px;
       color: var(--text-subtle);
       margin-top: 2px;
     }
 
-    .kpi-badge {
-      font-size: 10px;
-      font-weight: 500;
-      padding: 4px 8px;
-      border-radius: 999px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      background-color: rgba(248, 250, 252, 0.1);
-      color: var(--text-strong);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      align-self: flex-start;
-      margin-top: 6px;
-    }
+    /* KPI GRID */
 
-    .kpi-badge.bg-green {
-      background-color: rgba(34, 197, 94, 0.15);
-      color: var(--accent-green);
-      border-color: rgba(34, 197, 94, 0.5);
-    }
-
-    .kpi-badge.bg-amber {
-      background-color: rgba(251, 191, 36, 0.15);
-      color: var(--accent-amber);
-      border-color: rgba(251, 191, 36, 0.5);
-    }
-
-    .kpi-badge.bg-red {
-      background-color: rgba(239, 68, 68, 0.15);
-      color: var(--accent-red);
-      border-color: rgba(239, 68, 68, 0.5);
-    }
-
-    .kpi-badge.bg-blue {
-      background-color: rgba(56, 189, 248, 0.15);
-      color: var(--accent-blue);
-      border-color: rgba(56, 189, 248, 0.5);
-    }
-
-    /* Circle KPI cards - compact style for the lower strip */
-    .kpi-circle-strip {
+    .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 8px;
     }
-    .kpi-circle-card {
-      min-height: 120px;
-      padding: 14px;
+
+    .kpi-card {
+      position: relative;
+      background:
+        linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9)),
+        linear-gradient(120deg, rgba(56, 189, 248, 0.22), rgba(168, 85, 247, 0.18), rgba(236, 72, 153, 0.18));
+      border-radius: var(--glass-radius-md);
+      padding: 8px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      box-shadow: 0 16px 35px rgba(15, 23, 42, 0.9);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
+      gap: 4px;
+      min-height: 100px;
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast);
+      cursor: default;
     }
+
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.25), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.25), transparent 55%);
+      transition: opacity var(--transition-fast);
+      pointer-events: none;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.98);
+      border-color: rgba(248, 250, 252, 0.5);
+      background:
+        linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.94)),
+        linear-gradient(120deg, rgba(56, 189, 248, 0.28), rgba(168, 85, 247, 0.24), rgba(236, 72, 153, 0.24));
+    }
+
+    .kpi-card:hover::after {
+      opacity: 1;
+    }
+
+    .kpi-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-stronger);
+    }
+
+    .kpi-subtext {
+      font-size: 11px;
+      color: var(--text-subtle);
+    }
+
+    .kpi-pct {
+      font-size: 11px;
+      color: var(--text-strong);
+      margin-top: 2px;
+    }
+
+    /* CIRCLE KPIs */
 
     .kpi-circle-layout {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 8px;
       margin-top: 2px;
     }
 
-    .circle-wrapper {
+    .kpi-circle-compact .circle-wrapper {
       width: 92px;
       height: 92px;
       position: relative;
@@ -530,198 +554,263 @@
       justify-content: center;
       flex-shrink: 0;
       box-shadow: 0 12px 34px rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.45);
     }
 
-    .circle-inner {
+    .kpi-circle-compact .circle-inner {
       width: 60px;
       height: 60px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-stronger);
-      border-radius: 50%;
-      background: var(--bg-surface);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
-      z-index: 10;
-    }
-
-    .circle-fill {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
-      clip: rect(0, 92px, 92px, 46px);
+      font-size: 13px;
     }
 
     .kpi-circle-text {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      min-width: 0;
     }
 
-    .kpi-circle-text-title {
+    .circle-caption {
+      font-size: 10px;
+      color: var(--text-subtle);
+    }
+
+    .circle-caption strong {
+      font-weight: 600;
+      color: var(--accent-green);
+      margin-right: 2px;
+    }
+
+    .circle-wrapper {
+      width: 72px;
+      height: 72px;
+      position: relative;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 10%, #f9fafb, #374151);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 10px 32px rgba(15, 23, 42, 0.9);
+    }
+
+    .circle-fill {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent-green) 0deg, rgba(15, 23, 42, 0.32) 0deg);
+      opacity: 0.96;
+      transition: background 360ms ease-out;
+    }
+
+    .circle-inner {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 0, #f9fafb, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #f9fafb;
+      padding: 0 4px;
+      line-height: 1.2;
+      border: 1px solid rgba(248, 250, 252, 0.25);
+    }
+
+    /* INSIGHTS BAR */
+
+    .insights-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .insights-main-label {
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       color: var(--text-soft);
-      margin-bottom: 2px;
-      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .kpi-circle-text .circle-caption {
-      font-size: 12px;
-      color: var(--text-subtle);
-      line-height: 1.4;
-    }
-    .kpi-circle-text .circle-caption strong {
-      font-weight: 700;
-      color: var(--text-stronger);
+    .insights-main-label span.badge-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent-amber);
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.9);
+      position: relative;
     }
 
-    /* ===== CHARTS ===== */
-    .chart-card {
-      min-height: 380px;
+    .insights-main-label span.badge-pulse::after {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border-radius: inherit;
+      border: 1px solid rgba(251, 191, 36, 0.6);
+      opacity: 0;
+      animation: pulse 1.5s infinite;
+    }
+
+    /* FILTER BAR */
+
+    .filters-card {
       display: flex;
       flex-direction: column;
-      padding: 14px;
+      gap: 8px;
     }
 
-    .chart-wrapper {
-      flex-grow: 1;
-      min-height: 0; /* Important for flex children with canvas/charts */
-      position: relative;
-      margin-top: 10px;
-    }
-
-    /* ===== FILTERS ===== */
-    .filters-card {
-      padding: 14px;
-    }
-    .filters-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    .filters-grid label {
-      display: block;
-      font-size: 10px;
+    .filters-row-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-soft);
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-subtle);
-      margin-bottom: 4px;
+      letter-spacing: 0.14em;
+      margin-bottom: 2px;
     }
 
-    .filters input[type="text"],
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .filters label {
+      font-size: 10px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
     .filters select {
-      width: 100%;
-      padding: 8px 12px;
-      border-radius: var(--glass-radius-md);
-      font-size: 14px;
-      color: var(--text-strong);
-      background-color: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.55);
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.85);
+      font-size: 11px;
+      min-width: 130px;
+      background-color: rgba(15, 23, 42, 0.98) !important;
+      background-image:
+        radial-gradient(circle at top left, rgba(248, 250, 252, 0.06), transparent 60%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98)) !important;
+      color: var(--text-strong) !important;
       outline: none;
-      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+      transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast),
+        transform var(--transition-fast);
       appearance: none;
       -webkit-appearance: none;
       position: relative;
     }
 
-    .filters select {
-      background-image:
-        radial-gradient(circle at top left, rgba(248, 250, 252, 0.06), transparent 60%),
-        linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98)) !important;
-      background-position: right 10px center;
-      background-repeat: no-repeat;
-      background-size: 10px;
-      cursor: pointer;
-    }
-
-    .filters select:focus,
-    .filters input:focus {
+    .filters select:focus {
       border-color: rgba(56, 189, 248, 0.9);
       box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.8);
+      background-image:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 60%),
+        linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(15, 23, 42, 1)) !important;
       transform: translateY(-1px);
     }
 
-    .filters-tags {
-      padding: 10px 0 0;
-      border-top: 1px solid var(--glass-border);
-      margin-top: 10px;
+    .filters select:hover {
+      border-color: rgba(248, 250, 252, 0.5);
     }
 
-    .filter-tag-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-subtle);
-      margin-bottom: 4px;
-      display: block;
-    }
-
-    .filter-chips-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .filter-chip {
+    .filters-row-extra {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      color: var(--text-strong);
-      background-color: rgba(248, 250, 252, 0.1);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      line-height: 1;
-      transition: background var(--transition-fast);
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
     }
 
-    .filter-chip-clear {
+    .filters-note {
       font-size: 10px;
-      font-weight: 600;
-      color: var(--accent-red);
-      cursor: pointer;
-      line-height: 1;
-      margin-left: 4px;
+      color: var(--text-subtle);
     }
 
-    /* ===== MAP ===== */
-    .map-card {
-      min-height: 480px;
+    .export-buttons {
       display: flex;
-      flex-direction: column;
-      padding: 14px;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .export-btn {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.9);
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.35), transparent 55%),
+        linear-gradient(135deg, rgba(37, 99, 235, 0.96), rgba(56, 189, 248, 0.95));
+      color: #ecfeff;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 16px 35px rgba(30, 64, 175, 0.8);
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        filter var(--transition-fast);
+    }
+
+    .export-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 22px 48px rgba(30, 64, 175, 0.95);
+      filter: brightness(1.05);
+    }
+
+    .export-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
+    }
+
+    /* MAIN GRID / MAP / CHARTS */
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .map-card {
+      border-radius: var(--glass-radius-lg);
     }
 
     .map-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      gap: 8px;
+      margin-bottom: 6px;
     }
 
     .map-title {
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.14em;
-      color: #9ca3af;
-      margin: 0;
+      color: var(--text-soft);
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .map-title .dot {
+    .map-title span.dot {
       width: 6px;
       height: 6px;
       border-radius: 999px;
@@ -729,98 +818,92 @@
       box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
     }
 
-    #map {
-      width: 100%;
-      flex-grow: 1;
-      border-radius: var(--glass-radius-md);
-      overflow: hidden;
-      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.55);
-      z-index: 0;
-    }
-
-    .map-footer {
-      font-size: 11px;
-      color: var(--text-subtle);
-      margin-top: 10px;
-      padding-top: 6px;
-      border-top: 1px solid var(--glass-border);
-    }
-
     .map-toggle-btn {
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.7);
       padding: 5px 12px;
       font-size: 11px;
-      background: radial-gradient(circle at top left, rgba(248, 250, 252, 0.06), transparent 60%), linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
+      background:
+        radial-gradient(circle at top left, rgba(248, 250, 252, 0.06), transparent 60%),
+        rgba(15, 23, 42, 0.96);
       color: var(--text-soft);
       cursor: pointer;
-      transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .map-toggle-btn:hover {
-      transform: translateY(-1px);
-      background: radial-gradient(circle at top left, rgba(248, 250, 252, 0.12), transparent 60%), linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.99));
-      border-color: rgba(248, 250, 252, 0.5);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition:
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast),
+        color var(--transition-fast);
     }
 
     .map-toggle-btn-active {
-      border-color: var(--accent-blue);
-      color: var(--accent-blue);
+      border-color: rgba(56, 189, 248, 0.95);
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.25), transparent 55%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+      color: #e0f2fe;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.95);
     }
 
-    /* Map Legend */
-    .map-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 8px;
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      transition: transform var(--transition-med), box-shadow var(--transition-med), border-color var(--transition-med);
     }
 
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
+    .map-card:hover #map {
+      transform: translateY(-1px);
+      box-shadow: 0 20px 52px rgba(15, 23, 42, 0.98);
+      border-color: rgba(248, 250, 252, 0.55);
+    }
+
+    .map-footer {
+      margin-top: 6px;
+      font-size: 10px;
       color: var(--text-soft);
     }
 
-    .legend-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
+    .charts-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .legend-completed { background-color: var(--accent-green); }
-    .legend-no-access { background-color: var(--accent-amber); }
-    .legend-pending { background-color: var(--accent-red); }
-    .legend-selected { background-color: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
-
-    /* Leaflet Popups */
-    .leaflet-popup-content-wrapper {
-        background: rgba(15, 23, 42, 0.9);
-        color: var(--text-strong);
-        border-radius: var(--glass-radius-md);
-        padding: 10px 14px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.65);
-    }
-    .leaflet-popup-content {
-        margin: 0;
-        font-size: 13px;
-    }
-    .leaflet-popup-tip {
-        background: rgba(15, 23, 42, 0.9);
-    }
-    .leaflet-popup-close-button {
-        color: var(--text-soft);
+    .chart-card {
+      border-radius: var(--glass-radius-lg);
     }
 
-    /* ===== TABLE SECTION ===== */
+    .chart-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-soft);
+      margin: 0;
+    }
+
+    .chart-wrapper {
+      height: 230px;
+      margin-top: 4px;
+    }
+
+    .chart-legend {
+      font-size: 11px;
+      color: var(--text-subtle);
+      margin-top: 4px;
+    }
+
+    /* TABLE SECTION */
+
     .table-card {
-      padding: 14px;
+      border-radius: var(--glass-radius-lg);
     }
 
     .table-header-row {
@@ -850,1505 +933,1302 @@
       color: var(--text-subtle);
     }
 
-    .export-buttons {
+    .table-controls {
       display: flex;
-      gap: 8px;
-    }
-
-    .export-btn {
-      padding: 6px 12px;
-      border-radius: var(--glass-radius-md);
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1px solid var(--glass-border);
-      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.1), transparent 60%), linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
-      color: var(--text-strong);
-      transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
-      display: flex;
+      justify-content: flex-start;
       align-items: center;
-      gap: 6px;
-      line-height: 1.2;
+      gap: 8px;
+      margin-bottom: 6px;
+      width: 100%;
     }
 
-    .export-btn:hover {
+    .table-search {
+      flex: 1;
+      max-width: 360px;
+    }
+
+    .table-search input {
+      width: 100%;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      font-size: 11px;
+      background:
+        radial-gradient(circle at 0 0, rgba(248, 250, 252, 0.06), transparent 60%),
+        rgba(15, 23, 42, 0.96);
+      color: var(--text-strong);
+      outline: none;
+      transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast),
+        transform var(--transition-fast);
+    }
+
+    .table-search input::placeholder {
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .table-search input:focus {
+      border-color: rgba(56, 189, 248, 0.9);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.8);
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.2), transparent 60%),
+        rgba(15, 23, 42, 0.98);
       transform: translateY(-1px);
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
     }
-
-    .export-btn.excel { color: var(--accent-green); }
-    .export-btn.pdf { color: var(--accent-red); }
-    .export-btn.csv { color: var(--accent-blue); }
 
     .table-wrapper {
-      margin-top: 10px;
-      overflow-x: auto;
-      border-radius: var(--glass-radius-md);
-      border: 1px solid var(--glass-border);
-      background: rgba(15, 23, 42, 0.88);
-      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.95);
+      max-height: 320px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background:
+        radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(3, 7, 18, 0.98));
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.95);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    th {
-      position: sticky;
-      top: 0;
-      padding: 10px 14px;
-      text-align: left;
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #cbd5e1;
-      background: linear-gradient(180deg, #1e293b, #0f172a);
-      border-bottom: 2px solid #334155;
-      z-index: 10;
-    }
-
-    td {
-      padding: 10px 14px;
-      vertical-align: top;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
       color: var(--text-strong);
     }
 
-    tbody tr {
-      transition: background var(--transition-fast), box-shadow var(--transition-fast);
-      cursor: pointer;
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th,
+    td {
+      padding: 5px 8px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.95));
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 10px;
+      color: #9ca3af;
     }
 
     tbody tr:nth-child(even) {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.82);
     }
 
     tbody tr:nth-child(odd) {
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(3, 7, 18, 0.96);
     }
 
     tbody tr:hover {
       background:
-        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.1), transparent 55%),
-        rgba(15, 23, 42, 0.9);
-      box-shadow: inset 3px 0 0 0 var(--accent-blue);
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.18), transparent 55%),
+        rgba(3, 7, 18, 0.98);
+      cursor: pointer;
+      transition: background var(--transition-fast);
     }
 
-    /* Table Status Badges */
-    .status-badge {
-      padding: 4px 8px;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
       border-radius: 999px;
       font-size: 10px;
       font-weight: 600;
-      text-transform: uppercase;
-      display: inline-block;
-      min-width: 80px;
-      text-align: center;
+      color: white;
+      box-shadow: 0 0 14px rgba(15, 23, 42, 0.9);
     }
 
-    .status-completed {
-      background-color: rgba(34, 197, 94, 0.25);
-      color: var(--accent-green);
+    .badge-success {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
     }
 
-    .status-no-access {
-      background-color: rgba(251, 191, 36, 0.25);
-      color: var(--accent-amber);
+    .badge-pending {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
     }
 
-    .status-pending, .status-pending-remarks {
-      background-color: rgba(239, 68, 68, 0.25);
-      color: var(--accent-red);
+    .badge-neutral {
+      background: linear-gradient(135deg, #6b7280, #4b5563);
     }
 
-    /* Modal Styling */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 300ms ease, visibility 0s 300ms;
-      z-index: 1000;
-    }
+    /* FOOTER */
 
-    .modal-backdrop.is-open {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 300ms ease, visibility 0s 0s;
-    }
-
-    .modal-content {
-      background: var(--bg-surface);
-      border-radius: var(--glass-radius-lg);
-      padding: 24px;
-      max-width: 600px;
-      width: 90%;
-      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
-      border: 1px solid var(--glass-border);
-      position: relative;
-      transform: translateY(20px);
-      transition: transform 300ms ease, opacity 300ms ease;
-    }
-
-    .modal-backdrop.is-open .modal-content {
-      transform: translateY(0);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--glass-border);
-      padding-bottom: 8px;
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text-stronger);
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--text-soft);
-      font-size: 18px;
-      cursor: pointer;
-      line-height: 1;
-    }
-
-    .detail-list {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 10px;
-      margin: 0;
-      padding: 0;
-    }
-
-    .detail-list > div {
-      display: contents;
-    }
-
-    .detail-list dt {
-      font-weight: 600;
-      color: var(--text-soft);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-right: 1px dashed var(--glass-border);
-      padding-right: 10px;
+    footer {
+      margin-top: 10px;
+      font-size: 10px;
+      color: var(--text-subtle);
       text-align: right;
     }
 
-    .detail-list dd {
-      margin-left: 0;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-strong);
-      padding-left: 10px;
+    /* LOADING OVERLAY */
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 10% 0, rgba(56, 189, 248, 0.16), transparent 60%),
+        radial-gradient(circle at 90% 100%, rgba(236, 72, 153, 0.18), transparent 60%),
+        rgba(15, 23, 42, 0.95);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      color: #e5e7eb;
     }
 
-    /* UTILITIES */
-    .text-center { text-align: center; }
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 4px solid rgba(148, 163, 184, 0.35);
+      border-top-color: #38bdf8;
+      animation: spin 1.1s linear infinite;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.85);
+    }
 
-    /* MEDIA QUERIES */
+    .loading-text {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    /* ANIMATIONS */
+
+    @keyframes fade-slide-up {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      from {
+        opacity: 0.55;
+        transform: scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: scale(1.4);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* RESPONSIVE */
+
     @media (max-width: 1200px) {
       .main-grid {
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      }
+
+      #map {
+        height: 380px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .shell {
+        padding: 10px 10px 20px;
+      }
+
+      header {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        padding: 10px 14px;
+      }
+
+      .header-center {
+        text-align: left;
+      }
+
+      .main-grid {
         grid-template-columns: 1fr;
+      }
+
+      .charts-stack {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .charts-stack .chart-card {
+        flex: 1 1 260px;
+      }
+
+      #map {
+        height: 360px;
+      }
+
+      .table-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .table-search {
+        max-width: 100%;
       }
     }
 
     @media (max-width: 768px) {
-      .shell {
-        padding: 8px;
-      }
       header {
-        flex-direction: column;
-        text-align: center;
-        padding: 10px;
-      }
-      .header-left, .header-right {
-        gap: 4px;
-      }
-      .header-center {
-        order: -1;
-        margin-bottom: 10px;
-      }
-      .logo-img { max-height: 40px; }
-      header h1 { font-size: 20px; }
-
-      .section-kpis-inner {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      }
-      .kpi-value { font-size: 24px; }
-      .kpi-card { min-height: 80px; padding: 10px; }
-
-      .kpi-circle-strip {
-        grid-template-columns: 1fr;
+        border-radius: 16px;
       }
 
-      .filters-grid {
-        grid-template-columns: 1fr;
-      }
-      .table-header-row {
+      .insights-bar {
         flex-direction: column;
         align-items: flex-start;
       }
-      .table-header-title { margin-bottom: 4px; }
-      .export-buttons {
-        margin-top: 10px;
-      }
-      .modal-content {
-        width: 95%;
-        margin: 20px;
+
+      #map {
+        height: 320px;
       }
     }
 
-    /* Loading State */
-    .loading-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.95);
-        display: flex;
+    @media (max-width: 480px) {
+      .page-nav {
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: var(--accent-blue);
-        font-size: 14px;
-        font-weight: 600;
-        border-radius: var(--glass-radius-lg);
-        transition: opacity 300ms ease;
-        z-index: 50;
+        align-items: flex-start;
+      }
     }
-    .loading-overlay.hidden {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.1);
-      border-top: 4px solid var(--accent-blue);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 10px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-</style>
+  </style>
 </head>
-
-<body data-theme="dark">
+<body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading Structures Assets from Google Sheet…</div>
+  </div>
 
   <div class="page">
     <div class="shell">
       <header>
         <div class="header-left">
-          <img src="https://avatars.githubusercontent.com/u/102949603?s=200&v=4" alt="Company Logo" class="logo-img-small" />
+          <img src="aktor-logo.png" alt="Aktor Logo" class="header-logo" />
         </div>
         <div class="header-center">
-          <h1>Qatar North Survey Dashboard</h1>
-          <div class="subtitle">Ashghal Assets Management</div>
-          <div class="top-nav-links">
-            <a href="TRAFFIC.html">Traffic Junctions</a>
-            <a href="ITS.html">ITS Assets</a>
-            <a href="Structures" class="active">Structures</a>
+          <div class="header-title">
+            QATAR NORTH STRUCTURES SURVEY DASHBOARD
+          </div>
+          <div class="header-subtitle">
+            Live from Google Sheet – Structures Assets, Survey Completion &amp; Operation Status
+          </div>
+          <div class="header-meta">
+            <span>Current Time:</span>
+            <span id="currentDateTime"></span>
           </div>
         </div>
         <div class="header-right">
-          <div class="datetime-header" id="dateTimeDisplay"></div>
+          <img src="MRTC-AKTOR JV.png" alt="MRTC-AKTOR JV" class="header-logo header-logo-small" />
         </div>
       </header>
 
+      <nav class="page-nav">
+        <div class="page-nav-left">
+          <button id="themeToggleBtn" class="theme-toggle-btn" type="button">
+            Toggle Theme
+          </button>
+        </div>
+        <div class="page-nav-right">
+          <ul class="top-nav-links">
+            <li>
+              <a href="TRAFFIC.html">Traffic Junctions</a>
+            </li>
+            <li>
+              <a href="ITS.html">ITS Dashboard</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
       <main class="dashboard">
+        <!-- KPIs -->
         <section class="section section-kpis">
-          <div class="section-kpis-inner">
-
-            <div class="glass-card kpi-card">
-              <div class="kpi-label">Total Structures</div>
-              <div class="kpi-value">
-                <span id="totalStructures" class="kpi-number">0</span>
+          <div class="glass-card">
+            <div class="card-header-row">
+              <div>
+                <p class="card-title">Network KPIs – Qatar North Structures</p>
+                <p class="card-sub">Overview of total structures, survey coverage and operational status.</p>
               </div>
-              <div class="kpi-caption">Total Assets in Scope</div>
             </div>
 
-            <div class="glass-card kpi-card">
-              <div class="kpi-label">Completed Survey</div>
-              <div class="kpi-value">
-                <span id="completedCount" class="kpi-number">0</span>
+            <div class="kpi-grid">
+              <!-- Total Structures -->
+              <div class="kpi-card">
+                <div class="kpi-label">Total Structures Assets</div>
+                <div class="kpi-value" id="totalAssetsCount">0</div>
+                <div class="kpi-subtext">All structures in Qatar North scope (bridges, underpasses, PB, PUP, etc.).</div>
               </div>
-              <div class="kpi-badge bg-green" id="completedPercentage">0%</div>
-            </div>
 
-            <div class="glass-card kpi-card">
-              <div class="kpi-label">No Access</div>
-              <div class="kpi-value">
-                <span id="noAccessCount" class="kpi-number">0</span>
+              <!-- Surveyed Assets + Circle -->
+              <div class="kpi-card">
+                <div class="kpi-label">Structures Surveyed</div>
+                <div class="kpi-circle-layout">
+                  <div class="kpi-circle-compact">
+                    <div class="circle-wrapper">
+                      <div class="circle-fill" id="surveyCompletionCircle"></div>
+                      <div class="circle-inner" id="surveyCompletionPctText">0%</div>
+                    </div>
+                  </div>
+                  <div class="kpi-circle-text">
+                    <div class="kpi-value" id="assetsSurveyedCount">0</div>
+                    <div class="circle-caption">
+                      <strong id="surveyCompletionCaption">0%</strong>
+                      of total structures have been surveyed.
+                    </div>
+                    <div class="kpi-subtext">Remaining assets are tracked under pending / no access.</div>
+                  </div>
+                </div>
               </div>
-              <div class="kpi-badge bg-amber" id="noAccessPercentage">0%</div>
-            </div>
 
-            <div class="glass-card kpi-card">
-              <div class="kpi-label">Pending / Remarks</div>
-              <div class="kpi-value">
-                <span id="pendingRemarksCount" class="kpi-number">0</span>
+              <!-- Pending Structures -->
+              <div class="kpi-card">
+                <div class="kpi-label">Pending Survey</div>
+                <div class="kpi-value" id="assetsPendingCount">0</div>
+                <div class="kpi-pct" id="assetsPendingPctText">0% of total structures</div>
+                <div class="kpi-subtext">Includes structures not yet surveyed or with incomplete data.</div>
               </div>
-              <div class="kpi-badge bg-red" id="pendingRemarksPercentage">0%</div>
-            </div>
 
-            <div class="glass-card kpi-card">
-              <div class="kpi-label">Bridges (Total)</div>
-              <div class="kpi-value">
-                <span id="bridgesCount" class="kpi-number">0</span>
+              <!-- No Access -->
+              <div class="kpi-card">
+                <div class="kpi-label">No Access / Restricted</div>
+                <div class="kpi-value" id="noAccessCount">0</div>
+                <div class="kpi-pct" id="noAccessPctText">0% of total structures</div>
+                <div class="kpi-subtext">Assets with “No Access” or similar status during survey.</div>
               </div>
-              <div class="kpi-caption">Over Water/Road/Railway</div>
             </div>
-
-            <div class="glass-card kpi-card">
-              <div class="kpi-label">Underpasses (Total)</div>
-              <div class="kpi-value">
-                <span id="underpassesCount" class="kpi-number">0</span>
-              </div>
-              <div class="kpi-caption">Vehicular/Pedestrian</div>
-            </div>
-
           </div>
         </section>
 
+        <!-- Insights strip -->
         <section class="section section-insights">
-           <div class="kpi-circle-strip">
-
-              <div class="glass-card kpi-circle-card">
-                <div class="kpi-label">Overall Survey Completion</div>
-                <div class="kpi-circle-layout">
-                  <div class="circle-wrapper">
-                    <div class="circle-fill" id="overallCompletionFill"></div>
-                    <div class="circle-inner" id="overallCompletionText">0%</div>
-                  </div>
-                  <div class="kpi-circle-text">
-                    <div class="circle-caption">
-                      **<span id="overallCompletionRemarksCount">0</span>** Structures with 'Pending to visit' or open remarks.
-                    </div>
-                     <div class="circle-caption">
-                      **<span id="overallCompletionCompletedCount">0</span>** Structures fully surveyed.
-                    </div>
-                  </div>
-                </div>
+          <div class="glass-card">
+            <div class="insights-bar">
+              <div class="insights-main-label">
+                <span class="badge-pulse"></span>
+                Structures survey status and asset distribution are updated live from the Google Sheet.
               </div>
-
-              <div class="glass-card kpi-circle-card">
-                <div class="kpi-label">Full MEP Survey Status</div>
-                <div class="kpi-circle-layout">
-                  <div class="circle-wrapper" style="border-color: rgba(34, 197, 94, 0.45);">
-                    <div class="circle-fill" id="fullMepCompletionFill" style="background: linear-gradient(135deg, var(--accent-green), var(--accent-purple));"></div>
-                    <div class="circle-inner" id="fullMepCompletionText" style="color: var(--accent-green);">0%</div>
-                  </div>
-                  <div class="kpi-circle-text">
-                    <div class="circle-caption">
-                      **<span id="fullMepCount">0</span>** Structures documented with Full MEP scope.
-                    </div>
-                     <div class="circle-caption">
-                      **<span id="partialMepCount">0</span>** Structures with partial or no MEP scope.
-                    </div>
-                  </div>
-                </div>
+              <div class="card-sub" id="insightsSummaryText">
+                Loading insights…
               </div>
-           </div>
+            </div>
+          </div>
         </section>
 
-
+        <!-- Filters -->
         <section class="section section-filters">
           <div class="glass-card filters-card">
-            <div class="card-header-row">
-              <h2 class="card-title">Data Filters & Search</h2>
-            </div>
-            <div class="filters-grid filters">
-              <div>
-                <label for="filterZone">Zone</label>
-                <select id="filterZone" class="filter-select">
-                  <option value="">All Zones</option>
+            <div class="filters-row-title">Filters &amp; Export</div>
+            <div class="filters">
+              <label>
+                Route (RTE)
+                <select id="filterRoute">
+                  <option value="ALL">All Routes</option>
                 </select>
-              </div>
-              <div>
-                <label for="filterRoute">Route (RTE)</label>
-                <select id="filterRoute" class="filter-select">
-                  <option value="">All Routes</option>
+              </label>
+              <label>
+                Zone
+                <select id="filterZone">
+                  <option value="ALL">All Zones</option>
                 </select>
-              </div>
-              <div>
-                <label for="filterType">Type</label>
-                <select id="filterType" class="filter-select">
-                  <option value="">All Types</option>
+              </label>
+              <label>
+                Structure Type
+                <select id="filterType">
+                  <option value="ALL">All Types</option>
                 </select>
-              </div>
-              <div>
-                <label for="filterStatus">Status</label>
-                <select id="filterStatus" class="filter-select">
-                  <option value="">All Statuses</option>
+              </label>
+              <label>
+                Survey Status
+                <select id="filterSurveyStatus">
+                  <option value="ALL">All Status</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Pending">Pending</option>
+                  <option value="No Access">No Access</option>
                 </select>
-              </div>
-               <div>
-                <label for="filterRemarksCategory">Remarks Category</label>
-                <select id="filterRemarksCategory" class="filter-select">
-                  <option value="">All Categories</option>
-                  <option value="Visited on 1st, 2nd, 3rd round">Visited on Round 1, 2, or 3</option>
-                  <option value="Pending to visit">Pending to visit</option>
-                  <option value="Other">Other Remarks</option>
-                </select>
-              </div>
-              <div style="grid-column: span 1 / auto;">
-                <label for="filterSearch">Free Text Search</label>
-                <input type="text" id="filterSearch" placeholder="Search by Asset Name, Code, Maximo ID..." />
-              </div>
+              </label>
             </div>
 
-            <div class="filters-tags">
-              <span class="filter-tag-label">Active Filters:</span>
-              <div class="filter-chips-container" id="activeFiltersContainer">
-                <div class="filter-chip" id="noFiltersChip">No filters applied.</div>
+            <div class="filters-row-extra">
+              <div class="filters-note" id="filtersNote">
+                Showing all structures in Qatar North.
+              </div>
+              <div class="export-buttons">
+                <button class="export-btn" id="downloadCsvBtn" type="button">
+                  CSV
+                </button>
+                <button class="export-btn" id="downloadExcelBtn" type="button">
+                  Excel (XLSX)
+                </button>
+                <button class="export-btn" id="downloadPdfBtn" type="button">
+                  PDF
+                </button>
               </div>
             </div>
-
           </div>
         </section>
 
-
+        <!-- Map + Charts -->
         <section class="section section-main">
           <div class="main-grid">
-
+            <!-- Map -->
             <div class="glass-card map-card">
               <div class="map-card-header">
-                <h2 class="map-title"><span class="dot"></span> Structures Location Map (Filtered)</h2>
-                <button class="map-toggle-btn map-toggle-btn-active" data-layer-id="esri">ESRI Satellite</button>
+                <div class="map-title">
+                  <span class="dot"></span>
+                  Qatar North Structures Map – Satellite View
+                </div>
+                <button id="mapToggleBtn" class="map-toggle-btn map-toggle-btn-active" type="button">
+                  Focus on filtered structures
+                </button>
               </div>
               <div id="map"></div>
-              <div class="map-footer">
-                <div class="map-legend">
-                  <div class="legend-item"><span class="legend-dot legend-completed"></span> Completed</div>
-                  <div class="legend-item"><span class="legend-dot legend-no-access"></span> No Access</div>
-                  <div class="legend-item"><span class="legend-dot legend-pending"></span> Pending / Remarks</div>
-                  <div class="legend-item"><span class="legend-dot legend-selected"></span> Selected Asset</div>
-                </div>
+              <div class="map-footer" id="mapFooterText">
+                Click a row in the table to zoom to that structure. Marker color reflects survey status.
               </div>
             </div>
 
+            <!-- Charts -->
             <div class="charts-stack">
               <div class="glass-card chart-card">
                 <div class="card-header-row">
-                  <h2 class="card-title">Survey Status Distribution</h2>
-                </div>
-                <div class="chart-wrapper">
-                  <canvas id="statusChart"></canvas>
-                </div>
-              </div>
-
-              <div class="glass-card chart-card">
-                <div class="card-header-row">
-                  <h2 class="card-title">Asset Type Distribution</h2>
+                  <h3 class="chart-title">Structures by Type</h3>
                 </div>
                 <div class="chart-wrapper">
                   <canvas id="typeChart"></canvas>
                 </div>
+                <div class="chart-legend" id="typeChartLegend">
+                  Distribution of structures by Type field from the Structures sheet.
+                </div>
+              </div>
+
+              <div class="glass-card chart-card">
+                <div class="card-header-row">
+                  <h3 class="chart-title">Survey Status by Type</h3>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="statusChart"></canvas>
+                </div>
+                <div class="chart-legend" id="statusChartLegend">
+                  Completion vs Pending vs No Access for each structure type.
+                </div>
               </div>
             </div>
-
           </div>
         </section>
 
-
+        <!-- Table -->
         <section class="section section-table">
           <div class="glass-card table-card">
             <div class="table-header-row">
               <div class="table-header-left">
-                <h2 class="table-header-title">Filtered Structures List</h2>
-                <div class="table-header-sub">Showing <strong id="currentRecordCount">0</strong> of <strong id="totalRecordCount">0</strong> Structures.</div>
+                <div class="table-header-title">Structures Asset List – Filtered View</div>
+                <div class="table-header-sub" id="tableHeaderSub">
+                  0 structures in current view.
+                </div>
               </div>
-              <div class="export-buttons">
-                <button class="export-btn csv" onclick="exportData('csv')">CSV</button>
-                <button class="export-btn excel" onclick="exportData('xlsx')">Excel (XLSX)</button>
-                <button class="export-btn pdf" onclick="exportData('pdf')">PDF</button>
+            </div>
+
+            <div class="table-controls">
+              <div class="table-search">
+                <input
+                  type="text"
+                  id="assetSearch"
+                  placeholder="Search by Struct Ref, Asset Name, Route, Zone, Type, or Maximo ID…"
+                />
               </div>
             </div>
 
             <div class="table-wrapper">
-              <div class="loading-overlay" id="tableLoadingOverlay">
-                <div class="spinner"></div>
-                Loading Data...
-              </div>
-              <table id="dataTable">
+              <table>
                 <thead>
                   <tr>
-                    <th>S.N</th>
+                    <th>Sr.No</th>
+                    <th>Struct Ref</th>
                     <th>Asset Name</th>
                     <th>Type</th>
-                    <th>Struct. Ref.</th>
-                    <th>RTE</th>
+                    <th>Route (RTE)</th>
                     <th>Zone</th>
-                    <th>Status</th>
+                    <th>Survey Status</th>
+                    <th>Maximo ID</th>
                     <th>Remarks</th>
                   </tr>
                 </thead>
-                <tbody id="dataTableBody">
-                  </tbody>
+                <tbody id="assetTableBody"></tbody>
               </table>
             </div>
           </div>
         </section>
 
+        <footer>
+          Qatar North Structures Survey Dashboard – Powered by GitHub Pages &amp; Google Sheets
+        </footer>
       </main>
     </div>
-
-    <div class="modal-backdrop" id="detailModal" aria-hidden="true" role="dialog" aria-modal="true">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 class="modal-title">Structure Detail: <span id="modalAssetName"></span></h3>
-          <button class="modal-close" aria-label="Close detail view">&times;</div>
-        </div>
-        <div class="modal-body" id="modalBody">
-          </div>
-      </div>
-    </div>
-
   </div>
 
-<script>
-  /*
-  ================================================================================================
-  1. CONFIGURATION (DATA SOURCE & MAPPING)
-  ================================================================================================
-  */
+  <script>
+    // ==============================
+    // CONFIG
+    // ==============================
 
-  // ✅ FIX: Using the dynamic public CSV export URL from Google Sheets for reliable data fetching
-  const DATA_SOURCE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQx3ljhXIdh8M_D-TQHSXpBDZN7mIRf3qr7uQvnZsn2xbXSL1qtcb-0aIfDiUCtGZmsJcDDhOndhtH2/pub?gid=417753226&single=true&output=csv";
+    const CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDd7YIMMpjazLQZx1tQqenS2qswzNzsALfaOSqAdZLnZIKY2nf8vEFi80P_eg7i7C_idGi-uQWrnDF/pub?output=csv";
 
-  // Data Column Mapping (Case-sensitive names from the CSV Header)
-  const DATA_MAPPING = {
-    SN: 'S.N',
-    Route: 'RTE',
-    StructRef: 'Struct. Ref.',
-    AssetName: 'Asset Name',
-    AssetCode: 'CODE',
-    Status: 'STATUS',
-    Type: 'Type',
-    MaximoID: 'Maximo ID',
-    Zone: 'Zone',
-    Latitude: 'Latitude', // Ensure this is the correct header for Latitude
-    Longitude: 'Longitude', // Ensure this is the correct header for Longitude
-    Remarks: 'Remarks',
-    MEP: 'MEP',
-    Lights: 'Lights',
-    UPS: 'UPS',
-    ElectricalDB: 'Electrical DB',
-    FF: 'FF',
-    FA: 'FA',
-    HVAC: 'HVAC',
-    Elevators: 'Elevators',
-    Escalator: 'Escalator',
-    ITS: 'ITS',
-    ELV: 'ELV'
-  };
+    let allAssets = [];
+    let filteredAssets = [];
+    let map;
+    let markersLayer;
+    let typeChart;
+    let statusChart;
+    let focusFilteredOnMap = true;
+    const markerByKey = {};
 
-  const STATUS_COLORS = {
-    'COMPLETED': { color: '#22c55e', opacity: 0.8 }, // Green
-    'NO ACCESS': { color: '#fbbf24', opacity: 0.8 }, // Amber
-    'PENDING': { color: '#ef4444', opacity: 0.8 }, // Red (Catch-all for anything else)
-    'PENDING TO VISIT': { color: '#ef4444', opacity: 0.8 }, // Red (Specific check)
-    'PENDING REMARKS': { color: '#ef4444', opacity: 0.8 } // Red (Specific check)
-  };
+    // ==============================
+    // UTILITIES
+    // ==============================
 
-  const MAP_VIEW = {
-    CENTER: [25.3548, 51.1832], // Central Qatar
-    ZOOM: 9 // Appropriate zoom level for Qatar North
-  };
-
-  // MEP Status Columns to check for "Full MEP"
-  const MEP_COLUMNS = [
-    DATA_MAPPING.Lights,
-    DATA_MAPPING.UPS,
-    DATA_MAPPING.ElectricalDB,
-    DATA_MAPPING.FF,
-    DATA_MAPPING.FA,
-    DATA_MAPPING.HVAC,
-    DATA_MAPPING.Elevators,
-    DATA_MAPPING.Escalator,
-    DATA_MAPPING.ITS,
-    DATA_MAPPING.ELV
-  ];
-
-
-  /*
-  ================================================================================================
-  2. GLOBAL STATE AND INITIALIZATION
-  ================================================================================================
-  */
-  let rawData = [];
-  let filteredData = [];
-  let map;
-  let markersLayer;
-  let statusChartInstance;
-  let typeChartInstance;
-  let selectedMarker = null;
-
-  const elements = {
-    totalStructures: document.getElementById('totalStructures'),
-    completedCount: document.getElementById('completedCount'),
-    noAccessCount: document.getElementById('noAccessCount'),
-    pendingRemarksCount: document.getElementById('pendingRemarksCount'),
-    completedPercentage: document.getElementById('completedPercentage'),
-    noAccessPercentage: document.getElementById('noAccessPercentage'),
-    pendingRemarksPercentage: document.getElementById('pendingRemarksPercentage'),
-    bridgesCount: document.getElementById('bridgesCount'),
-    underpassesCount: document.getElementById('underpassesCount'),
-    overallCompletionFill: document.getElementById('overallCompletionFill'),
-    overallCompletionText: document.getElementById('overallCompletionText'),
-    overallCompletionRemarksCount: document.getElementById('overallCompletionRemarksCount'),
-    overallCompletionCompletedCount: document.getElementById('overallCompletionCompletedCount'),
-    fullMepCompletionFill: document.getElementById('fullMepCompletionFill'),
-    fullMepCompletionText: document.getElementById('fullMepCompletionText'),
-    fullMepCount: document.getElementById('fullMepCount'),
-    partialMepCount: document.getElementById('partialMepCount'),
-    filterZone: document.getElementById('filterZone'),
-    filterRoute: document.getElementById('filterRoute'),
-    filterType: document.getElementById('filterType'),
-    filterStatus: document.getElementById('filterStatus'),
-    filterRemarksCategory: document.getElementById('filterRemarksCategory'),
-    filterSearch: document.getElementById('filterSearch'),
-    activeFiltersContainer: document.getElementById('activeFiltersContainer'),
-    noFiltersChip: document.getElementById('noFiltersChip'),
-    dataTableBody: document.getElementById('dataTableBody'),
-    currentRecordCount: document.getElementById('currentRecordCount'),
-    totalRecordCount: document.getElementById('totalRecordCount'),
-    tableLoadingOverlay: document.getElementById('tableLoadingOverlay'),
-    detailModal: document.getElementById('detailModal'),
-    modalBody: document.getElementById('modalBody'),
-    modalAssetName: document.getElementById('modalAssetName'),
-  };
-
-  /*
-  ================================================================================================
-  3. DATA FETCHING AND PREPARATION
-  ================================================================================================
-  */
-
-  function displayLoading(show) {
-    if (show) {
-      elements.tableLoadingOverlay.classList.remove('hidden');
-    } else {
-      elements.tableLoadingOverlay.classList.add('hidden');
+    function toNumberSafe(val) {
+      const n = parseFloat(val);
+      return Number.isFinite(n) ? n : NaN;
     }
-  }
 
-  async function fetchAndProcessData() {
-    displayLoading(true);
-    console.log(`Fetching data from: ${DATA_SOURCE_URL}`);
+    function normaliseStatus(raw) {
+      if (!raw) return "Pending";
+      const s = String(raw).trim().toUpperCase();
 
-    try {
-      const response = await fetch(DATA_SOURCE_URL);
-      const csvText = await response.text();
+      if (s.includes("COMP")) return "Completed";
+      if (s === "DONE") return "Completed";
+      if (s.includes("NO ACCESS")) return "No Access";
+      if (s.includes("PENDING")) return "Pending";
+      return s || "Pending";
+    }
 
-      Papa.parse(csvText, {
+    function getUniqueValues(arr, key) {
+      const set = new Set();
+      arr.forEach((item) => {
+        const v = (item[key] ?? "").toString().trim();
+        if (v) set.add(v);
+      });
+      return Array.from(set).sort((a, b) => a.localeCompare(b));
+    }
+
+    function formatPercent(n) {
+      if (!Number.isFinite(n)) return "0%";
+      return `${n.toFixed(1).replace(/\.0$/, "")}%`;
+    }
+
+    function createBadge(text, status) {
+      const span = document.createElement("span");
+      span.textContent = text;
+      span.classList.add("badge");
+      if (status === "Completed") span.classList.add("badge-success");
+      else if (status === "Pending") span.classList.add("badge-pending");
+      else span.classList.add("badge-neutral");
+      return span;
+    }
+
+    // ==============================
+    // THEME + DATE/TIME
+    // ==============================
+
+    function initTheme() {
+      const prefersDark = window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      document.body.dataset.theme = prefersDark ? "dark" : "light";
+
+      const btn = document.getElementById("themeToggleBtn");
+      if (!btn) return;
+      btn.textContent = document.body.dataset.theme === "dark"
+        ? "Switch to Light Mode"
+        : "Switch to Dark Mode";
+
+      btn.addEventListener("click", () => {
+        document.body.dataset.theme = document.body.dataset.theme === "dark" ? "light" : "dark";
+        btn.textContent = document.body.dataset.theme === "dark"
+          ? "Switch to Light Mode"
+          : "Switch to Dark Mode";
+      });
+    }
+
+    function updateCurrentDateTime() {
+      const el = document.getElementById("currentDateTime");
+      if (!el) return;
+      const now = new Date();
+      // 12-hour format with seconds, similar to Traffic/ITS
+      const options = {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+      };
+      el.textContent = now.toLocaleString("en-GB", options);
+    }
+
+    // ==============================
+    // DATA LOADING
+    // ==============================
+
+    function transformRow(row, index) {
+      const lat = toNumberSafe(row["Latitude"] ?? row["LAT"]);
+      const lng = toNumberSafe(row["Longitude"] ?? row["LON"]);
+
+      const asset = {
+        srNo: index + 1,
+        structRef: (row["Struct. Ref."] || row["Struct Ref"] || row["STRUCT_REF"] || "").trim(),
+        assetName: (row["Asset Name"] || row["ASSET_NAME"] || "").trim(),
+        type: (row["Type"] || row["STRUCT_TYPE"] || "").trim(),
+        route: (row["RTE"] || row["Route"] || "").trim(),
+        zone: (row["Zone"] || row["ZONE"] || "").trim(),
+        maximoId: (row["Maximo ID"] || row["Maximo Id"] || row["MAXIMO_ID"] || "").trim(),
+        statusRaw: (row["STATUS"] || row["Status"] || row["Survey Status"] || "").trim(),
+        remarks: (row["Remarks"] || row["REMARKS"] || "").trim(),
+        lat,
+        lng,
+        hasLocation: Number.isFinite(lat) && Number.isFinite(lng)
+      };
+
+      asset.surveyStatus = normaliseStatus(asset.statusRaw);
+      return asset;
+    }
+
+    function loadData() {
+      Papa.parse(CSV_URL, {
+        download: true,
         header: true,
-        dynamicTyping: true,
         skipEmptyLines: true,
-        complete: function(results) {
-          rawData = results.data;
-          console.log(`Data successfully loaded. Total records: ${rawData.length}`);
+        complete: (results) => {
+          const data = results.data || [];
+          allAssets = data.map(transformRow).filter((a) => a.structRef || a.assetName);
+          filteredAssets = [...allAssets];
 
-          // Initial data population and rendering
-          populateFilters(rawData);
-          applyFilters(); // Initial filter and render
-          displayLoading(false);
+          initFilters();
+          initMap();
+          initCharts();
+          applyFilters();
+          hideLoadingOverlay();
         },
-        error: function(error) {
-          console.error("PapaParse error:", error);
-          alert("Error parsing CSV data. Check console for details.");
-          displayLoading(false);
+        error: (err) => {
+          console.error("Error loading CSV:", err);
+          hideLoadingOverlay();
+          alert("Error loading Structures CSV. Please check console.");
         }
       });
-    } catch (error) {
-      console.error("Fetch error:", error);
-      alert("Error fetching data from the source URL. Check console and ensure the Google Sheet is published to the web.");
-      displayLoading(false);
     }
-  }
 
+    function hideLoadingOverlay() {
+      const overlay = document.getElementById("loadingOverlay");
+      if (overlay) overlay.style.display = "none";
+    }
 
-  /*
-  ================================================================================================
-  4. FILTERING LOGIC
-  ================================================================================================
-  */
+    // ==============================
+    // FILTERS
+    // ==============================
 
-  function populateFilters(data) {
-    const filters = {
-      Zone: new Set(),
-      Route: new Set(),
-      Type: new Set(),
-      Status: new Set(),
-    };
+    function initFilters() {
+      populateSelectOptions("filterRoute", getUniqueValues(allAssets, "route"), "All Routes");
+      populateSelectOptions("filterZone", getUniqueValues(allAssets, "zone"), "All Zones");
+      populateSelectOptions("filterType", getUniqueValues(allAssets, "type"), "All Types");
 
-    data.forEach(item => {
-      if (item[DATA_MAPPING.Zone]) filters.Zone.add(String(item[DATA_MAPPING.Zone]).trim());
-      if (item[DATA_MAPPING.Route]) filters.Route.add(String(item[DATA_MAPPING.Route]).trim());
-      if (item[DATA_MAPPING.Type]) filters.Type.add(String(item[DATA_MAPPING.Type]).trim());
-      if (item[DATA_MAPPING.Status]) filters.Status.add(String(item[DATA_MAPPING.Status]).trim());
-    });
-
-    // Function to populate a select element
-    const populateSelect = (selectElement, values) => {
-      // Clear existing options, keep "All" option
-      selectElement.innerHTML = `<option value="">${selectElement.querySelector('option').textContent}</option>`;
-      Array.from(values).sort().forEach(value => {
-        if (value && value !== 'null' && value !== 'undefined') {
-          const option = document.createElement('option');
-          option.value = value;
-          option.textContent = value;
-          selectElement.appendChild(option);
+      ["filterRoute", "filterZone", "filterType", "filterSurveyStatus"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener("change", applyFilters);
         }
       });
-    };
 
-    populateSelect(elements.filterZone, filters.Zone);
-    populateSelect(elements.filterRoute, filters.Route);
-    populateSelect(elements.filterType, filters.Type);
-    populateSelect(elements.filterStatus, filters.Status);
-  }
-
-  function getFilters() {
-    return {
-      Zone: elements.filterZone.value,
-      Route: elements.filterRoute.value,
-      Type: elements.filterType.value,
-      Status: elements.filterStatus.value,
-      RemarksCategory: elements.filterRemarksCategory.value,
-      Search: elements.filterSearch.value.toLowerCase().trim()
-    };
-  }
-
-  function checkRemarksCategory(remarks, category) {
-    if (!remarks) return false;
-    remarks = String(remarks).toUpperCase();
-
-    switch (category) {
-      case 'Visited on 1st, 2nd, 3rd round':
-        return remarks.includes('VISITED ON 1') || remarks.includes('VISITED ON 2') || remarks.includes('VISITED ON 3');
-      case 'Pending to visit':
-        return remarks.includes('PENDING TO VISIT');
-      case 'Other':
-        // 'Other' means it has a remark that is NOT one of the two main categories
-        const isVisited = remarks.includes('VISITED ON 1') || remarks.includes('VISITED ON 2') || remarks.includes('VISITED ON 3');
-        const isPending = remarks.includes('PENDING TO VISIT');
-        return remarks.length > 0 && !isVisited && !isPending;
-      default:
-        return true; // No category filter applied
-    }
-  }
-
-  function applyFilters() {
-    const filters = getFilters();
-
-    filteredData = rawData.filter(item => {
-      // Zone filter
-      if (filters.Zone && String(item[DATA_MAPPING.Zone]).trim() !== filters.Zone) return false;
-      // Route filter
-      if (filters.Route && String(item[DATA_MAPPING.Route]).trim() !== filters.Route) return false;
-      // Type filter
-      if (filters.Type && String(item[DATA_MAPPING.Type]).trim() !== filters.Type) return false;
-      // Status filter
-      if (filters.Status && String(item[DATA_MAPPING.Status]).trim() !== filters.Status) return false;
-
-      // Remarks Category Filter
-      if (filters.RemarksCategory && !checkRemarksCategory(item[DATA_MAPPING.Remarks], filters.RemarksCategory)) return false;
-
-
-      // Free Text Search filter
-      if (filters.Search) {
-        const searchableFields = [
-          DATA_MAPPING.AssetName,
-          DATA_MAPPING.AssetCode,
-          DATA_MAPPING.MaximoID,
-          DATA_MAPPING.StructRef
-        ];
-        const match = searchableFields.some(field =>
-          String(item[field] || '').toLowerCase().includes(filters.Search)
-        );
-        if (!match) return false;
+      const searchInput = document.getElementById("assetSearch");
+      if (searchInput) {
+        searchInput.addEventListener("input", () => {
+          applyFilters();
+        });
       }
 
-      return true;
-    });
-
-    updateDashboard();
-  }
-
-  /*
-  ================================================================================================
-  5. UI UPDATES AND RENDERING
-  ================================================================================================
-  */
-
-  function updateDashboard() {
-    updateKPIs(filteredData);
-    updateFilterChips();
-    renderMap(filteredData);
-    renderTable(filteredData);
-    renderStatusChart(filteredData);
-    renderTypeChart(filteredData);
-
-    elements.currentRecordCount.textContent = filteredData.length;
-    elements.totalRecordCount.textContent = rawData.length;
-  }
-
-  function updateKPIs(data) {
-    const total = data.length;
-    const completed = data.filter(item => String(item[DATA_MAPPING.Status]).toUpperCase() === 'COMPLETED').length;
-    const noAccess = data.filter(item => String(item[DATA_MAPPING.Status]).toUpperCase() === 'NO ACCESS').length;
-    const pendingRemarks = total - completed - noAccess;
-
-    const bridges = data.filter(item => String(item[DATA_MAPPING.Type]).toUpperCase().includes('BRIDGE')).length;
-    const underpasses = data.filter(item => String(item[DATA_MAPPING.Type]).toUpperCase().includes('UNDERPASS') || String(item[DATA_MAPPING.Type]).toUpperCase().includes('UP')).length;
-
-
-    // Overall Completion KPI (based on raw data)
-    const rawTotal = rawData.length;
-    const rawCompleted = rawData.filter(item => String(item[DATA_MAPPING.Status]).toUpperCase() === 'COMPLETED').length;
-    const overallCompletionPercent = rawTotal > 0 ? ((rawCompleted / rawTotal) * 100).toFixed(1) : 0;
-    const rawPendingRemarks = rawTotal - rawCompleted; // Simplified for this KPI
-
-    // Full MEP KPI (based on raw data)
-    let fullMepCount = 0;
-    rawData.forEach(item => {
-      // Check if all specified MEP columns are 'True' (case-insensitive)
-      const isFullMep = MEP_COLUMNS.every(col => String(item[col]).toUpperCase() === 'TRUE');
-      if (isFullMep) {
-        fullMepCount++;
+      const mapToggleBtn = document.getElementById("mapToggleBtn");
+      if (mapToggleBtn) {
+        mapToggleBtn.addEventListener("click", () => {
+          focusFilteredOnMap = !focusFilteredOnMap;
+          mapToggleBtn.classList.toggle("map-toggle-btn-active", focusFilteredOnMap);
+          mapToggleBtn.textContent = focusFilteredOnMap
+            ? "Focus on filtered structures"
+            : "Show all structures";
+          updateMap();
+        });
       }
-    });
-    const partialMepCount = rawTotal - fullMepCount;
-    const fullMepPercent = rawTotal > 0 ? ((fullMepCount / rawTotal) * 100).toFixed(1) : 0;
 
-    // --- Update KPI Elements ---
-    elements.totalStructures.textContent = rawTotal;
-    elements.completedCount.textContent = completed;
-    elements.noAccessCount.textContent = noAccess;
-    elements.pendingRemarksCount.textContent = pendingRemarks;
-    elements.bridgesCount.textContent = bridges;
-    elements.underpassesCount.textContent = underpasses;
+      const csvBtn = document.getElementById("downloadCsvBtn");
+      const excelBtn = document.getElementById("downloadExcelBtn");
+      const pdfBtn = document.getElementById("downloadPdfBtn");
 
-    elements.completedPercentage.textContent = total > 0 ? `${((completed / total) * 100).toFixed(1)}%` : '0%';
-    elements.noAccessPercentage.textContent = total > 0 ? `${((noAccess / total) * 100).toFixed(1)}%` : '0%';
-    elements.pendingRemarksPercentage.textContent = total > 0 ? `${((pendingRemarks / total) * 100).toFixed(1)}%` : '0%';
-
-    // --- Update Circle KPIs (Use Raw Data for Overall) ---
-    elements.overallCompletionText.textContent = `${overallCompletionPercent}%`;
-    elements.overallCompletionRemarksCount.textContent = rawPendingRemarks;
-    elements.overallCompletionCompletedCount.textContent = rawCompleted;
-
-    const fillAngle = (overallCompletionPercent / 100) * 360;
-    elements.overallCompletionFill.style.transform = `rotate(${fillAngle}deg)`;
-    elements.overallCompletionFill.style.clip = getCircleClip(fillAngle, 92); // 92px is circle size
-
-    elements.fullMepCompletionText.textContent = `${fullMepPercent}%`;
-    elements.fullMepCount.textContent = fullMepCount;
-    elements.partialMepCount.textContent = partialMepCount;
-
-    const mepFillAngle = (fullMepPercent / 100) * 360;
-    elements.fullMepCompletionFill.style.transform = `rotate(${mepFillAngle}deg)`;
-    elements.fullMepCompletionFill.style.clip = getCircleClip(mepFillAngle, 92); // 92px is circle size
-
-  }
-
-  function getCircleClip(angle, size) {
-    // Basic clip path logic (only for visualization, not perfect)
-    if (angle >= 180) {
-        // If angle is 180 or more, we clip the left side (or use the whole thing)
-        return `rect(0, ${size}px, ${size}px, 0)`;
-    } else {
-        // If angle is less than 180, we clip the right half
-        return `rect(0, ${size}px, ${size}px, ${size / 2}px)`;
+      if (csvBtn) csvBtn.addEventListener("click", downloadCurrentViewCsv);
+      if (excelBtn) excelBtn.addEventListener("click", downloadCurrentViewExcel);
+      if (pdfBtn) pdfBtn.addEventListener("click", downloadCurrentViewPdf);
     }
-  }
 
+    function populateSelectOptions(selectId, values, allLabel) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      select.innerHTML = "";
+      const allOpt = document.createElement("option");
+      allOpt.value = "ALL";
+      allOpt.textContent = allLabel;
+      select.appendChild(allOpt);
 
-  function updateFilterChips() {
-    const filters = getFilters();
-    const filterNames = {
-      Zone: 'Zone',
-      Route: 'Route',
-      Type: 'Type',
-      Status: 'Status',
-      RemarksCategory: 'Remarks',
-      Search: 'Search'
-    };
+      values.forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        select.appendChild(opt);
+      });
+    }
 
-    elements.activeFiltersContainer.innerHTML = '';
-    let filterCount = 0;
+    function applyFilters() {
+      if (!allAssets.length) return;
 
-    for (const key in filters) {
-      const value = filters[key];
+      const routeSel = document.getElementById("filterRoute");
+      const zoneSel = document.getElementById("filterZone");
+      const typeSel = document.getElementById("filterType");
+      const statusSel = document.getElementById("filterSurveyStatus");
+      const searchInput = document.getElementById("assetSearch");
 
-      if (value && key !== 'Search') {
-        const chip = createFilterChip(filterNames[key], value, key);
-        elements.activeFiltersContainer.appendChild(chip);
-        filterCount++;
-      } else if (value && key === 'Search') {
-        const chip = createFilterChip(filterNames[key], `"${value}"`, key);
-        elements.activeFiltersContainer.appendChild(chip);
-        filterCount++;
+      const routeVal = routeSel ? routeSel.value : "ALL";
+      const zoneVal = zoneSel ? zoneSel.value : "ALL";
+      const typeVal = typeSel ? typeSel.value : "ALL";
+      const statusVal = statusSel ? statusSel.value : "ALL";
+      const searchVal = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+      filteredAssets = allAssets.filter((asset) => {
+        if (routeVal !== "ALL" && asset.route !== routeVal) return false;
+        if (zoneVal !== "ALL" && asset.zone !== zoneVal) return false;
+        if (typeVal !== "ALL" && asset.type !== typeVal) return false;
+        if (statusVal !== "ALL" && asset.surveyStatus !== statusVal) return false;
+
+        if (searchVal) {
+          const haystack = [
+            asset.structRef,
+            asset.assetName,
+            asset.route,
+            asset.zone,
+            asset.type,
+            asset.maximoId,
+            asset.remarks
+          ]
+            .join(" ")
+            .toLowerCase();
+          if (!haystack.includes(searchVal)) return false;
+        }
+
+        return true;
+      });
+
+      updateAllViews();
+    }
+
+    function updateAllViews() {
+      updateKpis();
+      updateInsights();
+      updateFiltersNote();
+      updateTable();
+      updateMap();
+      updateCharts();
+    }
+
+    function updateFiltersNote() {
+      const el = document.getElementById("filtersNote");
+      if (!el) return;
+
+      const total = allAssets.length;
+      const current = filteredAssets.length;
+      if (!total) {
+        el.textContent = "No structures data loaded.";
+        return;
+      }
+
+      const pct = (current / total) * 100;
+      el.textContent = `Showing ${current} of ${total} structures (${formatPercent(pct)} of network) after filters.`;
+    }
+
+    function updateInsights() {
+      const el = document.getElementById("insightsSummaryText");
+      if (!el || !allAssets.length) return;
+
+      const total = allAssets.length;
+      const completed = allAssets.filter((a) => a.surveyStatus === "Completed").length;
+      const pending = allAssets.filter((a) => a.surveyStatus === "Pending").length;
+      const noAccess = allAssets.filter((a) => a.surveyStatus === "No Access").length;
+
+      const completedPct = formatPercent((completed / total) * 100);
+      const pendingPct = formatPercent((pending / total) * 100);
+      const noAccessPct = formatPercent((noAccess / total) * 100);
+
+      el.textContent =
+        `${completed} (${completedPct}) structures completed, ` +
+        `${pending} (${pendingPct}) pending, ` +
+        `${noAccess} (${noAccessPct}) marked as “No Access”.`;
+    }
+
+    // ==============================
+    // KPI UPDATES
+    // ==============================
+
+    function updateKpis() {
+      const total = allAssets.length;
+      const completed = allAssets.filter((a) => a.surveyStatus === "Completed").length;
+      const pending = allAssets.filter((a) => a.surveyStatus === "Pending").length;
+      const noAccess = allAssets.filter((a) => a.surveyStatus === "No Access").length;
+
+      const totalEl = document.getElementById("totalAssetsCount");
+      const surveyedEl = document.getElementById("assetsSurveyedCount");
+      const pendingEl = document.getElementById("assetsPendingCount");
+      const noAccessEl = document.getElementById("noAccessCount");
+      const surveyPctText = document.getElementById("surveyCompletionPctText");
+      const surveyCaption = document.getElementById("surveyCompletionCaption");
+      const pendingPctText = document.getElementById("assetsPendingPctText");
+      const noAccessPctText = document.getElementById("noAccessPctText");
+      const circleFill = document.getElementById("surveyCompletionCircle");
+
+      if (totalEl) totalEl.textContent = total.toString();
+      if (surveyedEl) surveyedEl.textContent = completed.toString();
+      if (pendingEl) pendingEl.textContent = pending.toString();
+      if (noAccessEl) noAccessEl.textContent = noAccess.toString();
+
+      const surveyPct = total ? (completed / total) * 100 : 0;
+      const pendingPct = total ? (pending / total) * 100 : 0;
+      const noAccessPct = total ? (noAccess / total) * 100 : 0;
+
+      if (surveyPctText) surveyPctText.textContent = formatPercent(surveyPct);
+      if (surveyCaption) surveyCaption.textContent = formatPercent(surveyPct);
+
+      if (pendingPctText) pendingPctText.textContent = `${formatPercent(pendingPct)} of total structures`;
+      if (noAccessPctText) noAccessPctText.textContent = `${formatPercent(noAccessPct)} of total structures`;
+
+      if (circleFill) {
+        const angle = (surveyPct / 100) * 360;
+        circleFill.style.background = `conic-gradient(var(--accent-green) 0deg, var(--accent-green) ${angle}deg, rgba(15, 23, 42, 0.32) ${angle}deg)`;
       }
     }
 
-    if (filterCount === 0) {
-      elements.activeFiltersContainer.appendChild(elements.noFiltersChip);
-    }
-  }
+    // ==============================
+    // TABLE
+    // ==============================
 
-  function createFilterChip(name, value, key) {
-    const chip = document.createElement('div');
-    chip.className = 'filter-chip';
-    chip.innerHTML = `${name}: <strong>${value}</strong> <span class="filter-chip-clear" data-filter-key="${key}">&times;</span>`;
+    function updateTable() {
+      const tbody = document.getElementById("assetTableBody");
+      const sub = document.getElementById("tableHeaderSub");
+      if (!tbody) return;
 
-    chip.querySelector('.filter-chip-clear').addEventListener('click', () => {
-      document.getElementById('filter' + key).value = '';
-      applyFilters();
-    });
+      tbody.innerHTML = "";
 
-    return chip;
-  }
+      filteredAssets.forEach((asset) => {
+        const tr = document.createElement("tr");
 
-  /*
-  ================================================================================================
-  6. MAPPING LOGIC
-  ================================================================================================
-  */
+        const tdSr = document.createElement("td");
+        tdSr.textContent = asset.srNo.toString();
+        tr.appendChild(tdSr);
 
-  function initMap() {
-    map = L.map('map', {
-      center: MAP_VIEW.CENTER,
-      zoom: MAP_VIEW.ZOOM,
-      zoomControl: false // Disable default zoom control
-    });
+        const tdRef = document.createElement("td");
+        tdRef.textContent = asset.structRef || "-";
+        tr.appendChild(tdRef);
 
-    // Custom Zoom Controls
-    L.control.zoom({ position: 'topright' }).addTo(map);
+        const tdName = document.createElement("td");
+        tdName.textContent = asset.assetName || "-";
+        tr.appendChild(tdName);
 
-    // Default Basemap (OpenStreetMap)
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
-    });
+        const tdType = document.createElement("td");
+        tdType.textContent = asset.type || "-";
+        tr.appendChild(tdType);
 
-    // Satellite Basemap (ESRI World Imagery)
-    const esriLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    });
+        const tdRoute = document.createElement("td");
+        tdRoute.textContent = asset.route || "-";
+        tr.appendChild(tdRoute);
 
-    // Add default layer
-    esriLayer.addTo(map);
+        const tdZone = document.createElement("td");
+        tdZone.textContent = asset.zone || "-";
+        tr.appendChild(tdZone);
 
-    markersLayer = L.layerGroup().addTo(map);
+        const tdStatus = document.createElement("td");
+        const badge = createBadge(asset.surveyStatus, asset.surveyStatus);
+        tdStatus.appendChild(badge);
+        tr.appendChild(tdStatus);
 
-    // Layer Toggle Logic
-    const toggleButton = document.querySelector('.map-toggle-btn');
-    toggleButton.addEventListener('click', () => {
-      if (map.hasLayer(osmLayer)) {
-        map.removeLayer(osmLayer);
-        esriLayer.addTo(map);
-        toggleButton.textContent = 'OSM Standard';
-        toggleButton.classList.remove('map-toggle-btn-active');
-      } else {
-        map.removeLayer(esriLayer);
-        osmLayer.addTo(map);
-        toggleButton.textContent = 'ESRI Satellite';
-        toggleButton.classList.add('map-toggle-btn-active');
-      }
-    });
+        const tdMaximo = document.createElement("td");
+        tdMaximo.textContent = asset.maximoId || "-";
+        tr.appendChild(tdMaximo);
 
-    // Event listener for map move to check if map needs recentering/zooming
-    map.on('moveend', () => {
-        // This is a placeholder for future logic if you want to save map state
-    });
-  }
+        const tdRemarks = document.createElement("td");
+        tdRemarks.textContent = asset.remarks || "-";
+        tr.appendChild(tdRemarks);
 
-  function renderMap(data) {
-    if (!map) return;
-    markersLayer.clearLayers();
-    const bounds = [];
-    const maxMarkers = 1000; // Limit markers for performance
-
-    data.slice(0, maxMarkers).forEach(item => {
-      const lat = parseFloat(item[DATA_MAPPING.Latitude]);
-      const lon = parseFloat(item[DATA_MAPPING.Longitude]);
-      let status = String(item[DATA_MAPPING.Status]).toUpperCase();
-      const assetName = item[DATA_MAPPING.AssetName] || 'Unnamed Asset';
-      const assetCode = item[DATA_MAPPING.AssetCode] || 'N/A';
-      const structRef = item[DATA_MAPPING.StructRef] || 'N/A';
-
-      if (status !== 'COMPLETED' && status !== 'NO ACCESS') {
-          // Group everything else as PENDING/REMARKS
-          status = 'PENDING';
-      }
-
-      if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
-        bounds.push([lat, lon]);
-
-        const statusColor = STATUS_COLORS[status] || STATUS_COLORS['PENDING'];
-
-        const customIcon = L.divIcon({
-          className: 'custom-div-icon',
-          html: `<svg width="24" height="24" viewBox="0 0 24 24" fill="${statusColor.color}" stroke="#fff" stroke-width="1.5" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));"><circle cx="12" cy="12" r="6"/></svg>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
+        tr.addEventListener("click", () => {
+          focusStructureOnMap(asset);
         });
 
+        tbody.appendChild(tr);
+      });
 
-        const marker = L.marker([lat, lon], { icon: customIcon });
+      if (sub) {
+        sub.textContent = `${filteredAssets.length} structures in current view.`;
+      }
+    }
 
-        const popupContent = `
-          <strong>${assetName}</strong><br>
-          <span style="font-size: 11px; color: ${statusColor.color}; text-transform: uppercase; font-weight: 600;">${status}</span><br>
-          Type: ${item[DATA_MAPPING.Type] || 'N/A'}<br>
-          Struct. Ref: ${structRef}<br>
-          RTE: ${item[DATA_MAPPING.Route] || 'N/A'}<br>
-        `;
-        marker.bindPopup(popupContent);
+    // ==============================
+    // MAP
+    // ==============================
 
-        marker.on('click', () => {
-          if (selectedMarker) {
-            // Reset previous selected marker icon to its original state (status color)
-             const prevStatus = String(selectedMarker.data[DATA_MAPPING.Status]).toUpperCase();
-             const prevColor = STATUS_COLORS[prevStatus] ? STATUS_COLORS[prevStatus].color : STATUS_COLORS['PENDING'].color;
-             const prevIcon = L.divIcon({
-                  className: 'custom-div-icon',
-                  html: `<svg width="24" height="24" viewBox="0 0 24 24" fill="${prevColor}" stroke="#fff" stroke-width="1.5" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));"><circle cx="12" cy="12" r="6"/></svg>`,
-                  iconSize: [24, 24],
-                  iconAnchor: [12, 12]
-              });
-             selectedMarker.setIcon(prevIcon);
-          }
+    function initMap() {
+      map = L.map("map", {
+        center: [25.35, 51.45],
+        zoom: 10,
+        minZoom: 8,
+        maxZoom: 18
+      });
 
-          // Update current marker icon to selected state (blue glow)
-          const newIcon = L.divIcon({
-              className: 'custom-div-icon',
-              html: `<svg width="28" height="28" viewBox="0 0 28 28" fill="${statusColor.color}" stroke="${statusColor.color}" stroke-width="2" style="filter: drop-shadow(0 0 10px ${statusColor.color}b0);"><circle cx="14" cy="14" r="7" fill="${statusColor.color}" stroke="#fff" stroke-width="2"/><circle cx="14" cy="14" r="10" stroke="${statusColor.color}" stroke-width="1" fill="none"/></svg>`,
-              iconSize: [28, 28],
-              iconAnchor: [14, 14]
-          });
-          marker.setIcon(newIcon);
+      L.tileLayer("https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", {
+        maxZoom: 20,
+        subdomains: ["mt0", "mt1", "mt2", "mt3"]
+      }).addTo(map);
 
-          selectedMarker = marker;
-          selectedMarker.data = item; // Store data on marker for future use
+      markersLayer = L.layerGroup().addTo(map);
+      updateMap();
+    }
+
+    function getStatusColor(status) {
+      if (status === "Completed") return "#22c55e";
+      if (status === "Pending") return "#ef4444";
+      if (status === "No Access") return "#fbbf24";
+      return "#6b7280";
+    }
+
+    function updateMap() {
+      if (!map || !markersLayer) return;
+
+      markersLayer.clearLayers();
+      Object.keys(markerByKey).forEach((k) => delete markerByKey[k]);
+
+      const baseList = focusFilteredOnMap ? filteredAssets : allAssets;
+      const withLocation = baseList.filter((a) => a.hasLocation);
+
+      if (!withLocation.length) return;
+
+      const bounds = [];
+      withLocation.forEach((asset) => {
+        const color = getStatusColor(asset.surveyStatus);
+
+        const marker = L.circleMarker([asset.lat, asset.lng], {
+          radius: 6,
+          color,
+          weight: 1.5,
+          fillColor: color,
+          fillOpacity: 0.85
+        });
+
+        marker.bindPopup(
+          `<strong>${asset.structRef || asset.assetName || "Structure"}</strong><br/>
+           Type: ${asset.type || "-"}<br/>
+           Route: ${asset.route || "-"}<br/>
+           Zone: ${asset.zone || "-"}<br/>
+           Status: ${asset.surveyStatus}`
+        );
+
+        marker.on("click", () => {
+          marker.openPopup();
         });
 
         markersLayer.addLayer(marker);
-      }
-    });
+        bounds.push([asset.lat, asset.lng]);
 
-    if (bounds.length > 0) {
-      if (data.length > 1) {
-          map.fitBounds(bounds, { padding: [20, 20] });
-      } else if (data.length === 1) {
-          map.setView(bounds[0], 14); // Zoom closer for single point
-      }
-    } else {
-        map.setView(MAP_VIEW.CENTER, MAP_VIEW.ZOOM);
-    }
-  }
-
-
-  /*
-  ================================================================================================
-  7. CHARTING LOGIC
-  ================================================================================================
-  */
-
-  function renderStatusChart(data) {
-    if (statusChartInstance) {
-      statusChartInstance.destroy();
-    }
-
-    const counts = data.reduce((acc, item) => {
-      const status = String(item[DATA_MAPPING.Status]).toUpperCase();
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {});
-
-    const sortedLabels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-    const chartData = sortedLabels.map(label => counts[label]);
-    const backgroundColors = sortedLabels.map(label => {
-      const color = STATUS_COLORS[label] ? STATUS_COLORS[label].color : STATUS_COLORS['PENDING'].color;
-      return color;
-    });
-
-    const ctx = document.getElementById('statusChart').getContext('2d');
-    statusChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: sortedLabels,
-        datasets: [{
-          data: chartData,
-          backgroundColor: backgroundColors,
-          borderColor: backgroundColors,
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          },
-          title: {
-            display: true,
-            text: 'Filtered Structures by Status',
-            color: '#e5e7eb',
-            font: { size: 14, weight: 'bold', family: 'Inter' }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                let label = context.label || '';
-                if (label) {
-                  label += ': ';
-                }
-                if (context.parsed.y !== null) {
-                  label += context.parsed.y.toLocaleString();
-                }
-                return label;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            ticks: { color: '#9ca3af' },
-            grid: { color: 'rgba(148, 163, 184, 0.1)' }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: '#9ca3af' },
-            grid: { color: 'rgba(148, 163, 184, 0.1)' }
-          }
-        }
-      }
-    });
-  }
-
-  function renderTypeChart(data) {
-    if (typeChartInstance) {
-      typeChartInstance.destroy();
-    }
-
-    const counts = data.reduce((acc, item) => {
-      const type = String(item[DATA_MAPPING.Type]).trim() || 'N/A';
-      acc[type] = (acc[type] || 0) + 1;
-      return acc;
-    }, {});
-
-    const sortedLabels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 7); // Top 7 types
-    const chartData = sortedLabels.map(label => counts[label]);
-
-    // Define a vibrant color palette
-    const colors = ['#38bdf8', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#ec4899', '#fbbf24'];
-    const backgroundColors = sortedLabels.map((_, index) => colors[index % colors.length]);
-
-    const ctx = document.getElementById('typeChart').getContext('2d');
-    typeChartInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: sortedLabels,
-        datasets: [{
-          data: chartData,
-          backgroundColor: backgroundColors,
-          hoverOffset: 4,
-          borderWidth: 2,
-          borderColor: 'rgba(15, 23, 42, 0.9)'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              color: '#e5e7eb',
-              font: { size: 12, family: 'Inter' }
-            }
-          },
-          title: {
-            display: true,
-            text: 'Asset Type Distribution (Top 7)',
-            color: '#e5e7eb',
-            font: { size: 14, weight: 'bold', family: 'Inter' }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                let label = context.label || '';
-                if (context.parsed !== null) {
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const value = context.parsed;
-                  const percentage = ((value / total) * 100).toFixed(1) + '%';
-                  label += `: ${value.toLocaleString()} (${percentage})`;
-                }
-                return label;
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-
-
-  /*
-  ================================================================================================
-  8. TABLE RENDERING AND EXPORT
-  ================================================================================================
-  */
-
-  function renderTable(data) {
-    const tableBody = elements.dataTableBody;
-    tableBody.innerHTML = '';
-    const maxRows = 200; // Limit rendering for smooth performance
-
-    data.slice(0, maxRows).forEach((item, index) => {
-      const row = tableBody.insertRow();
-      row.onclick = () => openDetailModal(item);
-      let status = String(item[DATA_MAPPING.Status]).toUpperCase();
-      let statusClass;
-
-      if (status === 'COMPLETED') {
-        statusClass = 'status-completed';
-      } else if (status === 'NO ACCESS') {
-        statusClass = 'status-no-access';
-      } else {
-        status = 'PENDING/REMARKS';
-        statusClass = 'status-pending-remarks';
-      }
-
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${item[DATA_MAPPING.AssetName] || 'N/A'}</td>
-        <td>${item[DATA_MAPPING.Type] || 'N/A'}</td>
-        <td>${item[DATA_MAPPING.StructRef] || 'N/A'}</td>
-        <td>${item[DATA_MAPPING.Route] || 'N/A'}</td>
-        <td>${item[DATA_MAPPING.Zone] || 'N/A'}</td>
-        <td><span class="status-badge ${statusClass}">${status}</span></td>
-        <td>${item[DATA_MAPPING.Remarks] || '-'}</td>
-      `;
-    });
-  }
-
-  // Define global export function
-  window.exportData = function(format) {
-    if (filteredData.length === 0) {
-      alert("No data to export. Please adjust your filters.");
-      return;
-    }
-
-    const headerKeys = [
-      DATA_MAPPING.SN, DATA_MAPPING.AssetName, DATA_MAPPING.Type, DATA_MAPPING.StructRef,
-      DATA_MAPPING.Route, DATA_MAPPING.MaximoID, DATA_MAPPING.Zone, DATA_MAPPING.Status,
-      DATA_MAPPING.Remarks, DATA_MAPPING.Latitude, DATA_MAPPING.Longitude
-    ];
-    const exportHeaders = headerKeys.map(key => key);
-    const exportDataArray = [exportHeaders];
-
-    filteredData.forEach(item => {
-      const row = headerKeys.map(key => item[key] || '');
-      exportDataArray.push(row);
-    });
-
-    const currentDate = new Date().toISOString().slice(0, 10);
-    const filenameBase = `Structures_Filtered_${currentDate}`;
-
-    if (format === 'csv') {
-      const csv = Papa.unparse(exportDataArray);
-      downloadFile(csv, `${filenameBase}.csv`, 'text/csv');
-    } else if (format === 'xlsx') {
-      const ws = XLSX.utils.aoa_to_sheet(exportDataArray);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Structures Data");
-      XLSX.writeFile(wb, `${filenameBase}.xlsx`);
-    } else if (format === 'pdf') {
-      exportPDF(exportDataArray, filenameBase);
-    }
-  };
-
-  function exportPDF(data, filenameBase) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape A4
-
-      // Use only essential columns for PDF landscape to fit A4 page
-      const headers = [['S.N', 'Asset Name', 'Type', 'Struct. Ref.', 'RTE', 'Zone', 'Status', 'Remarks', 'Maximo ID']];
-      const body = data.slice(1).map(row => [
-          row[0], // S.N
-          row[1], // Asset Name
-          row[2], // Type
-          row[3], // Struct. Ref.
-          row[4], // RTE
-          row[6], // Zone
-          row[7], // Status
-          row[8], // Remarks
-          row[5] // Maximo ID
-      ]);
-
-      doc.setFontSize(14);
-      doc.text("Structures Survey Data (Filtered)", 148.5, 15, null, null, "center");
-      doc.setFontSize(10);
-      doc.text(`Exported: ${new Date().toLocaleDateString()}`, 148.5, 22, null, null, "center");
-
-      doc.autoTable({
-          head: headers,
-          body: body,
-          startY: 30,
-          styles: { fontSize: 8, cellPadding: 1, overflow: 'linebreak' },
-          headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
-          margin: { top: 25, left: 10, right: 10, bottom: 10 },
-          theme: 'striped'
+        const key = asset.structRef || String(asset.srNo);
+        markerByKey[key] = marker;
       });
 
-      doc.save(`${filenameBase}.pdf`);
-  }
-
-  function downloadFile(content, fileName, mimeType) {
-    const a = document.createElement('a');
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  /*
-  ================================================================================================
-  9. MODAL LOGIC
-  ================================================================================================
-  */
-
-  const modalBackdrop = elements.detailModal;
-  const modalBody = elements.modalBody;
-  const modalAssetName = elements.modalAssetName;
-  const modalCloseBtn = modalBackdrop ? modalBackdrop.querySelector(".modal-close") : null;
-
-  function closeDetailModal() {
-    if (!modalBackdrop) return;
-    modalBackdrop.classList.remove("is-open");
-    modalBackdrop.setAttribute("aria-hidden", "true");
-  }
-
-  window.openDetailModal = function(record) {
-    if (!modalBackdrop || !modalBody) return;
-
-    modalAssetName.textContent = record[DATA_MAPPING.AssetName] || 'N/A';
-
-    let html = "<dl class=\"detail-list\">";
-
-    // Custom display order
-    const displayOrder = [
-        { label: 'S.N', key: DATA_MAPPING.SN },
-        { label: 'Asset Name', key: DATA_MAPPING.AssetName },
-        { label: 'Type', key: DATA_MAPPING.Type },
-        { label: 'Status', key: DATA_MAPPING.Status },
-        { label: 'Struct. Ref.', key: DATA_MAPPING.StructRef },
-        { label: 'Route (RTE)', key: DATA_MAPPING.Route },
-        { label: 'Zone', key: DATA_MAPPING.Zone },
-        { label: 'Maximo ID', key: DATA_MAPPING.MaximoID },
-        { label: 'Latitude', key: DATA_MAPPING.Latitude },
-        { label: 'Longitude', key: DATA_MAPPING.Longitude },
-        { label: 'Remarks', key: DATA_MAPPING.Remarks },
-        { label: '--- MEP Status ---', key: null },
-        { label: 'Lights', key: DATA_MAPPING.Lights },
-        { label: 'UPS', key: DATA_MAPPING.UPS },
-        { label: 'Electrical DB', key: DATA_MAPPING.ElectricalDB },
-        { label: 'FF', key: DATA_MAPPING.FF },
-        { label: 'FA', key: DATA_MAPPING.FA },
-        { label: 'HVAC', key: DATA_MAPPING.HVAC },
-        { label: 'Elevators', key: DATA_MAPPING.Elevators },
-        { label: 'Escalator', key: DATA_MAPPING.Escalator },
-        { label: 'ITS', key: DATA_MAPPING.ITS },
-        { label: 'ELV', key: DATA_MAPPING.ELV }
-    ];
-
-    displayOrder.forEach(({ label, key }) => {
-        if (key === null) {
-            html += `<div><dt style="grid-column: 1 / span 2; border-right: none; text-align: center; color: var(--accent-blue); padding-top: 10px; margin-top: 5px;">${label}</dt></div>`;
-        } else {
-            let value = record[key];
-            if (typeof value === 'boolean') {
-                value = value ? '<span style="color: var(--accent-green);">True</span>' : '<span style="color: var(--accent-red);">False</span>';
-            }
-            if (value === null || value === undefined || String(value).trim() === '') {
-                value = '—';
-            }
-            html += `<div><dt>${label}</dt><dd>${value}</dd></div>`;
-        }
-    });
-
-    html += "</dl>";
-    modalBody.innerHTML = html;
-    modalBackdrop.classList.add("is-open");
-    modalBackdrop.setAttribute("aria-hidden", "false");
-    if (modalCloseBtn) modalCloseBtn.focus();
-  };
-
-  if (modalCloseBtn && modalBackdrop) {
-    modalCloseBtn.addEventListener("click", closeDetailModal);
-    modalBackdrop.addEventListener("click", (e) => {
-      if (e.target === modalBackdrop) closeDetailModal();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modalBackdrop.classList.contains("is-open")) {
-        closeDetailModal();
+      if (bounds.length) {
+        map.fitBounds(bounds, { padding: [30, 30] });
       }
+    }
+
+    function focusStructureOnMap(asset) {
+      if (!map) return;
+      if (!asset.hasLocation) return;
+
+      const key = asset.structRef || String(asset.srNo);
+      const marker = markerByKey[key];
+      if (marker) {
+        map.setView(marker.getLatLng(), 17);
+        marker.openPopup();
+      } else {
+        map.setView([asset.lat, asset.lng], 17);
+      }
+    }
+
+    // ==============================
+    // CHARTS
+    // ==============================
+
+    function initCharts() {
+      const typeCtx = document.getElementById("typeChart");
+      const statusCtx = document.getElementById("statusChart");
+
+      if (typeCtx) {
+        typeChart = new Chart(typeCtx, {
+          type: "bar",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Structures",
+                data: [],
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                ticks: { font: { size: 10 } }
+              },
+              y: {
+                beginAtZero: true,
+                ticks: { font: { size: 10 } }
+              }
+            },
+            plugins: {
+              legend: {
+                labels: { font: { size: 10 } }
+              }
+            }
+          }
+        });
+      }
+
+      if (statusCtx) {
+        statusChart = new Chart(statusCtx, {
+          type: "bar",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Completed",
+                data: [],
+                borderWidth: 1
+              },
+              {
+                label: "Pending",
+                data: [],
+                borderWidth: 1
+              },
+              {
+                label: "No Access",
+                data: [],
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                stacked: true,
+                ticks: { font: { size: 10 } }
+              },
+              y: {
+                stacked: true,
+                beginAtZero: true,
+                ticks: { font: { size: 10 } }
+              }
+            },
+            plugins: {
+              legend: {
+                labels: { font: { size: 10 } }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function updateCharts() {
+      if (typeChart) {
+        const countsByType = {};
+        filteredAssets.forEach((a) => {
+          const type = a.type || "Unknown";
+          countsByType[type] = (countsByType[type] || 0) + 1;
+        });
+
+        const labels = Object.keys(countsByType).sort((a, b) => countsByType[b] - countsByType[a]);
+        const data = labels.map((l) => countsByType[l]);
+
+        typeChart.data.labels = labels;
+        typeChart.data.datasets[0].data = data;
+        typeChart.update();
+      }
+
+      if (statusChart) {
+        const bucket = {};
+
+        filteredAssets.forEach((a) => {
+          const type = a.type || "Unknown";
+          if (!bucket[type]) {
+            bucket[type] = { Completed: 0, Pending: 0, "No Access": 0 };
+          }
+          if (a.surveyStatus === "Completed") bucket[type].Completed += 1;
+          else if (a.surveyStatus === "Pending") bucket[type].Pending += 1;
+          else if (a.surveyStatus === "No Access") bucket[type]["No Access"] += 1;
+        });
+
+        const labels = Object.keys(bucket);
+        const completed = labels.map((l) => bucket[l].Completed);
+        const pending = labels.map((l) => bucket[l].Pending);
+        const noAccess = labels.map((l) => bucket[l]["No Access"]);
+
+        statusChart.data.labels = labels;
+        statusChart.data.datasets[0].data = completed;
+        statusChart.data.datasets[1].data = pending;
+        statusChart.data.datasets[2].data = noAccess;
+        statusChart.update();
+      }
+    }
+
+    // ==============================
+    // EXPORTS
+    // ==============================
+
+    function buildExportRows() {
+      const header = [
+        "Sr.No",
+        "Struct Ref",
+        "Asset Name",
+        "Type",
+        "Route (RTE)",
+        "Zone",
+        "Survey Status",
+        "Maximo ID",
+        "Remarks",
+        "Latitude",
+        "Longitude"
+      ];
+
+      const rows = filteredAssets.map((a) => [
+        a.srNo,
+        a.structRef,
+        a.assetName,
+        a.type,
+        a.route,
+        a.zone,
+        a.surveyStatus,
+        a.maximoId,
+        a.remarks,
+        Number.isFinite(a.lat) ? a.lat : "",
+        Number.isFinite(a.lng) ? a.lng : ""
+      ]);
+
+      return [header, ...rows];
+    }
+
+    function downloadCurrentViewCsv() {
+      if (!filteredAssets.length) {
+        alert("No data to export.");
+        return;
+      }
+
+      const rows = buildExportRows();
+      const csv = rows
+        .map((r) =>
+          r
+            .map((cell) => {
+              if (cell == null) return "";
+              const v = String(cell).replace(/"/g, '""');
+              return `"${v}"`;
+            })
+            .join(",")
+        )
+        .join("\r\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Qatar_North_Structures_Current_View.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadCurrentViewExcel() {
+      if (!filteredAssets.length) {
+        alert("No data to export.");
+        return;
+      }
+
+      const rows = buildExportRows();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Structures_View");
+      XLSX.writeFile(wb, "Qatar_North_Structures_Current_View.xlsx");
+    }
+
+    function downloadCurrentViewPdf() {
+      if (!filteredAssets.length) {
+        alert("No data to export.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("l", "mm", "a4");
+
+      doc.setFontSize(10);
+      doc.text("QATAR NORTH STRUCTURES SURVEY DASHBOARD", 10, 10);
+      doc.setFontSize(8);
+      doc.text("Current filtered view – Structures assets", 10, 15);
+
+      const rows = buildExportRows();
+      const header = rows.shift();
+
+      doc.autoTable({
+        startY: 20,
+        head: [header],
+        body: rows,
+        styles: {
+          fontSize: 6
+        },
+        headStyles: {
+          fillColor: [15, 23, 42]
+        }
+      });
+
+      doc.save("Qatar_North_Structures_Current_View.pdf");
+    }
+
+    // ==============================
+    // INIT
+    // ==============================
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      updateCurrentDateTime();
+      setInterval(updateCurrentDateTime, 1000);
+      loadData();
     });
-  }
-
-
-  /*
-  ================================================================================================
-  10. EVENT LISTENERS AND MAIN EXECUTION
-  ================================================================================================
-  */
-
-  function updateDateTime() {
-    const now = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Qatar' };
-    document.getElementById('dateTimeDisplay').textContent = now.toLocaleString('en-US', options);
-  }
-
-  // Add event listeners for filters
-  document.querySelectorAll('.filter-select').forEach(select => {
-    select.addEventListener('change', applyFilters);
-  });
-  elements.filterSearch.addEventListener('input', applyFilters);
-
-  // Initialize
-  document.addEventListener('DOMContentLoaded', () => {
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-    initMap();
-    fetchAndProcessData();
-  });
-</script>
+  </script>
 </body>
 </html>
