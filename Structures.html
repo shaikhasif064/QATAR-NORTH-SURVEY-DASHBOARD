@@ -864,1299 +864,1491 @@
       border: 1px solid var(--glass-border);
       background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.1), transparent 60%), linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
       color: var(--text-strong);
-      transition: transform var(--transition-fast), border-color var(--transition-fast);
+      transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.2;
     }
 
     .export-btn:hover {
       transform: translateY(-1px);
       border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
     }
+
+    .export-btn.excel { color: var(--accent-green); }
+    .export-btn.pdf { color: var(--accent-red); }
+    .export-btn.csv { color: var(--accent-blue); }
 
     .table-wrapper {
-      max-height: 500px;
-      overflow-y: auto;
+      margin-top: 10px;
+      overflow-x: auto;
       border-radius: var(--glass-radius-md);
       border: 1px solid var(--glass-border);
-      margin-top: 10px;
-      background: radial-gradient(circle at top left, rgba(248, 250, 252, 0.08), rgba(15, 23, 42, 0.98));
+      background: rgba(15, 23, 42, 0.88);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.95);
     }
 
-    .dashboard-table {
+    table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    .dashboard-table thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      font-size: 13px;
     }
 
     th {
+      position: sticky;
+      top: 0;
       padding: 10px 14px;
       text-align: left;
-      white-space: nowrap;
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.95));
-      font-weight: 600;
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-stronger);
-      border-bottom: 1px solid var(--glass-border);
+      letter-spacing: 0.08em;
+      color: #cbd5e1;
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      border-bottom: 2px solid #334155;
+      z-index: 10;
     }
 
     td {
       padding: 10px 14px;
+      vertical-align: top;
       border-bottom: 1px solid rgba(148, 163, 184, 0.2);
       color: var(--text-strong);
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      max-width: 200px; /* Constrain max width for overflow ellipsis */
     }
-    td.td-status {
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-    }
-    td.status-completed { color: var(--accent-green); }
-    td.status-no-access { color: var(--accent-amber); }
-    td.status-other { color: var(--accent-red); }
 
     tbody tr {
+      transition: background var(--transition-fast), box-shadow var(--transition-fast);
       cursor: pointer;
-      transition: background var(--transition-fast);
     }
 
     tbody tr:nth-child(even) {
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 0.8);
     }
 
     tbody tr:nth-child(odd) {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.7);
     }
 
     tbody tr:hover {
       background:
-        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.12), transparent 55%),
-        rgba(15, 23, 42, 0.95);
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.1), transparent 55%),
+        rgba(15, 23, 42, 0.9);
+      box-shadow: inset 3px 0 0 0 var(--accent-blue);
     }
 
-    .row-selected {
-      background:
-        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.25), transparent 55%),
-        rgba(56, 189, 248, 0.15) !important;
-      border-left: 4px solid var(--accent-blue);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3);
+    /* Table Status Badges */
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      display: inline-block;
+      min-width: 80px;
+      text-align: center;
     }
-    .row-selected td {
+
+    .status-completed {
+      background-color: rgba(34, 197, 94, 0.25);
+      color: var(--accent-green);
+    }
+
+    .status-no-access {
+      background-color: rgba(251, 191, 36, 0.25);
+      color: var(--accent-amber);
+    }
+
+    .status-pending, .status-pending-remarks {
+      background-color: rgba(239, 68, 68, 0.25);
+      color: var(--accent-red);
+    }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 300ms ease, visibility 0s 300ms;
+      z-index: 1000;
+    }
+
+    .modal-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 300ms ease, visibility 0s 0s;
+    }
+
+    .modal-content {
+      background: var(--bg-surface);
+      border-radius: var(--glass-radius-lg);
+      padding: 24px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+      border: 1px solid var(--glass-border);
+      position: relative;
+      transform: translateY(20px);
+      transition: transform 300ms ease, opacity 300ms ease;
+    }
+
+    .modal-backdrop.is-open .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 8px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
       color: var(--text-stronger);
     }
 
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-soft);
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
 
-    /* Utility */
+    .detail-list {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .detail-list > div {
+      display: contents;
+    }
+
+    .detail-list dt {
+      font-weight: 600;
+      color: var(--text-soft);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-right: 1px dashed var(--glass-border);
+      padding-right: 10px;
+      text-align: right;
+    }
+
+    .detail-list dd {
+      margin-left: 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-strong);
+      padding-left: 10px;
+    }
+
+    /* UTILITIES */
     .text-center { text-align: center; }
-    .text-green { color: var(--accent-green); }
-    .text-red { color: var(--accent-red); }
-    .text-amber { color: var(--accent-amber); }
-    .text-blue { color: var(--accent-blue); }
 
-    /* ===== ANIMATIONS ===== */
-    @keyframes fade-slide-up {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ===== RESPONSIVE ===== */
+    /* MEDIA QUERIES */
     @media (max-width: 1200px) {
-      .main-grid { grid-template-columns: minmax(0, 1fr); }
-      #map { height: 380px; }
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
     }
-    @media (max-width: 1024px) {
-      .shell { padding: 10px 8px 20px; }
-      header { padding: 8px 12px; }
-      header h1 { font-size: 20px; }
+
+    @media (max-width: 768px) {
+      .shell {
+        padding: 8px;
+      }
+      header {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px;
+      }
+      .header-left, .header-right {
+        gap: 4px;
+      }
+      .header-center {
+        order: -1;
+        margin-bottom: 10px;
+      }
       .logo-img { max-height: 40px; }
-      .section-kpis-inner { grid-template-columns: repeat(2, 1fr); }
-      .kpi-circle-strip { grid-template-columns: repeat(2, 1fr); }
-      .kpi-card, .glass-card { padding: 12px; }
+      header h1 { font-size: 20px; }
+
+      .section-kpis-inner {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      }
       .kpi-value { font-size: 24px; }
+      .kpi-card { min-height: 80px; padding: 10px; }
+
+      .kpi-circle-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .filters-grid {
+        grid-template-columns: 1fr;
+      }
+      .table-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .table-header-title { margin-bottom: 4px; }
+      .export-buttons {
+        margin-top: 10px;
+      }
+      .modal-content {
+        width: 95%;
+        margin: 20px;
+      }
     }
-    @media (max-width: 640px) {
-      .filters-grid { grid-template-columns: 1fr; }
-      .section-kpis-inner { grid-template-columns: 1fr; }
-      .kpi-circle-strip { grid-template-columns: 1fr; }
-      .header-left, .header-right { display: none; }
-      header { justify-content: center; }
-      .top-nav-links { padding-top: 4px; }
+
+    /* Loading State */
+    .loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-blue);
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: var(--glass-radius-lg);
+        transition: opacity 300ms ease;
+        z-index: 50;
     }
+    .loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid var(--accent-blue);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
 </style>
 </head>
-<body>
 
-<div class="page">
-  <div class="shell">
+<body data-theme="dark">
 
-    <header>
-      <div class="header-left">
-        <img src="https://via.placeholder.com/150x50?text=LOGO+1" alt="Logo 1" class="logo-img logo-img-small">
+  <div class="page">
+    <div class="shell">
+      <header>
+        <div class="header-left">
+          <img src="https://avatars.githubusercontent.com/u/102949603?s=200&v=4" alt="Company Logo" class="logo-img-small" />
+        </div>
+        <div class="header-center">
+          <h1>Qatar North Survey Dashboard</h1>
+          <div class="subtitle">Ashghal Assets Management</div>
+          <div class="top-nav-links">
+            <a href="TRAFFIC.html">Traffic Junctions</a>
+            <a href="ITS.html">ITS Assets</a>
+            <a href="Structures" class="active">Structures</a>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="datetime-header" id="dateTimeDisplay"></div>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <section class="section section-kpis">
+          <div class="section-kpis-inner">
+
+            <div class="glass-card kpi-card">
+              <div class="kpi-label">Total Structures</div>
+              <div class="kpi-value">
+                <span id="totalStructures" class="kpi-number">0</span>
+              </div>
+              <div class="kpi-caption">Total Assets in Scope</div>
+            </div>
+
+            <div class="glass-card kpi-card">
+              <div class="kpi-label">Completed Survey</div>
+              <div class="kpi-value">
+                <span id="completedCount" class="kpi-number">0</span>
+              </div>
+              <div class="kpi-badge bg-green" id="completedPercentage">0%</div>
+            </div>
+
+            <div class="glass-card kpi-card">
+              <div class="kpi-label">No Access</div>
+              <div class="kpi-value">
+                <span id="noAccessCount" class="kpi-number">0</span>
+              </div>
+              <div class="kpi-badge bg-amber" id="noAccessPercentage">0%</div>
+            </div>
+
+            <div class="glass-card kpi-card">
+              <div class="kpi-label">Pending / Remarks</div>
+              <div class="kpi-value">
+                <span id="pendingRemarksCount" class="kpi-number">0</span>
+              </div>
+              <div class="kpi-badge bg-red" id="pendingRemarksPercentage">0%</div>
+            </div>
+
+            <div class="glass-card kpi-card">
+              <div class="kpi-label">Bridges (Total)</div>
+              <div class="kpi-value">
+                <span id="bridgesCount" class="kpi-number">0</span>
+              </div>
+              <div class="kpi-caption">Over Water/Road/Railway</div>
+            </div>
+
+            <div class="glass-card kpi-card">
+              <div class="kpi-label">Underpasses (Total)</div>
+              <div class="kpi-value">
+                <span id="underpassesCount" class="kpi-number">0</span>
+              </div>
+              <div class="kpi-caption">Vehicular/Pedestrian</div>
+            </div>
+
+          </div>
+        </section>
+
+        <section class="section section-insights">
+           <div class="kpi-circle-strip">
+
+              <div class="glass-card kpi-circle-card">
+                <div class="kpi-label">Overall Survey Completion</div>
+                <div class="kpi-circle-layout">
+                  <div class="circle-wrapper">
+                    <div class="circle-fill" id="overallCompletionFill"></div>
+                    <div class="circle-inner" id="overallCompletionText">0%</div>
+                  </div>
+                  <div class="kpi-circle-text">
+                    <div class="circle-caption">
+                      **<span id="overallCompletionRemarksCount">0</span>** Structures with 'Pending to visit' or open remarks.
+                    </div>
+                     <div class="circle-caption">
+                      **<span id="overallCompletionCompletedCount">0</span>** Structures fully surveyed.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="glass-card kpi-circle-card">
+                <div class="kpi-label">Full MEP Survey Status</div>
+                <div class="kpi-circle-layout">
+                  <div class="circle-wrapper" style="border-color: rgba(34, 197, 94, 0.45);">
+                    <div class="circle-fill" id="fullMepCompletionFill" style="background: linear-gradient(135deg, var(--accent-green), var(--accent-purple));"></div>
+                    <div class="circle-inner" id="fullMepCompletionText" style="color: var(--accent-green);">0%</div>
+                  </div>
+                  <div class="kpi-circle-text">
+                    <div class="circle-caption">
+                      **<span id="fullMepCount">0</span>** Structures documented with Full MEP scope.
+                    </div>
+                     <div class="circle-caption">
+                      **<span id="partialMepCount">0</span>** Structures with partial or no MEP scope.
+                    </div>
+                  </div>
+                </div>
+              </div>
+           </div>
+        </section>
+
+
+        <section class="section section-filters">
+          <div class="glass-card filters-card">
+            <div class="card-header-row">
+              <h2 class="card-title">Data Filters & Search</h2>
+            </div>
+            <div class="filters-grid filters">
+              <div>
+                <label for="filterZone">Zone</label>
+                <select id="filterZone" class="filter-select">
+                  <option value="">All Zones</option>
+                </select>
+              </div>
+              <div>
+                <label for="filterRoute">Route (RTE)</label>
+                <select id="filterRoute" class="filter-select">
+                  <option value="">All Routes</option>
+                </select>
+              </div>
+              <div>
+                <label for="filterType">Type</label>
+                <select id="filterType" class="filter-select">
+                  <option value="">All Types</option>
+                </select>
+              </div>
+              <div>
+                <label for="filterStatus">Status</label>
+                <select id="filterStatus" class="filter-select">
+                  <option value="">All Statuses</option>
+                </select>
+              </div>
+               <div>
+                <label for="filterRemarksCategory">Remarks Category</label>
+                <select id="filterRemarksCategory" class="filter-select">
+                  <option value="">All Categories</option>
+                  <option value="Visited on 1st, 2nd, 3rd round">Visited on Round 1, 2, or 3</option>
+                  <option value="Pending to visit">Pending to visit</option>
+                  <option value="Other">Other Remarks</option>
+                </select>
+              </div>
+              <div style="grid-column: span 1 / auto;">
+                <label for="filterSearch">Free Text Search</label>
+                <input type="text" id="filterSearch" placeholder="Search by Asset Name, Code, Maximo ID..." />
+              </div>
+            </div>
+
+            <div class="filters-tags">
+              <span class="filter-tag-label">Active Filters:</span>
+              <div class="filter-chips-container" id="activeFiltersContainer">
+                <div class="filter-chip" id="noFiltersChip">No filters applied.</div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section class="section section-main">
+          <div class="main-grid">
+
+            <div class="glass-card map-card">
+              <div class="map-card-header">
+                <h2 class="map-title"><span class="dot"></span> Structures Location Map (Filtered)</h2>
+                <button class="map-toggle-btn map-toggle-btn-active" data-layer-id="esri">ESRI Satellite</button>
+              </div>
+              <div id="map"></div>
+              <div class="map-footer">
+                <div class="map-legend">
+                  <div class="legend-item"><span class="legend-dot legend-completed"></span> Completed</div>
+                  <div class="legend-item"><span class="legend-dot legend-no-access"></span> No Access</div>
+                  <div class="legend-item"><span class="legend-dot legend-pending"></span> Pending / Remarks</div>
+                  <div class="legend-item"><span class="legend-dot legend-selected"></span> Selected Asset</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="charts-stack">
+              <div class="glass-card chart-card">
+                <div class="card-header-row">
+                  <h2 class="card-title">Survey Status Distribution</h2>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="statusChart"></canvas>
+                </div>
+              </div>
+
+              <div class="glass-card chart-card">
+                <div class="card-header-row">
+                  <h2 class="card-title">Asset Type Distribution</h2>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="typeChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section class="section section-table">
+          <div class="glass-card table-card">
+            <div class="table-header-row">
+              <div class="table-header-left">
+                <h2 class="table-header-title">Filtered Structures List</h2>
+                <div class="table-header-sub">Showing <strong id="currentRecordCount">0</strong> of <strong id="totalRecordCount">0</strong> Structures.</div>
+              </div>
+              <div class="export-buttons">
+                <button class="export-btn csv" onclick="exportData('csv')">CSV</button>
+                <button class="export-btn excel" onclick="exportData('xlsx')">Excel (XLSX)</button>
+                <button class="export-btn pdf" onclick="exportData('pdf')">PDF</button>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <div class="loading-overlay" id="tableLoadingOverlay">
+                <div class="spinner"></div>
+                Loading Data...
+              </div>
+              <table id="dataTable">
+                <thead>
+                  <tr>
+                    <th>S.N</th>
+                    <th>Asset Name</th>
+                    <th>Type</th>
+                    <th>Struct. Ref.</th>
+                    <th>RTE</th>
+                    <th>Zone</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="dataTableBody">
+                  </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="detailModal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Structure Detail: <span id="modalAssetName"></span></h3>
+          <button class="modal-close" aria-label="Close detail view">&times;</div>
+        </div>
+        <div class="modal-body" id="modalBody">
+          </div>
       </div>
-      <div class="header-center">
-        <h1>Qatar North Structures Survey Dashboard</h1>
-        <p class="subtitle">Real-time asset visibility and survey status for structural assets</p>
-        <div class="top-nav-links">
-            <a href="TRAFFIC.html" target="_self">Traffic</a>
-            <a href="ITS.html" target="_self">ITS</a>
-            <a href="#" class="active">Structures</a>
-        </div>
-      </div>
-      <div class="header-right">
-        <img src="https://via.placeholder.com/150x50?text=LOGO+2" alt="Logo 2" class="logo-img logo-img-small">
-        <span class="datetime-header" id="currentDateTime"></span>
-      </div>
-    </header>
+    </div>
 
-    <main class="dashboard">
-
-      <section class="section section-filters">
-        <div class="glass-card filters-card filters">
-          <div class="card-header-row">
-            <p class="card-title">Data Filters & Search</p>
-          </div>
-
-          <div class="filters-grid">
-            <div class="filter-group">
-              <label for="zoneFilter">Zone</label>
-              <select id="zoneFilter" onchange="applyFilters()"></select>
-            </div>
-            <div class="filter-group">
-              <label for="routeFilter">Route (RTE)</label>
-              <select id="routeFilter" onchange="applyFilters()"></select>
-            </div>
-            <div class="filter-group">
-              <label for="typeFilter">Structure Type</label>
-              <select id="typeFilter" onchange="applyFilters()"></select>
-            </div>
-            <div class="filter-group">
-              <label for="statusFilter">Status</label>
-              <select id="statusFilter" onchange="applyFilters()"></select>
-            </div>
-            <div class="filter-group">
-              <label for="remarksCategoryFilter">Remarks Category</label>
-              <select id="remarksCategoryFilter" onchange="applyFilters()">
-                <option value="">All Remarks</option>
-                <option value="Pending">Pending to visit</option>
-                <option value="Visited">Visited / Surveyed</option>
-                <option value="Under">Under Construction/QP/MME/Other</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="filter-group" style="grid-column: span 1 / auto;">
-              <label for="freeTextSearch">Search (Ref, Name, Route, Remarks, Type)</label>
-              <input type="text" id="freeTextSearch" oninput="applyFilters()" placeholder="Enter search keywords...">
-            </div>
-          </div>
-
-          <div class="filters-tags">
-            <div class="filter-tag-label">Active Filters:</div>
-            <div class="filter-chips-container" id="filterTags">
-              <span class="filter-chip text-blue" id="dataLoadedCount">Total 0 Structures</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section section-kpis">
-        <div class="section-kpis-inner">
-          <div class="glass-card kpi-card">
-            <div class="kpi-label">Total Structures</div>
-            <div class="kpi-value" id="totalStructuresCount">
-              -
-            </div>
-            <div class="kpi-caption">Total number of structures in the filtered list.</div>
-          </div>
-
-          <div class="glass-card kpi-card">
-            <div class="kpi-label">Completed Structures</div>
-            <div class="kpi-value text-green" id="completedStructuresCount">
-              -
-            </div>
-            <div class="kpi-caption">Structures with survey STATUS "COMPLETED".</div>
-            <span class="kpi-badge bg-green">Status: COMPLETED</span>
-          </div>
-
-          <div class="glass-card kpi-card">
-            <div class="kpi-label">No Access</div>
-            <div class="kpi-value text-amber" id="noAccessStructuresCount">
-              -
-            </div>
-            <div class="kpi-caption">Structures with survey STATUS "NO ACCESS".</div>
-            <span class="kpi-badge bg-amber">Status: NO ACCESS</span>
-          </div>
-
-          <div class="glass-card kpi-card">
-            <div class="kpi-label">Pending Visit</div>
-            <div class="kpi-value text-red" id="pendingStructuresCount">
-              -
-            </div>
-            <div class="kpi-caption">Structures with "Pending to visit" in Remarks.</div>
-            <span class="kpi-badge bg-red">Remarks: PENDING</span>
-          </div>
-
-          <div class="glass-card kpi-card">
-            <div class="kpi-label">Bridges</div>
-            <div class="kpi-value text-blue" id="bridgesCount">
-              -
-            </div>
-            <div class="kpi-caption">Structures with Type containing "Bridge".</div>
-          </div>
-
-          <div class="glass-card kpi-card">
-            <div class="kpi-label">Underpasses</div>
-            <div class="kpi-value text-blue" id="underpassesCount">
-              -
-            </div>
-            <div class="kpi-caption">Structures with Type containing "Underpass".</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section section-kpis-circles">
-        <div class="kpi-circle-strip">
-
-          <div class="glass-card kpi-circle-card">
-            <div class="kpi-label">Footbridges</div>
-            <div class="kpi-value" id="footbridgesCount">-</div>
-            <div class="kpi-circle-layout">
-              <div class="circle-wrapper">
-                <div id="circle-footbridge-fill" class="circle-fill"></div>
-                <div id="circle-footbridge-inner" class="circle-inner">0 / 0</div>
-              </div>
-              <div class="kpi-circle-text">
-                <div class="kpi-circle-text-title">Footbridge Completion</div>
-                <div class="circle-caption">
-                  <strong id="circle-footbridge-pct">0%</strong> Footbridges completed
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="glass-card kpi-circle-card">
-            <div class="kpi-label">Camel Crossings</div>
-            <div class="kpi-value" id="camelCrossingsCount">-</div>
-            <div class="kpi-circle-layout">
-              <div class="circle-wrapper">
-                <div id="circle-camel-fill" class="circle-fill"></div>
-                <div id="circle-camel-inner" class="circle-inner">0 / 0</div>
-              </div>
-              <div class="kpi-circle-text">
-                <div class="kpi-circle-text-title">Camel Crossing Completion</div>
-                <div class="circle-caption">
-                  <strong id="circle-camel-pct">0%</strong> Camel Crossings completed
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="glass-card kpi-circle-card">
-            <div class="kpi-label">Full MEP Systems</div>
-            <div class="kpi-value" id="fullMepSystemsCount">-</div>
-            <div class="kpi-circle-layout">
-              <div class="circle-wrapper">
-                <div id="circle-mep-fill" class="circle-fill"></div>
-                <div id="circle-mep-inner" class="circle-inner">0 / 0</div>
-              </div>
-              <div class="kpi-circle-text">
-                <div class="kpi-circle-text-title">Structures with Full MEP</div>
-                <div class="circle-caption">
-                  <strong id="circle-mep-pct">0%</strong> of filtered structures have all systems
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="glass-card kpi-circle-card">
-            <div class="kpi-label">Qatar North Completion</div>
-            <div class="kpi-value text-green" id="surveyCompletionPercentText">-</div>
-            <div class="kpi-circle-layout">
-              <div class="circle-wrapper">
-                <div id="circle-total-fill" class="circle-fill"></div>
-                <div id="circle-total-inner" class="circle-inner">0 / 0</div>
-              </div>
-              <div class="kpi-circle-text">
-                <div class="kpi-circle-text-title">Overall Survey Completion</div>
-                <div class="circle-caption">
-                  <strong id="circle-total-pct">0%</strong> of total filtered structures completed
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <section class="section section-main">
-        <div class="main-grid">
-
-          <div class="glass-card map-card">
-            <div class="map-card-header">
-              <div class="map-title">
-                <span class="dot"></span>
-                <span>Structural Assets Map (Satellite Imagery)</span>
-              </div>
-              <button id="mapModeToggle" class="map-toggle-btn" type="button" onclick="toggleMapMode()">
-                 Map Mode: All Filtered Markers
-              </button>
-            </div>
-            <div id="map"></div>
-            <div class="map-footer" id="map-footer">
-              ESRI World Imagery showing surveyed (green), no access (amber), and pending (red) structures.
-              <div class="map-legend">
-                <div class="legend-item"><span class="legend-dot legend-completed"></span> <span>Completed</span></div>
-                <div class="legend-item"><span class="legend-dot legend-no-access"></span> <span>No Access</span></div>
-                <div class="legend-item"><span class="legend-dot legend-pending"></span> <span>Pending Visit</span></div>
-                <div class="legend-item"><span class="legend-dot legend-selected"></span> <span>Selected from list</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="charts-stack">
-            <div class="glass-card chart-card type-card">
-              <div class="card-header-row">
-                <p class="card-title">Structures by Type Distribution</p>
-              </div>
-              <div class="chart-wrapper">
-                <canvas id="typeChart"></canvas>
-              </div>
-              <div class="kpi-caption text-center" id="type-chart-summary"></div>
-            </div>
-
-            <div class="glass-card chart-card status-card">
-              <div class="card-header-row">
-                <p class="card-title">Survey Status Distribution</p>
-              </div>
-              <div class="chart-wrapper">
-                <canvas id="statusChart"></canvas>
-              </div>
-              <div class="kpi-caption text-center" id="status-chart-summary"></div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <section class="section section-table">
-        <div class="glass-card table-card">
-          <div class="table-header-row">
-            <div class="table-header-left">
-              <div class="table-header-title">Filtered Structures List</div>
-              <div class="table-header-sub" id="table-summary-text">Showing 0 of 0 records.</div>
-            </div>
-            <div class="export-buttons">
-              <button id="downloadCsvBtn" class="export-btn" type="button" onclick="exportCurrentViewCsv()">CSV</button>
-              <button id="downloadXlsxBtn" class="export-btn" type="button" onclick="exportCurrentViewXlsx()">XLSX</button>
-              <button id="downloadPdfBtn" class="export-btn" type="button" onclick="exportCurrentViewPdf()">PDF</button>
-            </div>
-          </div>
-
-          <div class="table-wrapper">
-            <table class="dashboard-table">
-              <thead>
-                <tr>
-                  <th>S.N</th>
-                  <th>Struct. Ref.</th>
-                  <th>Asset Name</th>
-                  <th>Type</th>
-                  <th>Route</th>
-                  <th>Zone</th>
-                  <th>Status</th>
-                  <th>Maximo ID</th>
-                  <th>Remarks</th>
-                  <th>Systems Summary</th>
-                </tr>
-              </thead>
-              <tbody id="tableBody">
-                <tr><td colspan="10" class="text-center">Loading data...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-    </main>
   </div>
-</div>
 
 <script>
-// === CONSTANTS & GLOBALS =============================================
-const STRUCTURES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQx3ljhXIdh8M_D-TQHSXpBDZN7mIRf3qr7uQvnZsn2xbXSL1qtcb-0aIfDiUCtGZmsJcDDhOndhtH2/pub?gid=417753226&single=true&output=csv";
+  /*
+  ================================================================================================
+  1. CONFIGURATION (DATA SOURCE & MAPPING)
+  ================================================================================================
+  */
 
-const COLS = {
-    sn: "S.N",
-    route: "RTE",
-    structRef: "Struct. Ref.",
-    assetName: "Asset Name",
-    code: "CODE",
-    status: "STATUS",
-    type: "Type",
-    maximoId: "Maximo ID",
-    zone: "Zone",
-    lat: "Latitude",
-    lng: "Longitude",
-    remarks: "Remarks",
-    mep: "MEP",
-    lights: "Lights",
-    ups: "UPS",
-    electricalDb: "Electrical DB",
-    ff: "FF",
-    fa: "FA",
-    hvac: "HVAC",
-    elevators: "Elevators",
-    escalator: "Escalator",
-    its: "ITS",
-    elv: "ELV",
-};
+  // ✅ FIX: Using the dynamic public CSV export URL from Google Sheets for reliable data fetching
+  const DATA_SOURCE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQx3ljhXIdh8M_D-TQHSXpBDZN7mIRf3qr7uQvnZsn2xbXSL1qtcb-0aIfDiUCtGZmsJcDDhOndhtH2/pub?gid=417753226&single=true&output=csv";
 
-const MEP_SYSTEMS = [
-    COLS.mep, COLS.lights, COLS.ups, COLS.electricalDb, COLS.ff, COLS.fa, COLS.hvac, COLS.elevators, COLS.escalator, COLS.its, COLS.elv,
-];
+  // Data Column Mapping (Case-sensitive names from the CSV Header)
+  const DATA_MAPPING = {
+    SN: 'S.N',
+    Route: 'RTE',
+    StructRef: 'Struct. Ref.',
+    AssetName: 'Asset Name',
+    AssetCode: 'CODE',
+    Status: 'STATUS',
+    Type: 'Type',
+    MaximoID: 'Maximo ID',
+    Zone: 'Zone',
+    Latitude: 'Latitude', // Ensure this is the correct header for Latitude
+    Longitude: 'Longitude', // Ensure this is the correct header for Longitude
+    Remarks: 'Remarks',
+    MEP: 'MEP',
+    Lights: 'Lights',
+    UPS: 'UPS',
+    ElectricalDB: 'Electrical DB',
+    FF: 'FF',
+    FA: 'FA',
+    HVAC: 'HVAC',
+    Elevators: 'Elevators',
+    Escalator: 'Escalator',
+    ITS: 'ITS',
+    ELV: 'ELV'
+  };
 
-let allData = [];
-let currentFiltered = [];
-let map;
-let markerLayer = new L.LayerGroup();
-let selectedAsset = null;
+  const STATUS_COLORS = {
+    'COMPLETED': { color: '#22c55e', opacity: 0.8 }, // Green
+    'NO ACCESS': { color: '#fbbf24', opacity: 0.8 }, // Amber
+    'PENDING': { color: '#ef4444', opacity: 0.8 }, // Red (Catch-all for anything else)
+    'PENDING TO VISIT': { color: '#ef4444', opacity: 0.8 }, // Red (Specific check)
+    'PENDING REMARKS': { color: '#ef4444', opacity: 0.8 } // Red (Specific check)
+  };
 
-let typeChart, statusChart;
-let chartColors = {
-    primary: 'rgba(56, 189, 248, 1)', // accent-blue
-    secondary: 'rgba(34, 197, 94, 1)', // accent-green
-    tertiary: 'rgba(251, 191, 36, 1)', // accent-amber
-    quaternary: 'rgba(239, 68, 68, 1)', // accent-red
-    lightBlue: 'rgba(100, 150, 250, 1)',
-    purple: 'rgba(168, 85, 247, 1)',
-    pink: 'rgba(236, 72, 153, 1)',
-    orange: 'rgba(249, 115, 22, 1)',
-};
+  const MAP_VIEW = {
+    CENTER: [25.3548, 51.1832], // Central Qatar
+    ZOOM: 9 // Appropriate zoom level for Qatar North
+  };
 
-const CHART_CONFIG = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: {
+  // MEP Status Columns to check for "Full MEP"
+  const MEP_COLUMNS = [
+    DATA_MAPPING.Lights,
+    DATA_MAPPING.UPS,
+    DATA_MAPPING.ElectricalDB,
+    DATA_MAPPING.FF,
+    DATA_MAPPING.FA,
+    DATA_MAPPING.HVAC,
+    DATA_MAPPING.Elevators,
+    DATA_MAPPING.Escalator,
+    DATA_MAPPING.ITS,
+    DATA_MAPPING.ELV
+  ];
+
+
+  /*
+  ================================================================================================
+  2. GLOBAL STATE AND INITIALIZATION
+  ================================================================================================
+  */
+  let rawData = [];
+  let filteredData = [];
+  let map;
+  let markersLayer;
+  let statusChartInstance;
+  let typeChartInstance;
+  let selectedMarker = null;
+
+  const elements = {
+    totalStructures: document.getElementById('totalStructures'),
+    completedCount: document.getElementById('completedCount'),
+    noAccessCount: document.getElementById('noAccessCount'),
+    pendingRemarksCount: document.getElementById('pendingRemarksCount'),
+    completedPercentage: document.getElementById('completedPercentage'),
+    noAccessPercentage: document.getElementById('noAccessPercentage'),
+    pendingRemarksPercentage: document.getElementById('pendingRemarksPercentage'),
+    bridgesCount: document.getElementById('bridgesCount'),
+    underpassesCount: document.getElementById('underpassesCount'),
+    overallCompletionFill: document.getElementById('overallCompletionFill'),
+    overallCompletionText: document.getElementById('overallCompletionText'),
+    overallCompletionRemarksCount: document.getElementById('overallCompletionRemarksCount'),
+    overallCompletionCompletedCount: document.getElementById('overallCompletionCompletedCount'),
+    fullMepCompletionFill: document.getElementById('fullMepCompletionFill'),
+    fullMepCompletionText: document.getElementById('fullMepCompletionText'),
+    fullMepCount: document.getElementById('fullMepCount'),
+    partialMepCount: document.getElementById('partialMepCount'),
+    filterZone: document.getElementById('filterZone'),
+    filterRoute: document.getElementById('filterRoute'),
+    filterType: document.getElementById('filterType'),
+    filterStatus: document.getElementById('filterStatus'),
+    filterRemarksCategory: document.getElementById('filterRemarksCategory'),
+    filterSearch: document.getElementById('filterSearch'),
+    activeFiltersContainer: document.getElementById('activeFiltersContainer'),
+    noFiltersChip: document.getElementById('noFiltersChip'),
+    dataTableBody: document.getElementById('dataTableBody'),
+    currentRecordCount: document.getElementById('currentRecordCount'),
+    totalRecordCount: document.getElementById('totalRecordCount'),
+    tableLoadingOverlay: document.getElementById('tableLoadingOverlay'),
+    detailModal: document.getElementById('detailModal'),
+    modalBody: document.getElementById('modalBody'),
+    modalAssetName: document.getElementById('modalAssetName'),
+  };
+
+  /*
+  ================================================================================================
+  3. DATA FETCHING AND PREPARATION
+  ================================================================================================
+  */
+
+  function displayLoading(show) {
+    if (show) {
+      elements.tableLoadingOverlay.classList.remove('hidden');
+    } else {
+      elements.tableLoadingOverlay.classList.add('hidden');
+    }
+  }
+
+  async function fetchAndProcessData() {
+    displayLoading(true);
+    console.log(`Fetching data from: ${DATA_SOURCE_URL}`);
+
+    try {
+      const response = await fetch(DATA_SOURCE_URL);
+      const csvText = await response.text();
+
+      Papa.parse(csvText, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          rawData = results.data;
+          console.log(`Data successfully loaded. Total records: ${rawData.length}`);
+
+          // Initial data population and rendering
+          populateFilters(rawData);
+          applyFilters(); // Initial filter and render
+          displayLoading(false);
+        },
+        error: function(error) {
+          console.error("PapaParse error:", error);
+          alert("Error parsing CSV data. Check console for details.");
+          displayLoading(false);
+        }
+      });
+    } catch (error) {
+      console.error("Fetch error:", error);
+      alert("Error fetching data from the source URL. Check console and ensure the Google Sheet is published to the web.");
+      displayLoading(false);
+    }
+  }
+
+
+  /*
+  ================================================================================================
+  4. FILTERING LOGIC
+  ================================================================================================
+  */
+
+  function populateFilters(data) {
+    const filters = {
+      Zone: new Set(),
+      Route: new Set(),
+      Type: new Set(),
+      Status: new Set(),
+    };
+
+    data.forEach(item => {
+      if (item[DATA_MAPPING.Zone]) filters.Zone.add(String(item[DATA_MAPPING.Zone]).trim());
+      if (item[DATA_MAPPING.Route]) filters.Route.add(String(item[DATA_MAPPING.Route]).trim());
+      if (item[DATA_MAPPING.Type]) filters.Type.add(String(item[DATA_MAPPING.Type]).trim());
+      if (item[DATA_MAPPING.Status]) filters.Status.add(String(item[DATA_MAPPING.Status]).trim());
+    });
+
+    // Function to populate a select element
+    const populateSelect = (selectElement, values) => {
+      // Clear existing options, keep "All" option
+      selectElement.innerHTML = `<option value="">${selectElement.querySelector('option').textContent}</option>`;
+      Array.from(values).sort().forEach(value => {
+        if (value && value !== 'null' && value !== 'undefined') {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = value;
+          selectElement.appendChild(option);
+        }
+      });
+    };
+
+    populateSelect(elements.filterZone, filters.Zone);
+    populateSelect(elements.filterRoute, filters.Route);
+    populateSelect(elements.filterType, filters.Type);
+    populateSelect(elements.filterStatus, filters.Status);
+  }
+
+  function getFilters() {
+    return {
+      Zone: elements.filterZone.value,
+      Route: elements.filterRoute.value,
+      Type: elements.filterType.value,
+      Status: elements.filterStatus.value,
+      RemarksCategory: elements.filterRemarksCategory.value,
+      Search: elements.filterSearch.value.toLowerCase().trim()
+    };
+  }
+
+  function checkRemarksCategory(remarks, category) {
+    if (!remarks) return false;
+    remarks = String(remarks).toUpperCase();
+
+    switch (category) {
+      case 'Visited on 1st, 2nd, 3rd round':
+        return remarks.includes('VISITED ON 1') || remarks.includes('VISITED ON 2') || remarks.includes('VISITED ON 3');
+      case 'Pending to visit':
+        return remarks.includes('PENDING TO VISIT');
+      case 'Other':
+        // 'Other' means it has a remark that is NOT one of the two main categories
+        const isVisited = remarks.includes('VISITED ON 1') || remarks.includes('VISITED ON 2') || remarks.includes('VISITED ON 3');
+        const isPending = remarks.includes('PENDING TO VISIT');
+        return remarks.length > 0 && !isVisited && !isPending;
+      default:
+        return true; // No category filter applied
+    }
+  }
+
+  function applyFilters() {
+    const filters = getFilters();
+
+    filteredData = rawData.filter(item => {
+      // Zone filter
+      if (filters.Zone && String(item[DATA_MAPPING.Zone]).trim() !== filters.Zone) return false;
+      // Route filter
+      if (filters.Route && String(item[DATA_MAPPING.Route]).trim() !== filters.Route) return false;
+      // Type filter
+      if (filters.Type && String(item[DATA_MAPPING.Type]).trim() !== filters.Type) return false;
+      // Status filter
+      if (filters.Status && String(item[DATA_MAPPING.Status]).trim() !== filters.Status) return false;
+
+      // Remarks Category Filter
+      if (filters.RemarksCategory && !checkRemarksCategory(item[DATA_MAPPING.Remarks], filters.RemarksCategory)) return false;
+
+
+      // Free Text Search filter
+      if (filters.Search) {
+        const searchableFields = [
+          DATA_MAPPING.AssetName,
+          DATA_MAPPING.AssetCode,
+          DATA_MAPPING.MaximoID,
+          DATA_MAPPING.StructRef
+        ];
+        const match = searchableFields.some(field =>
+          String(item[field] || '').toLowerCase().includes(filters.Search)
+        );
+        if (!match) return false;
+      }
+
+      return true;
+    });
+
+    updateDashboard();
+  }
+
+  /*
+  ================================================================================================
+  5. UI UPDATES AND RENDERING
+  ================================================================================================
+  */
+
+  function updateDashboard() {
+    updateKPIs(filteredData);
+    updateFilterChips();
+    renderMap(filteredData);
+    renderTable(filteredData);
+    renderStatusChart(filteredData);
+    renderTypeChart(filteredData);
+
+    elements.currentRecordCount.textContent = filteredData.length;
+    elements.totalRecordCount.textContent = rawData.length;
+  }
+
+  function updateKPIs(data) {
+    const total = data.length;
+    const completed = data.filter(item => String(item[DATA_MAPPING.Status]).toUpperCase() === 'COMPLETED').length;
+    const noAccess = data.filter(item => String(item[DATA_MAPPING.Status]).toUpperCase() === 'NO ACCESS').length;
+    const pendingRemarks = total - completed - noAccess;
+
+    const bridges = data.filter(item => String(item[DATA_MAPPING.Type]).toUpperCase().includes('BRIDGE')).length;
+    const underpasses = data.filter(item => String(item[DATA_MAPPING.Type]).toUpperCase().includes('UNDERPASS') || String(item[DATA_MAPPING.Type]).toUpperCase().includes('UP')).length;
+
+
+    // Overall Completion KPI (based on raw data)
+    const rawTotal = rawData.length;
+    const rawCompleted = rawData.filter(item => String(item[DATA_MAPPING.Status]).toUpperCase() === 'COMPLETED').length;
+    const overallCompletionPercent = rawTotal > 0 ? ((rawCompleted / rawTotal) * 100).toFixed(1) : 0;
+    const rawPendingRemarks = rawTotal - rawCompleted; // Simplified for this KPI
+
+    // Full MEP KPI (based on raw data)
+    let fullMepCount = 0;
+    rawData.forEach(item => {
+      // Check if all specified MEP columns are 'True' (case-insensitive)
+      const isFullMep = MEP_COLUMNS.every(col => String(item[col]).toUpperCase() === 'TRUE');
+      if (isFullMep) {
+        fullMepCount++;
+      }
+    });
+    const partialMepCount = rawTotal - fullMepCount;
+    const fullMepPercent = rawTotal > 0 ? ((fullMepCount / rawTotal) * 100).toFixed(1) : 0;
+
+    // --- Update KPI Elements ---
+    elements.totalStructures.textContent = rawTotal;
+    elements.completedCount.textContent = completed;
+    elements.noAccessCount.textContent = noAccess;
+    elements.pendingRemarksCount.textContent = pendingRemarks;
+    elements.bridgesCount.textContent = bridges;
+    elements.underpassesCount.textContent = underpasses;
+
+    elements.completedPercentage.textContent = total > 0 ? `${((completed / total) * 100).toFixed(1)}%` : '0%';
+    elements.noAccessPercentage.textContent = total > 0 ? `${((noAccess / total) * 100).toFixed(1)}%` : '0%';
+    elements.pendingRemarksPercentage.textContent = total > 0 ? `${((pendingRemarks / total) * 100).toFixed(1)}%` : '0%';
+
+    // --- Update Circle KPIs (Use Raw Data for Overall) ---
+    elements.overallCompletionText.textContent = `${overallCompletionPercent}%`;
+    elements.overallCompletionRemarksCount.textContent = rawPendingRemarks;
+    elements.overallCompletionCompletedCount.textContent = rawCompleted;
+
+    const fillAngle = (overallCompletionPercent / 100) * 360;
+    elements.overallCompletionFill.style.transform = `rotate(${fillAngle}deg)`;
+    elements.overallCompletionFill.style.clip = getCircleClip(fillAngle, 92); // 92px is circle size
+
+    elements.fullMepCompletionText.textContent = `${fullMepPercent}%`;
+    elements.fullMepCount.textContent = fullMepCount;
+    elements.partialMepCount.textContent = partialMepCount;
+
+    const mepFillAngle = (fullMepPercent / 100) * 360;
+    elements.fullMepCompletionFill.style.transform = `rotate(${mepFillAngle}deg)`;
+    elements.fullMepCompletionFill.style.clip = getCircleClip(mepFillAngle, 92); // 92px is circle size
+
+  }
+
+  function getCircleClip(angle, size) {
+    // Basic clip path logic (only for visualization, not perfect)
+    if (angle >= 180) {
+        // If angle is 180 or more, we clip the left side (or use the whole thing)
+        return `rect(0, ${size}px, ${size}px, 0)`;
+    } else {
+        // If angle is less than 180, we clip the right half
+        return `rect(0, ${size}px, ${size}px, ${size / 2}px)`;
+    }
+  }
+
+
+  function updateFilterChips() {
+    const filters = getFilters();
+    const filterNames = {
+      Zone: 'Zone',
+      Route: 'Route',
+      Type: 'Type',
+      Status: 'Status',
+      RemarksCategory: 'Remarks',
+      Search: 'Search'
+    };
+
+    elements.activeFiltersContainer.innerHTML = '';
+    let filterCount = 0;
+
+    for (const key in filters) {
+      const value = filters[key];
+
+      if (value && key !== 'Search') {
+        const chip = createFilterChip(filterNames[key], value, key);
+        elements.activeFiltersContainer.appendChild(chip);
+        filterCount++;
+      } else if (value && key === 'Search') {
+        const chip = createFilterChip(filterNames[key], `"${value}"`, key);
+        elements.activeFiltersContainer.appendChild(chip);
+        filterCount++;
+      }
+    }
+
+    if (filterCount === 0) {
+      elements.activeFiltersContainer.appendChild(elements.noFiltersChip);
+    }
+  }
+
+  function createFilterChip(name, value, key) {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip';
+    chip.innerHTML = `${name}: <strong>${value}</strong> <span class="filter-chip-clear" data-filter-key="${key}">&times;</span>`;
+
+    chip.querySelector('.filter-chip-clear').addEventListener('click', () => {
+      document.getElementById('filter' + key).value = '';
+      applyFilters();
+    });
+
+    return chip;
+  }
+
+  /*
+  ================================================================================================
+  6. MAPPING LOGIC
+  ================================================================================================
+  */
+
+  function initMap() {
+    map = L.map('map', {
+      center: MAP_VIEW.CENTER,
+      zoom: MAP_VIEW.ZOOM,
+      zoomControl: false // Disable default zoom control
+    });
+
+    // Custom Zoom Controls
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    // Default Basemap (OpenStreetMap)
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    });
+
+    // Satellite Basemap (ESRI World Imagery)
+    const esriLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+    // Add default layer
+    esriLayer.addTo(map);
+
+    markersLayer = L.layerGroup().addTo(map);
+
+    // Layer Toggle Logic
+    const toggleButton = document.querySelector('.map-toggle-btn');
+    toggleButton.addEventListener('click', () => {
+      if (map.hasLayer(osmLayer)) {
+        map.removeLayer(osmLayer);
+        esriLayer.addTo(map);
+        toggleButton.textContent = 'OSM Standard';
+        toggleButton.classList.remove('map-toggle-btn-active');
+      } else {
+        map.removeLayer(esriLayer);
+        osmLayer.addTo(map);
+        toggleButton.textContent = 'ESRI Satellite';
+        toggleButton.classList.add('map-toggle-btn-active');
+      }
+    });
+
+    // Event listener for map move to check if map needs recentering/zooming
+    map.on('moveend', () => {
+        // This is a placeholder for future logic if you want to save map state
+    });
+  }
+
+  function renderMap(data) {
+    if (!map) return;
+    markersLayer.clearLayers();
+    const bounds = [];
+    const maxMarkers = 1000; // Limit markers for performance
+
+    data.slice(0, maxMarkers).forEach(item => {
+      const lat = parseFloat(item[DATA_MAPPING.Latitude]);
+      const lon = parseFloat(item[DATA_MAPPING.Longitude]);
+      let status = String(item[DATA_MAPPING.Status]).toUpperCase();
+      const assetName = item[DATA_MAPPING.AssetName] || 'Unnamed Asset';
+      const assetCode = item[DATA_MAPPING.AssetCode] || 'N/A';
+      const structRef = item[DATA_MAPPING.StructRef] || 'N/A';
+
+      if (status !== 'COMPLETED' && status !== 'NO ACCESS') {
+          // Group everything else as PENDING/REMARKS
+          status = 'PENDING';
+      }
+
+      if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
+        bounds.push([lat, lon]);
+
+        const statusColor = STATUS_COLORS[status] || STATUS_COLORS['PENDING'];
+
+        const customIcon = L.divIcon({
+          className: 'custom-div-icon',
+          html: `<svg width="24" height="24" viewBox="0 0 24 24" fill="${statusColor.color}" stroke="#fff" stroke-width="1.5" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));"><circle cx="12" cy="12" r="6"/></svg>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+
+        const marker = L.marker([lat, lon], { icon: customIcon });
+
+        const popupContent = `
+          <strong>${assetName}</strong><br>
+          <span style="font-size: 11px; color: ${statusColor.color}; text-transform: uppercase; font-weight: 600;">${status}</span><br>
+          Type: ${item[DATA_MAPPING.Type] || 'N/A'}<br>
+          Struct. Ref: ${structRef}<br>
+          RTE: ${item[DATA_MAPPING.Route] || 'N/A'}<br>
+        `;
+        marker.bindPopup(popupContent);
+
+        marker.on('click', () => {
+          if (selectedMarker) {
+            // Reset previous selected marker icon to its original state (status color)
+             const prevStatus = String(selectedMarker.data[DATA_MAPPING.Status]).toUpperCase();
+             const prevColor = STATUS_COLORS[prevStatus] ? STATUS_COLORS[prevStatus].color : STATUS_COLORS['PENDING'].color;
+             const prevIcon = L.divIcon({
+                  className: 'custom-div-icon',
+                  html: `<svg width="24" height="24" viewBox="0 0 24 24" fill="${prevColor}" stroke="#fff" stroke-width="1.5" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));"><circle cx="12" cy="12" r="6"/></svg>`,
+                  iconSize: [24, 24],
+                  iconAnchor: [12, 12]
+              });
+             selectedMarker.setIcon(prevIcon);
+          }
+
+          // Update current marker icon to selected state (blue glow)
+          const newIcon = L.divIcon({
+              className: 'custom-div-icon',
+              html: `<svg width="28" height="28" viewBox="0 0 28 28" fill="${statusColor.color}" stroke="${statusColor.color}" stroke-width="2" style="filter: drop-shadow(0 0 10px ${statusColor.color}b0);"><circle cx="14" cy="14" r="7" fill="${statusColor.color}" stroke="#fff" stroke-width="2"/><circle cx="14" cy="14" r="10" stroke="${statusColor.color}" stroke-width="1" fill="none"/></svg>`,
+              iconSize: [28, 28],
+              iconAnchor: [14, 14]
+          });
+          marker.setIcon(newIcon);
+
+          selectedMarker = marker;
+          selectedMarker.data = item; // Store data on marker for future use
+        });
+
+        markersLayer.addLayer(marker);
+      }
+    });
+
+    if (bounds.length > 0) {
+      if (data.length > 1) {
+          map.fitBounds(bounds, { padding: [20, 20] });
+      } else if (data.length === 1) {
+          map.setView(bounds[0], 14); // Zoom closer for single point
+      }
+    } else {
+        map.setView(MAP_VIEW.CENTER, MAP_VIEW.ZOOM);
+    }
+  }
+
+
+  /*
+  ================================================================================================
+  7. CHARTING LOGIC
+  ================================================================================================
+  */
+
+  function renderStatusChart(data) {
+    if (statusChartInstance) {
+      statusChartInstance.destroy();
+    }
+
+    const counts = data.reduce((acc, item) => {
+      const status = String(item[DATA_MAPPING.Status]).toUpperCase();
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    const sortedLabels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const chartData = sortedLabels.map(label => counts[label]);
+    const backgroundColors = sortedLabels.map(label => {
+      const color = STATUS_COLORS[label] ? STATUS_COLORS[label].color : STATUS_COLORS['PENDING'].color;
+      return color;
+    });
+
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    statusChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: sortedLabels,
+        datasets: [{
+          data: chartData,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: 'Filtered Structures by Status',
+            color: '#e5e7eb',
+            font: { size: 14, weight: 'bold', family: 'Inter' }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += context.parsed.y.toLocaleString();
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#9ca3af' },
+            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#9ca3af' },
+            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+          }
+        }
+      }
+    });
+  }
+
+  function renderTypeChart(data) {
+    if (typeChartInstance) {
+      typeChartInstance.destroy();
+    }
+
+    const counts = data.reduce((acc, item) => {
+      const type = String(item[DATA_MAPPING.Type]).trim() || 'N/A';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+
+    const sortedLabels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 7); // Top 7 types
+    const chartData = sortedLabels.map(label => counts[label]);
+
+    // Define a vibrant color palette
+    const colors = ['#38bdf8', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#ec4899', '#fbbf24'];
+    const backgroundColors = sortedLabels.map((_, index) => colors[index % colors.length]);
+
+    const ctx = document.getElementById('typeChart').getContext('2d');
+    typeChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: sortedLabels,
+        datasets: [{
+          data: chartData,
+          backgroundColor: backgroundColors,
+          hoverOffset: 4,
+          borderWidth: 2,
+          borderColor: 'rgba(15, 23, 42, 0.9)'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
             position: 'right',
             labels: {
-                color: 'var(--text-soft)',
-                font: { size: 12, family: 'Inter' }
+              color: '#e5e7eb',
+              font: { size: 12, family: 'Inter' }
             }
-        },
-        tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            titleColor: 'var(--text-stronger)',
-            bodyColor: 'var(--text-strong)',
-            borderColor: 'var(--glass-border)',
-            borderWidth: 1,
-            bodyFont: { size: 12, family: 'Inter' },
-            titleFont: { size: 12, family: 'Inter', weight: 'bold' }
-        }
-    },
-    scales: {
-        x: {
+          },
+          title: {
             display: true,
-            grid: { color: 'rgba(148, 163, 184, 0.1)', borderColor: 'rgba(148, 163, 184, 0.3)' },
-            ticks: { color: 'var(--text-soft)' }
-        },
-        y: {
-            display: true,
-            grid: { color: 'rgba(148, 163, 184, 0.1)', borderColor: 'rgba(148, 163, 184, 0.3)' },
-            ticks: { color: 'var(--text-soft)' }
+            text: 'Asset Type Distribution (Top 7)',
+            color: '#e5e7eb',
+            font: { size: 14, weight: 'bold', family: 'Inter' }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.label || '';
+                if (context.parsed !== null) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const value = context.parsed;
+                  const percentage = ((value / total) * 100).toFixed(1) + '%';
+                  label += `: ${value.toLocaleString()} (${percentage})`;
+                }
+                return label;
+              }
+            }
+          }
         }
+      }
+    });
+  }
+
+
+  /*
+  ================================================================================================
+  8. TABLE RENDERING AND EXPORT
+  ================================================================================================
+  */
+
+  function renderTable(data) {
+    const tableBody = elements.dataTableBody;
+    tableBody.innerHTML = '';
+    const maxRows = 200; // Limit rendering for smooth performance
+
+    data.slice(0, maxRows).forEach((item, index) => {
+      const row = tableBody.insertRow();
+      row.onclick = () => openDetailModal(item);
+      let status = String(item[DATA_MAPPING.Status]).toUpperCase();
+      let statusClass;
+
+      if (status === 'COMPLETED') {
+        statusClass = 'status-completed';
+      } else if (status === 'NO ACCESS') {
+        statusClass = 'status-no-access';
+      } else {
+        status = 'PENDING/REMARKS';
+        statusClass = 'status-pending-remarks';
+      }
+
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${item[DATA_MAPPING.AssetName] || 'N/A'}</td>
+        <td>${item[DATA_MAPPING.Type] || 'N/A'}</td>
+        <td>${item[DATA_MAPPING.StructRef] || 'N/A'}</td>
+        <td>${item[DATA_MAPPING.Route] || 'N/A'}</td>
+        <td>${item[DATA_MAPPING.Zone] || 'N/A'}</td>
+        <td><span class="status-badge ${statusClass}">${status}</span></td>
+        <td>${item[DATA_MAPPING.Remarks] || '-'}</td>
+      `;
+    });
+  }
+
+  // Define global export function
+  window.exportData = function(format) {
+    if (filteredData.length === 0) {
+      alert("No data to export. Please adjust your filters.");
+      return;
     }
-};
 
-// === UTILS ===========================================================
-function isTruthy(value) {
-    if (value === null || value === undefined || value === "") return false;
-    const s = String(value).trim().toLowerCase();
-    return s === "true" || s === "1" || s === "1.0" || s === "yes" || s === "y";
-}
+    const headerKeys = [
+      DATA_MAPPING.SN, DATA_MAPPING.AssetName, DATA_MAPPING.Type, DATA_MAPPING.StructRef,
+      DATA_MAPPING.Route, DATA_MAPPING.MaximoID, DATA_MAPPING.Zone, DATA_MAPPING.Status,
+      DATA_MAPPING.Remarks, DATA_MAPPING.Latitude, DATA_MAPPING.Longitude
+    ];
+    const exportHeaders = headerKeys.map(key => key);
+    const exportDataArray = [exportHeaders];
 
-function normalizeType(rawType) {
-    const txt = (rawType || "").toString().trim();
-    if (txt === "") return "Unknown";
-    return txt;
-}
-
-function getSystemSummary(row) {
-    const present = MEP_SYSTEMS.filter(sys => isTruthy(row[sys]));
-    const total = MEP_SYSTEMS.length;
-    const isFull = present.length === total;
-
-    if (isFull) return `Full System (${total}/${total})`;
-    if (present.length === 0) return `No Systems`;
-    return `${present.length}/${total} Systems Present`;
-}
-
-function classifyRemarks(rawRemarks) {
-    const txt = (rawRemarks || "").toString().trim().toLowerCase();
-    if (txt.includes("pending to visit")) return "Pending";
-    if (txt.includes("visited on")) return "Visited";
-    if (txt.includes("under construction") || txt.includes("under qp") || txt.includes("under mme")) return "Under";
-    if (txt !== "") return "Other";
-    return "";
-}
-
-function formatPercent(numerator, denominator) {
-    if (denominator === 0 || !isFinite(numerator) || !isFinite(denominator)) return "0.0%";
-    return ((numerator / denominator) * 100).toFixed(1) + "%";
-}
-
-function updateCurrentDateTime() {
-    const span = document.getElementById("currentDateTime");
-    if (!span) return;
-    const now = new Date();
-    span.textContent = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-}
-
-// === DATA LOADING ====================================================
-function loadData() {
-    updateCurrentDateTime();
-    PapaParse.parse(STRUCTURES_CSV_URL, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        transformHeader: (header) => header.trim(),
-        complete: (results) => {
-            allData = results.data.map((row, index) => {
-                const newRow = {};
-                // Map columns to friendly keys and normalize
-                Object.keys(COLS).forEach(key => {
-                    const colName = COLS[key];
-                    let value = row[colName];
-
-                    if (key === 'lat' || key === 'lng') {
-                        // Ensure Latitude/Longitude are parsable numbers
-                        newRow[key] = parseFloat(value);
-                    } else if (MEP_SYSTEMS.map(c => Object.keys(COLS).find(k => COLS[k] === c)).includes(key)) {
-                        // MEP fields: convert to boolean/boolean-like string
-                        newRow[key] = isTruthy(value) ? '1.0' : '0.0';
-                    } else {
-                        // Default to trimmed string
-                        newRow[key] = (value || "").toString().trim();
-                    }
-                });
-                newRow.uniqueId = index + 1; // Unique ID for map/table linking
-                newRow.sn = index + 1; // Use parsed index for SN
-                return newRow;
-            }).filter(d => d[COLS.structRef]); // Basic filter for valid records
-
-            document.getElementById("dataLoadedCount").textContent = `Total ${allData.length} Structures`;
-
-            initMap();
-            initFilters();
-            applyFilters();
-        },
-        error: (error) => {
-            console.error("Error loading CSV:", error);
-            document.getElementById("tableBody").innerHTML = `<tr><td colspan="10" class="text-red text-center">Failed to load data. Please check the network connection.</td></tr>`;
-        }
-    });
-}
-
-// === FILTERS & SEARCH ===============================================
-function initFilters() {
-    const zoneSelect = document.getElementById("zoneFilter");
-    const routeSelect = document.getElementById("routeFilter");
-    const typeSelect = document.getElementById("typeFilter");
-    const statusSelect = document.getElementById("statusFilter");
-
-    // Clear existing options, starting with default 'All' option
-    [zoneSelect, routeSelect, typeSelect, statusSelect].forEach(select => {
-        select.innerHTML = '<option value="">All</option>';
+    filteredData.forEach(item => {
+      const row = headerKeys.map(key => item[key] || '');
+      exportDataArray.push(row);
     });
 
-    const uniqueValues = (col) => Array.from(new Set(allData.map(a => a[col]).filter(x => x).map(x => x.toString().trim()))).sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const filenameBase = `Structures_Filtered_${currentDate}`;
 
-    uniqueValues(COLS.zone).forEach(val => zoneSelect.add(new Option(val, val)));
-    uniqueValues(COLS.route).forEach(val => routeSelect.add(new Option(val, val)));
-    uniqueValues(COLS.type).forEach(val => typeSelect.add(new Option(val, val)));
-    uniqueValues(COLS.status).forEach(val => statusSelect.add(new Option(val, val)));
-}
-
-function applyFilters() {
-    const zoneVal = document.getElementById("zoneFilter").value;
-    const routeVal = document.getElementById("routeFilter").value;
-    const typeVal = document.getElementById("typeFilter").value;
-    const statusVal = document.getElementById("statusFilter").value;
-    const remarksCategoryVal = document.getElementById("remarksCategoryFilter").value;
-    const searchVal = document.getElementById("freeTextSearch").value.toLowerCase();
-
-    let filtered = allData.filter(row => {
-        // Dropdown filters
-        if (zoneVal && row[COLS.zone] !== zoneVal) return false;
-        if (routeVal && row[COLS.route] !== routeVal) return false;
-        if (typeVal && row[COLS.type] !== typeVal) return false;
-        if (statusVal && row[COLS.status] !== statusVal) return false;
-
-        // Remarks Category filter
-        if (remarksCategoryVal) {
-            const category = classifyRemarks(row[COLS.remarks]);
-            if (category !== remarksCategoryVal) return false;
-        }
-
-        // Free Text Search
-        if (searchVal) {
-            const searchableFields = [
-                row[COLS.structRef], row[COLS.assetName], row[COLS.route], row[COLS.remarks], row[COLS.type]
-            ].map(s => (s || "").toLowerCase()).join(" | ");
-
-            if (!searchableFields.includes(searchVal)) return false;
-        }
-
-        return true;
-    });
-
-    currentFiltered = filtered;
-    updateKPIs(filtered);
-    updateCircularKpis(filtered);
-    addMarkers(filtered);
-    renderTable(filtered);
-    updateCharts(filtered);
-    updateFilterTags(filtered);
-}
-
-function updateFilterTags(filtered) {
-    const filters = document.querySelectorAll(".filters select, .filters input[type='text']");
-    const container = document.getElementById("filterTags");
-    container.innerHTML = `<span class="filter-chip text-blue" id="dataLoadedCount">Total ${filtered.length} / ${allData.length} Structures</span>`;
-
-    filters.forEach(filter => {
-        let value = filter.value;
-        let label = filter.previousElementSibling.textContent.replace(':', '');
-
-        if (filter.type === 'select-one' && value) {
-            const option = filter.querySelector(`option[value="${value}"]`);
-            const displayValue = option ? option.textContent : value;
-            const chip = document.createElement('span');
-            chip.className = 'filter-chip';
-            chip.innerHTML = `${label}: ${displayValue} <span class="filter-chip-clear" onclick="clearFilter('${filter.id}')">×</span>`;
-            container.appendChild(chip);
-        } else if (filter.type === 'text' && value) {
-            const chip = document.createElement('span');
-            chip.className = 'filter-chip';
-            chip.innerHTML = `${label}: "${value}" <span class="filter-chip-clear" onclick="clearFilter('${filter.id}')">×</span>`;
-            container.appendChild(chip);
-        }
-    });
-
-    document.getElementById("table-summary-text").textContent = `Showing ${filtered.length} of ${allData.length} total records.`;
-}
-
-function clearFilter(filterId) {
-    const filterEl = document.getElementById(filterId);
-    if (filterEl.tagName === 'SELECT') {
-        filterEl.value = ""; // Reset dropdown
-    } else if (filterEl.tagName === 'INPUT') {
-        filterEl.value = ""; // Clear text input
+    if (format === 'csv') {
+      const csv = Papa.unparse(exportDataArray);
+      downloadFile(csv, `${filenameBase}.csv`, 'text/csv');
+    } else if (format === 'xlsx') {
+      const ws = XLSX.utils.aoa_to_sheet(exportDataArray);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Structures Data");
+      XLSX.writeFile(wb, `${filenameBase}.xlsx`);
+    } else if (format === 'pdf') {
+      exportPDF(exportDataArray, filenameBase);
     }
-    applyFilters();
-}
+  };
 
-// === KPI & CIRCLE LOGIC ==============================================
-function updateKPIs(data) {
-    const total = data.length;
-    const completed = data.filter(row => row[COLS.status] === "COMPLETED").length;
-    const noAccess = data.filter(row => row[COLS.status] === "NO ACCESS").length;
-    const pending = data.filter(row => classifyRemarks(row[COLS.remarks]) === "Pending").length;
-    const bridges = data.filter(row => (row[COLS.type] || "").toLowerCase().includes("bridge")).length;
-    const underpasses = data.filter(row => (row[COLS.type] || "").toLowerCase().includes("underpass")).length;
+  function exportPDF(data, filenameBase) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape A4
 
-    document.getElementById("totalStructuresCount").textContent = total.toLocaleString();
-    document.getElementById("completedStructuresCount").textContent = completed.toLocaleString();
-    document.getElementById("noAccessStructuresCount").textContent = noAccess.toLocaleString();
-    document.getElementById("pendingStructuresCount").textContent = pending.toLocaleString();
-    document.getElementById("bridgesCount").textContent = bridges.toLocaleString();
-    document.getElementById("underpassesCount").textContent = underpasses.toLocaleString();
+      // Use only essential columns for PDF landscape to fit A4 page
+      const headers = [['S.N', 'Asset Name', 'Type', 'Struct. Ref.', 'RTE', 'Zone', 'Status', 'Remarks', 'Maximo ID']];
+      const body = data.slice(1).map(row => [
+          row[0], // S.N
+          row[1], // Asset Name
+          row[2], // Type
+          row[3], // Struct. Ref.
+          row[4], // RTE
+          row[6], // Zone
+          row[7], // Status
+          row[8], // Remarks
+          row[5] // Maximo ID
+      ]);
 
-    // Overall Completion for the circle KPI section
-    const completionPct = formatPercent(completed, total);
-    document.getElementById("surveyCompletionPercentText").textContent = completionPct;
-}
+      doc.setFontSize(14);
+      doc.text("Structures Survey Data (Filtered)", 148.5, 15, null, null, "center");
+      doc.setFontSize(10);
+      doc.text(`Exported: ${new Date().toLocaleDateString()}`, 148.5, 22, null, null, "center");
 
-function updateCircularKpi({ fillId, innerId, pctId, numerator, denominator, pct }) {
-    const fillEl = document.getElementById(fillId);
-    const innerEl = document.getElementById(innerId);
-    const pctEl = document.getElementById(pctId);
+      doc.autoTable({
+          head: headers,
+          body: body,
+          startY: 30,
+          styles: { fontSize: 8, cellPadding: 1, overflow: 'linebreak' },
+          headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
+          margin: { top: 25, left: 10, right: 10, bottom: 10 },
+          theme: 'striped'
+      });
 
-    const safeNum = Number.isFinite(numerator) ? numerator : 0;
-    const safeDen = Number.isFinite(denominator) ? denominator : 0;
-    const safePct = Number.isFinite(pct) && pct >= 0 ? Math.max(0, Math.min(100, pct)) : 0;
+      doc.save(`${filenameBase}.pdf`);
+  }
 
-    if (fillEl) {
-        // Calculate clip path angle (0deg is top, 180deg is halfway, 360deg is full)
-        const angle = (safePct / 100) * 360;
+  function downloadFile(content, fileName, mimeType) {
+    const a = document.createElement('a');
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
-        // Logic from existing dashboards for circle fill:
-        // Clip rect starts at 0, goes to full width/height (92px here), clipped at 50% width (46px)
-        // fill's background is a gradient. The clip path rotates the background to show progress.
-        fillEl.style.transform = `rotate(${angle}deg)`;
-        if (safePct > 50) {
-             // For over 50%, show the whole semi-circle first (by clipping to the full circle), then rotate
-             fillEl.style.clip = 'rect(auto, auto, auto, auto)';
+  /*
+  ================================================================================================
+  9. MODAL LOGIC
+  ================================================================================================
+  */
+
+  const modalBackdrop = elements.detailModal;
+  const modalBody = elements.modalBody;
+  const modalAssetName = elements.modalAssetName;
+  const modalCloseBtn = modalBackdrop ? modalBackdrop.querySelector(".modal-close") : null;
+
+  function closeDetailModal() {
+    if (!modalBackdrop) return;
+    modalBackdrop.classList.remove("is-open");
+    modalBackdrop.setAttribute("aria-hidden", "true");
+  }
+
+  window.openDetailModal = function(record) {
+    if (!modalBackdrop || !modalBody) return;
+
+    modalAssetName.textContent = record[DATA_MAPPING.AssetName] || 'N/A';
+
+    let html = "<dl class=\"detail-list\">";
+
+    // Custom display order
+    const displayOrder = [
+        { label: 'S.N', key: DATA_MAPPING.SN },
+        { label: 'Asset Name', key: DATA_MAPPING.AssetName },
+        { label: 'Type', key: DATA_MAPPING.Type },
+        { label: 'Status', key: DATA_MAPPING.Status },
+        { label: 'Struct. Ref.', key: DATA_MAPPING.StructRef },
+        { label: 'Route (RTE)', key: DATA_MAPPING.Route },
+        { label: 'Zone', key: DATA_MAPPING.Zone },
+        { label: 'Maximo ID', key: DATA_MAPPING.MaximoID },
+        { label: 'Latitude', key: DATA_MAPPING.Latitude },
+        { label: 'Longitude', key: DATA_MAPPING.Longitude },
+        { label: 'Remarks', key: DATA_MAPPING.Remarks },
+        { label: '--- MEP Status ---', key: null },
+        { label: 'Lights', key: DATA_MAPPING.Lights },
+        { label: 'UPS', key: DATA_MAPPING.UPS },
+        { label: 'Electrical DB', key: DATA_MAPPING.ElectricalDB },
+        { label: 'FF', key: DATA_MAPPING.FF },
+        { label: 'FA', key: DATA_MAPPING.FA },
+        { label: 'HVAC', key: DATA_MAPPING.HVAC },
+        { label: 'Elevators', key: DATA_MAPPING.Elevators },
+        { label: 'Escalator', key: DATA_MAPPING.Escalator },
+        { label: 'ITS', key: DATA_MAPPING.ITS },
+        { label: 'ELV', key: DATA_MAPPING.ELV }
+    ];
+
+    displayOrder.forEach(({ label, key }) => {
+        if (key === null) {
+            html += `<div><dt style="grid-column: 1 / span 2; border-right: none; text-align: center; color: var(--accent-blue); padding-top: 10px; margin-top: 5px;">${label}</dt></div>`;
         } else {
-             // For 50% or less, clip to the right half
-             fillEl.style.clip = 'rect(0, 92px, 92px, 46px)';
-        }
-    }
-
-    if (innerEl) innerEl.textContent = `${safeNum} / ${safeDen}`;
-    if (pctEl) pctEl.textContent = safePct.toFixed(1) + "%";
-}
-
-
-function updateCircularKpis(data) {
-    const totalStructures = data.length;
-
-    // 1. Footbridges
-    const footbridges = data.filter(row => row[COLS.type] === "Footbridge");
-    const footbridgesCompleted = footbridges.filter(row => row[COLS.status] === "COMPLETED").length;
-    const footbridgesTotal = footbridges.length;
-    const footbridgesPct = footbridgesTotal > 0 ? (footbridgesCompleted / footbridgesTotal) * 100 : 0;
-    document.getElementById("footbridgesCount").textContent = footbridgesTotal.toLocaleString();
-    updateCircularKpi({
-        fillId: "circle-footbridge-fill", innerId: "circle-footbridge-inner", pctId: "circle-footbridge-pct",
-        numerator: footbridgesCompleted, denominator: footbridgesTotal, pct: footbridgesPct,
-    });
-
-    // 2. Camel Crossings
-    const camels = data.filter(row => row[COLS.type] === "Camel Crossing");
-    const camelsCompleted = camels.filter(row => row[COLS.status] === "COMPLETED").length;
-    const camelsTotal = camels.length;
-    const camelsPct = camelsTotal > 0 ? (camelsCompleted / camelsTotal) * 100 : 0;
-    document.getElementById("camelCrossingsCount").textContent = camelsTotal.toLocaleString();
-    updateCircularKpi({
-        fillId: "circle-camel-fill", innerId: "circle-camel-inner", pctId: "circle-camel-pct",
-        numerator: camelsCompleted, denominator: camelsTotal, pct: camelsPct,
-    });
-
-    // 3. Full MEP Systems
-    const fullMep = data.filter(row => {
-        return MEP_SYSTEMS.every(sys => isTruthy(row[sys]));
-    });
-    const fullMepCount = fullMep.length;
-    const fullMepPct = totalStructures > 0 ? (fullMepCount / totalStructures) * 100 : 0;
-    document.getElementById("fullMepSystemsCount").textContent = fullMepCount.toLocaleString();
-    updateCircularKpi({
-        fillId: "circle-mep-fill", innerId: "circle-mep-inner", pctId: "circle-mep-pct",
-        numerator: fullMepCount, denominator: totalStructures, pct: fullMepPct,
-    });
-
-    // 4. Overall Survey Completion (COMPLETED / Total)
-    const overallCompleted = data.filter(row => row[COLS.status] === "COMPLETED").length;
-    const overallPct = totalStructures > 0 ? (overallCompleted / totalStructures) * 100 : 0;
-    updateCircularKpi({
-        fillId: "circle-total-fill", innerId: "circle-total-inner", pctId: "circle-total-pct",
-        numerator: overallCompleted, denominator: totalStructures, pct: overallPct,
-    });
-}
-
-
-// === MAP LOGIC =======================================================
-function initMap() {
-    if (map) map.remove(); // Remove existing map if any
-
-    const qatarBounds = L.latLngBounds(L.latLng(24.5, 50.5), L.latLng(26.5, 52.0)); // Rough bounds for Qatar
-    map = L.map('map', {
-        center: [25.35, 51.25], // Centered roughly in Qatar North area
-        zoom: 10,
-        maxBounds: qatarBounds,
-        maxBoundsViscosity: 1.0,
-        minZoom: 9
-    });
-
-    // ESRI World Imagery as requested
-    L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        }
-    ).addTo(map);
-
-    markerLayer.addTo(map);
-
-    map.on('popupopen', (e) => {
-        const marker = e.popup._source;
-        const row = marker.options.row;
-        highlightTableRow(row.uniqueId);
-    });
-
-    map.on('popupclose', (e) => {
-        unhighlightTableRow();
-    });
-}
-
-function getMarkerColor(row) {
-    if (row.uniqueId === selectedAsset?.uniqueId) return chartColors.primary; // Blue for selected
-    if (row[COLS.status] === "COMPLETED") return chartColors.secondary; // Green
-    if (row[COLS.status] === "NO ACCESS") return chartColors.tertiary; // Amber
-    if (classifyRemarks(row[COLS.remarks]) === "Pending") return chartColors.quaternary; // Red
-    return 'grey'; // Default for other statuses
-}
-
-function createPopupContent(row) {
-    const lat = row.lat;
-    const lon = row.lng;
-    const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
-
-    const navLink = hasCoords ? `<br/><br/>
-        <a href="http://www.google.com/maps/place/${encodeURIComponent(lat)},${encodeURIComponent(lon)}" target="_blank" style="
-          display:inline-block; padding:6px 12px; background:#38bdf8; color:#020617; border-radius:999px; font-weight:600; text-decoration:none; box-shadow:0 10px 20px rgba(56,189,248,0.35);
-        "> 🚗 Navigate to Site </a>` : "";
-
-    const systemsSummary = getSystemSummary(row);
-
-    return `
-        <strong>${row[COLS.structRef] || "N/A"} - ${row[COLS.assetName] || "No Name"}</strong>
-        <br/>
-        Type: ${row[COLS.type] || "-"} | Route: ${row[COLS.route] || "-"}
-        <br/>
-        Status: <strong>${row[COLS.status] || "-"}</strong> | Zone: ${row[COLS.zone] || "-"}
-        <br/>
-        Maximo ID: ${row[COLS.maximoId] || "-"}
-        <br/>
-        Remarks: ${row[COLS.remarks] || "-"}
-        <br/>
-        MEP Summary: ${systemsSummary}
-        ${navLink}
-    `;
-}
-
-function getMarkerIcon(color) {
-    // Simple colored circle marker for consistency with base dashboards
-    const size = 8;
-    return L.divIcon({
-        className: 'custom-div-icon',
-        html: `<div style="background-color:${color}; width:${size * 2}px; height:${size * 2}px; border-radius:50%; border:2px solid #fff; box-shadow: 0 0 8px ${color};"></div>`,
-        iconSize: [size * 2, size * 2],
-        iconAnchor: [size, size]
-    });
-}
-
-function addMarkers(data) {
-    markerLayer.clearLayers();
-    let bounds = null;
-    let validMarkers = 0;
-
-    const markersToShow = selectedAsset && mapModeToggle.dataset.mode === 'selected'
-        ? [selectedAsset]
-        : data;
-
-    markersToShow.forEach(row => {
-        const lat = row.lat;
-        const lng = row.lng;
-
-        if (Number.isFinite(lat) && Number.isFinite(lng)) {
-            const color = getMarkerColor(row);
-            const icon = getMarkerIcon(color);
-            const marker = L.marker([lat, lng], {
-                icon: icon,
-                row: row, // Attach data row to marker
-                title: `${row[COLS.structRef]} - ${row[COLS.assetName]}`
-            }).bindPopup(createPopupContent(row));
-
-            marker.on('click', () => {
-                selectAsset(row.uniqueId);
-            });
-
-            markerLayer.addLayer(marker);
-            validMarkers++;
-
-            if (!bounds) {
-                bounds = L.latLngBounds([lat, lng], [lat, lng]);
-            } else {
-                bounds.extend([lat, lng]);
+            let value = record[key];
+            if (typeof value === 'boolean') {
+                value = value ? '<span style="color: var(--accent-green);">True</span>' : '<span style="color: var(--accent-red);">False</span>';
             }
-        }
-    });
-
-    if (validMarkers > 0) {
-        try {
-             // Only zoom if markers are shown
-            map.fitBounds(markerLayer.getBounds(), { padding: [50, 50], maxZoom: 16 });
-        } catch (e) {
-            // map.fitBounds throws if only one point and map is small, safe to ignore or just pan
-            if (validMarkers === 1) map.setView(markerLayer.getLayers()[0].getLatLng(), 16);
-        }
-    } else {
-         // Reset map view if no markers
-        map.setView([25.35, 51.25], 10);
-    }
-}
-
-function flyToAsset(row) {
-    const lat = row.lat;
-    const lng = row.lng;
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        map.flyTo([lat, lng], 16, { duration: 0.8 });
-        // After flying, open the popup
-        setTimeout(() => {
-            markerLayer.eachLayer(layer => {
-                if (layer.options.row.uniqueId === row.uniqueId) {
-                    layer.openPopup();
-                }
-            });
-        }, 800);
-    }
-}
-
-function selectAsset(uniqueId) {
-    selectedAsset = currentFiltered.find(d => d.uniqueId === uniqueId);
-    if (!selectedAsset) {
-        selectedAsset = null;
-        unhighlightTableRow();
-    }
-    // Re-render markers to update selected marker color
-    addMarkers(currentFiltered);
-    highlightTableRow(uniqueId);
-    if (selectedAsset) flyToAsset(selectedAsset);
-}
-
-const mapModeToggle = document.getElementById("mapModeToggle");
-mapModeToggle.dataset.mode = 'all';
-
-function toggleMapMode() {
-    if (mapModeToggle.dataset.mode === 'all') {
-        mapModeToggle.dataset.mode = 'selected';
-        mapModeToggle.textContent = "Map Mode: Selected Structure Only";
-        mapModeToggle.classList.add("map-toggle-btn-active");
-    } else {
-        mapModeToggle.dataset.mode = 'all';
-        mapModeToggle.textContent = "Map Mode: All Filtered Markers";
-        mapModeToggle.classList.remove("map-toggle-btn-active");
-    }
-    addMarkers(currentFiltered); // Re-run marker function to apply mode
-}
-
-// === TABLE LOGIC =====================================================
-function renderTable(data) {
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
-    unhighlightTableRow(); // Clear any previous selection
-
-    if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center">No structures found matching the current filters.</td></tr>`;
-        return;
-    }
-
-    data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.dataset.uniqueId = row.uniqueId;
-
-        const statusClass = row[COLS.status] === "COMPLETED" ? "status-completed" :
-                            row[COLS.status] === "NO ACCESS" ? "status-no-access" :
-                            "status-other";
-        const remarksCategory = classifyRemarks(row[COLS.remarks]);
-        const systemsSummary = getSystemSummary(row);
-
-        tr.innerHTML = `
-            <td>${row.sn}</td>
-            <td>${row[COLS.structRef] || "-"}</td>
-            <td>${row[COLS.assetName] || "-"}</td>
-            <td>${row[COLS.type] || "-"}</td>
-            <td>${row[COLS.route] || "-"}</td>
-            <td>${row[COLS.zone] || "-"}</td>
-            <td class="td-status ${statusClass}">${row[COLS.status] || "-"}</td>
-            <td>${row[COLS.maximoId] || "-"}</td>
-            <td title="${row[COLS.remarks]}">${remarksCategory}</td>
-            <td title="${systemsSummary}">${systemsSummary}</td>
-        `;
-
-        // clicking a row moves map to that asset and selects it
-        tr.addEventListener("click", () => selectAsset(row.uniqueId));
-
-        tbody.appendChild(tr);
-    });
-}
-
-function highlightTableRow(uniqueId) {
-    unhighlightTableRow();
-    const tr = document.querySelector(`tr[data-unique-id="${uniqueId}"]`);
-    if (tr) {
-        tr.classList.add("row-selected");
-        tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-}
-
-function unhighlightTableRow() {
-    document.querySelectorAll(".row-selected").forEach(row => {
-        row.classList.remove("row-selected");
-    });
-}
-
-// === CHARTS LOGIC ====================================================
-function updateCharts(data) {
-    // Chart 1: Structures by Type
-    const typeCounts = data.reduce((acc, row) => {
-        const type = normalizeType(row[COLS.type]);
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-    }, {});
-
-    const typeLabels = Object.keys(typeCounts);
-    const typeValues = Object.values(typeCounts);
-
-    const typeCtx = document.getElementById("typeChart").getContext("2d");
-    if (typeChart) typeChart.destroy();
-
-    typeChart = new Chart(typeCtx, {
-        type: 'doughnut',
-        data: {
-            labels: typeLabels,
-            datasets: [{
-                data: typeValues,
-                backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.tertiary, chartColors.quaternary, chartColors.purple, chartColors.pink, chartColors.orange, chartColors.lightBlue, 'grey'],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            ...CHART_CONFIG,
-            plugins: {
-                ...CHART_CONFIG.plugins,
-                legend: { position: 'right' },
-            },
-        }
-    });
-
-    document.getElementById("type-chart-summary").textContent = `Distribution across ${typeLabels.length} unique structure types.`;
-
-
-    // Chart 2: Status Distribution
-    const statusCounts = data.reduce((acc, row) => {
-        const status = row[COLS.status] || "N/A";
-        acc[status] = (acc[status] || 0) + 1;
-        return acc;
-    }, {});
-
-    const statusLabels = Object.keys(statusCounts);
-    const statusValues = Object.values(statusCounts);
-
-    const statusCtx = document.getElementById("statusChart").getContext("2d");
-    if (statusChart) statusChart.destroy();
-
-    statusChart = new Chart(statusCtx, {
-        type: 'bar',
-        data: {
-            labels: statusLabels,
-            datasets: [{
-                label: 'Structure Count',
-                data: statusValues,
-                backgroundColor: statusLabels.map(label => {
-                    if (label === "COMPLETED") return chartColors.secondary;
-                    if (label === "NO ACCESS") return chartColors.tertiary;
-                    if (label === "PENDING") return chartColors.quaternary;
-                    return chartColors.primary;
-                }),
-                borderColor: 'rgba(255, 255, 255, 0.2)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            ...CHART_CONFIG,
-            plugins: {
-                ...CHART_CONFIG.plugins,
-                legend: { display: false }
-            },
-            scales: {
-                x: {
-                    ...CHART_CONFIG.scales.x,
-                    grid: { display: false }
-                },
-                y: {
-                    ...CHART_CONFIG.scales.y,
-                    beginAtZero: true
-                }
+            if (value === null || value === undefined || String(value).trim() === '') {
+                value = '—';
             }
+            html += `<div><dt>${label}</dt><dd>${value}</dd></div>`;
         }
     });
 
-    document.getElementById("status-chart-summary").textContent = `Current survey status for ${data.length} filtered structures.`;
-}
+    html += "</dl>";
+    modalBody.innerHTML = html;
+    modalBackdrop.classList.add("is-open");
+    modalBackdrop.setAttribute("aria-hidden", "false");
+    if (modalCloseBtn) modalCloseBtn.focus();
+  };
 
-// === EXPORT LOGIC ====================================================
-
-function buildTableData() {
-    const rows = currentFiltered.length > 0 ? currentFiltered : allData;
-    if (!rows || !rows.length) return null;
-
-    const headers = [
-        "S.N", "Struct. Ref.", "Asset Name", "Type", "Route", "Zone", "Status", "Maximo ID", "Remarks", "Systems Summary"
-    ];
-
-    const body = rows.map((row) => [
-        row.sn,
-        row[COLS.structRef] || "-",
-        row[COLS.assetName] || "-",
-        row[COLS.type] || "-",
-        row[COLS.route] || "-",
-        row[COLS.zone] || "-",
-        row[COLS.status] || "-",
-        row[COLS.maximoId] || "-",
-        row[COLS.remarks] || "-",
-        getSystemSummary(row),
-    ]);
-
-    return { headers, body };
-}
-
-function exportCurrentViewCsv() {
-    const data = buildTableData();
-    if (!data) { alert("No data to export."); return; }
-
-    const { headers, body } = data;
-    const allRows = [headers, ...body];
-    const csvContent = allRows
-        .map((row) => row
-            .map((val) => {
-                const v = val == null ? "" : String(val);
-                // Simple CSV escaping: double quotes, newline, comma
-                if (/[",\n]/.test(v)) {
-                    return '"' + v.replace(/"/g, '""') + '"';
-                }
-                return v;
-            })
-            .join(",")
-        )
-        .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "Qatar_North_Structures_Survey_Data.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function exportCurrentViewXlsx() {
-    const data = buildTableData();
-    if (!data) { alert("No data to export."); return; }
-
-    const { headers, body } = data;
-    const allRows = [headers, ...body];
-
-    const ws = XLSX.utils.aoa_to_sheet(allRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Structures_Data");
-
-    // Attempt to clone PDF header logic for extra info in XLSX
-    const title = "Qatar North Structures Survey Dashboard";
-    const subtitle = `Filtered Data Export (${currentFiltered.length} records)`;
-    const date = `Export Date: ${new Date().toLocaleString()}`;
-
-    const colCount = headers.length;
-    const headerRows = [];
-
-    // Row 1: Title (will merge)
-    const row1 = new Array(colCount).fill("");
-    row1[0] = title;
-    headerRows.push(row1);
-
-    // Row 2: Subtitle
-    const row2 = new Array(colCount).fill("");
-    row2[0] = subtitle;
-    headerRows.push(row2);
-
-    // Row 3: Date
-    const row3 = new Array(colCount).fill("");
-    row3[0] = date;
-    headerRows.push(row3);
-
-    XLSX.utils.sheet_add_aoa(ws, headerRows, { origin: "A1" });
-
-    // Merges for the title, subtitle, date
-    ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } },
-        { s: { r: 2, c: 0 }, e: { r: 2, c: colCount - 1 } },
-    ];
-
-    // Shift data down by 3 rows
-    ws['!ref'] = XLSX.utils.encode_range({
-        s: { r: 3, c: 0 },
-        e: { r: ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']).e.r + 3 : body.length + 3, c: colCount - 1 }
+  if (modalCloseBtn && modalBackdrop) {
+    modalCloseBtn.addEventListener("click", closeDetailModal);
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) closeDetailModal();
     });
-
-    XLSX.writeFile(wb, "Qatar_North_Structures_Survey_Data.xlsx");
-}
-
-function drawStructuresPdfHeader(doc) {
-    const title = "Qatar North Structures Survey Dashboard";
-    const subtitle = `Filtered Data Export (${currentFiltered.length} records)`;
-    const date = `Export Date: ${new Date().toLocaleString()}`;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const marginX = 10;
-    const logoHeight = 12;
-
-    // Logos - assuming the placeholders are in the header
-    const leftImg = document.querySelector("header .header-left img");
-    const rightImg = document.querySelector("header .header-right img");
-
-    if (leftImg) {
-        // Simple sizing for placeholder images
-        const ratio = 150 / 50; // Assume 150x50 placeholder
-        const w = logoHeight * ratio;
-        try { doc.addImage(leftImg.src, "PNG", marginX, 8, w, logoHeight); } catch(e) {}
-    }
-
-    if (rightImg) {
-        const ratio = 150 / 50;
-        const w = logoHeight * ratio;
-        try { doc.addImage(rightImg.src, "PNG", pageWidth - marginX - w, 8, w, logoHeight); } catch(e) {}
-    }
-
-    // Title
-    doc.setFontSize(16);
-    doc.setTextColor(15, 23, 42); // Dark color for light background in PDF
-    doc.text(title, pageWidth / 2, 16, { align: "center" });
-
-    // Subtitle
-    doc.setFontSize(10);
-    doc.setTextColor(71, 85, 105);
-    doc.text(subtitle, pageWidth / 2, 22, { align: "center" });
-
-    // Date
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text(date, pageWidth / 2, 26, { align: "center" });
-}
-
-function exportCurrentViewPdf() {
-    const data = buildTableData();
-    if (!data) { alert("No data to export."); return; }
-    const { headers, body } = data;
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: "landscape" });
-
-    doc.autoTable({
-        head: [headers],
-        body: body,
-        margin: { top: 30, left: 10, right: 10 },
-        styles: { fontSize: 6, cellPadding: 1.2 },
-        headStyles: { fillColor: [15, 23, 42] }, // Dark header
-        didDrawPage: function () {
-            drawStructuresPdfHeader(doc);
-        },
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalBackdrop.classList.contains("is-open")) {
+        closeDetailModal();
+      }
     });
+  }
 
-    doc.save("Qatar_North_Structures_Survey_Data.pdf");
-}
 
-// === INITIALIZATION ==================================================
-document.addEventListener("DOMContentLoaded", loadData);
+  /*
+  ================================================================================================
+  10. EVENT LISTENERS AND MAIN EXECUTION
+  ================================================================================================
+  */
 
-// Update datetime every minute
-setInterval(updateCurrentDateTime, 60000);
+  function updateDateTime() {
+    const now = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Qatar' };
+    document.getElementById('dateTimeDisplay').textContent = now.toLocaleString('en-US', options);
+  }
+
+  // Add event listeners for filters
+  document.querySelectorAll('.filter-select').forEach(select => {
+    select.addEventListener('change', applyFilters);
+  });
+  elements.filterSearch.addEventListener('input', applyFilters);
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+    initMap();
+    fetchAndProcessData();
+  });
 </script>
 </body>
 </html>
