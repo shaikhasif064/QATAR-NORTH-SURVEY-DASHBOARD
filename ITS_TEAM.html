@@ -1,914 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Qatar North ITS - Field Operations Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ITS Field Ops | Qatar North</title>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  
-  <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --dark-bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(148, 163, 184, 0.2);
+            --google-maps: #34a853;
+            --waze: #33ccff;
+        }
 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, system-ui, sans-serif; background: var(--dark-bg); color: var(--text); overflow: hidden; }
 
-  <style>
-    :root {
-      --bg-dark: #020617;
-      --glass-bg: rgba(15, 23, 42, 0.85);
-      --glass-border: rgba(148, 163, 184, 0.25);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      
-      --accent-blue: #38bdf8;
-      --accent-green: #22c55e;
-      --accent-red: #ef4444;
-      --accent-amber: #f59e0b;
-      --accent-purple: #a855f7;
+        /* LAYOUT */
+        #map { height: 100vh; width: 100vw; z-index: 1; }
 
-      --priority-critical: #ef4444;
-      --priority-high: #f97316;
-      --priority-medium: #eab308;
-      --priority-low: #22c55e;
+        /* SEARCH BAR OVERLAY */
+        .overlay-controls {
+            position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+        }
+        .search-box {
+            background: var(--surface); padding: 12px; border-radius: 12px;
+            border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; gap: 8px; pointer-events: auto;
+        }
+        .search-box input {
+            background: transparent; border: none; color: white; flex: 1; font-size: 16px; outline: none;
+        }
 
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --radius-sm: 8px;
-    }
+        /* NAVIGATION BUTTONS */
+        .nav-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .nav-btn {
+            padding: 10px; border-radius: 8px; text-decoration: none; color: white;
+            font-weight: bold; text-align: center; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn-google { background: var(--google-maps); }
+        .btn-waze { background: var(--waze); color: #000; }
 
-    /* LIGHT THEME OVERRIDES */
-    body[data-theme="light"] {
-      --bg-dark: #f1f5f9;
-      --glass-bg: rgba(255, 255, 255, 0.92);
-      --glass-border: rgba(203, 213, 225, 0.6);
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-    }
+        /* BOTTOM DRAWER (Mobile Optimized Table) */
+        .drawer {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 40vh;
+            background: var(--surface); z-index: 1001; border-top: 1px solid var(--border);
+            transition: transform 0.3s ease; transform: translateY(calc(100% - 40px));
+            display: flex; flex-direction: column;
+        }
+        .drawer.open { transform: translateY(0); }
+        .drawer-handle {
+            height: 40px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; background: var(--surface);
+        }
+        .drawer-handle::after {
+            content: ''; width: 40px; height: 4px; background: var(--text-muted); border-radius: 2px;
+        }
+        .table-container { overflow-y: auto; flex: 1; padding: 0 15px 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px; color: var(--text-muted); position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); }
+        td { padding: 10px; border-bottom: 1px solid var(--border); }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    
-    body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      min-height: 100vh;
-      /* Subtle animated gradient background */
-      background: 
-        radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%), 
-        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%),
-        var(--bg-dark);
-      transition: background-color 0.3s ease;
-    }
+        /* RE-CENTER BUTTON */
+        .locate-btn {
+            position: absolute; bottom: calc(40vh + 20px); right: 20px; z-index: 1000;
+            background: var(--primary); width: 50px; height: 50px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            cursor: pointer; border: none;
+        }
 
-    /* LAYOUT */
-    .shell {
-      max-width: 1920px;
-      margin: 0 auto;
-      padding: 12px 16px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* HEADER */
-    header {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: var(--radius-lg);
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    }
-
-    .header-content h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin: 0;
-    }
-
-    .header-content p {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-      margin-bottom: 0;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .theme-toggle {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid var(--glass-border);
-      color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: 99px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .theme-toggle:hover { background: rgba(255,255,255,0.2); }
-
-    /* CARDS & GLASSWARE */
-    .glass-card {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-md);
-      padding: 12px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-
-    /* KPI GRID */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 8px;
-    }
-
-    .kpi-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-sm);
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .kpi-card::before {
-      content:''; position: absolute; top:0; left:0; width: 4px; height: 100%;
-      background: var(--accent-blue); opacity: 0.7;
-    }
-    .kpi-card.critical::before { background: var(--priority-critical); }
-    .kpi-card.success::before { background: var(--accent-green); }
-
-    .kpi-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
-    .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
-    .kpi-sub { font-size: 0.7rem; color: var(--text-muted); }
-
-    /* FILTERS */
-    .filters-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: flex-end;
-    }
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .filter-group label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-    .filter-group select, .filter-group input {
-      background: rgba(0,0,0,0.2);
-      border: 1px solid var(--glass-border);
-      color: var(--text-main);
-      padding: 6px 10px;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      min-width: 120px;
-    }
-    body[data-theme="light"] .filter-group select, 
-    body[data-theme="light"] .filter-group input { 
-        background: rgba(255,255,255,0.8); 
-        color: #0f172a;
-    }
-
-    /* MAIN GRID (MAP + CHARTS) */
-    .main-layout {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 12px;
-      min-height: 500px;
-    }
-
-    /* MAP */
-    .map-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      min-height: 500px;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      border: 1px solid var(--glass-border);
-    }
-    #map { height: 100%; width: 100%; z-index: 1; }
-
-    /* CHARTS COLUMN */
-    .charts-col {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .chart-box {
-      flex: 1;
-      min-height: 200px;
-      position: relative;
-    }
-    .chart-title { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
-
-    /* TABLE */
-    .table-container {
-      overflow-x: auto;
-      max-height: 400px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-    }
-    th {
-      background: rgba(255,255,255,0.05);
-      position: sticky;
-      top: 0;
-      padding: 8px 10px;
-      text-align: left;
-      font-weight: 600;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--glass-border);
-      backdrop-filter: blur(4px);
-    }
-    td {
-      padding: 8px 10px;
-      border-bottom: 1px solid rgba(148,163,184,0.1);
-      color: var(--text-main);
-    }
-    tr:hover { background: rgba(56, 189, 248, 0.1); cursor: pointer; }
-
-    /* BADGES */
-    .badge {
-      padding: 2px 8px;
-      border-radius: 99px;
-      font-size: 0.65rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      display: inline-block;
-    }
-    .badge-critical { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
-    .badge-high { background: rgba(249, 115, 22, 0.2); color: #fdba74; border: 1px solid rgba(249, 115, 22, 0.4); }
-    .badge-medium { background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.4); }
-    .badge-low { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); }
-    .badge-normal { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
-    
-    /* POPUP STYLES */
-    .leaflet-popup-content-wrapper {
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(8px);
-      color: #f8fafc;
-      border-radius: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-    }
-    .leaflet-popup-tip { background: rgba(15, 23, 42, 0.95); }
-    .popup-row { margin-bottom: 4px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
-    .popup-label { font-weight: bold; color: #94a3b8; font-size: 11px; text-transform: uppercase; }
-    .btn-nav {
-      display: block; width: 100%; text-align: center;
-      background: var(--accent-blue); color: #0f172a;
-      padding: 6px; border-radius: 6px; margin-top: 8px;
-      text-decoration: none; font-weight: 700; font-size: 12px;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 1024px) {
-      .main-layout { grid-template-columns: 1fr; }
-      .charts-col { flex-direction: row; flex-wrap: wrap; }
-      .chart-box { min-width: 250px; }
-    }
-    @media (max-width: 768px) {
-      .header-actions { width: 100%; justify-content: space-between; margin-top: 8px; }
-      .filters-bar { width: 100%; }
-      .filter-group { flex: 1; }
-      #map { height: 400px; }
-    }
-  </style>
+        /* POPUP STYLING */
+        .leaflet-popup-content-wrapper { background: var(--surface); color: white; border: 1px solid var(--border); }
+        .leaflet-popup-tip { background: var(--surface); }
+        .data-row { margin-bottom: 5px; font-size: 12px; }
+        .data-label { color: var(--text-muted); font-weight: bold; margin-right: 5px; text-transform: uppercase; font-size: 10px; }
+    </style>
 </head>
-<body data-theme="dark">
+<body>
 
-<div class="shell">
-  <header>
-    <div class="header-content">
-      <h1>Qatar North ITS - Field Operations</h1>
-      <p id="lastUpdated">Live Asset Status & Maintenance Tracking</p>
+    <div class="overlay-controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search Asset Tag, ID, or Type...">
+        </div>
     </div>
-    <div class="header-actions">
-      <div id="clock" style="font-family: monospace; font-size: 0.9rem; color: var(--accent-blue);">00:00:00</div>
-      <button class="theme-toggle" onclick="toggleTheme()">Light Mode</button>
-    </div>
-  </header>
 
-  <section class="kpi-grid">
-    <div class="kpi-card">
-      <span class="kpi-label">Total Assets</span>
-      <span class="kpi-value" id="kpi-total">-</span>
-      <span class="kpi-sub">In Database</span>
-    </div>
-    <div class="kpi-card critical">
-      <span class="kpi-label">Open CM / Pending</span>
-      <span class="kpi-value" id="kpi-open">-</span>
-      <span class="kpi-sub" id="kpi-open-pct">0% of total</span>
-    </div>
-    <div class="kpi-card success">
-      <span class="kpi-label">Operational</span>
-      <span class="kpi-value" id="kpi-closed">-</span>
-      <span class="kpi-sub">Completed / Normal</span>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-label">Priority: Critical</span>
-      <span class="kpi-value" id="kpi-critical">-</span>
-      <span class="kpi-sub">Requires immediate action</span>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-label">Your Location</span>
-      <span class="kpi-value" id="tech-dist">-</span>
-      <span class="kpi-sub">Distance to selected asset</span>
-    </div>
-  </section>
+    <button class="locate-btn" onclick="reCenter()" title="My Location">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+    </button>
 
-  <section class="glass-card">
-    <div class="filters-bar">
-      <div class="filter-group">
-        <label>Search</label>
-        <input type="text" id="searchInput" placeholder="ID, Name, Remarks..." style="color:var(--text-main);">
-      </div>
-      <div class="filter-group">
-        <label>Zone Area</label>
-        <select id="filterZone"><option value="All">All Zones</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Device Type</label>
-        <select id="filterDevice"><option value="All">All Devices</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Status</label>
-        <select id="filterStatus">
-          <option value="All">All Statuses</option>
-          <option value="Pending CM">Pending CM</option>
-          <option value="Normal">Normal / Completed</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Priority</label>
-        <select id="filterPriority">
-          <option value="All">All Priorities</option>
-          <option value="Critical">Critical</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
-        </select>
-      </div>
-      <div style="margin-left: auto; display:flex; gap:6px;">
-        <button class="theme-toggle" onclick="exportData('csv')">CSV</button>
-        <button class="theme-toggle" onclick="exportData('xlsx')">Excel</button>
-      </div>
-    </div>
-    <div style="margin-top:8px; font-size:0.7rem; color:var(--text-muted);" id="activeFiltersText">Active Filters: None</div>
-  </section>
+    <div id="map"></div>
 
-  <section class="main-layout">
-    <div class="map-container">
-      <div id="map"></div>
+    <div class="drawer" id="drawer">
+        <div class="drawer-handle" onclick="toggleDrawer()"></div>
+        <div class="table-container">
+            <table id="assetTable">
+                <thead>
+                    <tr>
+                        <th>Asset Tag</th>
+                        <th>Type</th>
+                        <th>IP Address</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
-    <div class="charts-col">
-      <div class="glass-card chart-box">
-        <div class="chart-title">Maintenance Status</div>
-        <canvas id="chartStatus"></canvas>
-      </div>
-      <div class="glass-card chart-box">
-        <div class="chart-title">Assets needing attention (By Type)</div>
-        <canvas id="chartType"></canvas>
-      </div>
-    </div>
-  </section>
-
-  <section class="glass-card table-container">
-    <table id="assetTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Type</th>
-          <th>Name / Location</th>
-          <th>Zone</th>
-          <th>Status</th>
-          <th>Priority</th>
-          <th>Remarks</th>
-        </tr>
-      </thead>
-      <tbody>
-        </tbody>
-    </table>
-  </section>
-</div>
 
 <script>
-/**
- * QATAR NORTH ITS FIELD DASHBOARD
- * * Logic:
- * [cite_start]1. Load CSV from Google Sheets[cite: 1].
- * 2. Parse Data: Check for 'Maintenance Status' column. [cite_start]If missing, map 'Survey Status' (Pending->Pending CM)[cite: 1].
- * [cite_start]3. Render Map: Markers colored by status/priority[cite: 1].
- * 4. Geolocation: Track technician position for navigation/distance.
- * 5. Interactive: Filters update Map, Table, and Charts simultaneously.
- */
-
-// --- CONFIGURATION ---
-const CONFIG = {
-  CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQn94G-4yvB12f78GcBYE8h9wdABMzF6rSZJ9ZSZUt_OwTvWCp20rXjg4waDw36Y3qLcBrjFNwhJwOH/pub?gid=1727354306&single=true&output=csv",
-  QATAR_CENTER: [25.5, 51.2],
-  DEFAULT_ZOOM: 10,
-  TECH_SPEED_KPH: 60 // Assumed average speed for ETA
-};
-
-// --- STATE ---
-let allAssets = [];
-let filteredAssets = [];
-let map, markerClusterGroup, techMarker;
-let charts = {};
-let technicianLocation = null; // {lat, lon}
-
-// --- INITIALIZATION ---
-document.addEventListener("DOMContentLoaded", () => {
-  initMap();
-  setupGeolocation();
-  loadData();
-  startClock();
-});
-
-// --- DATA LOADING & NORMALIZATION ---
-function loadData() {
-  Papa.parse(CONFIG.CSV_URL, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-    complete: (results) => {
-      processData(results.data);
-    },
-    error: (err) => {
-      alert("Error loading data: " + err.message);
-    }
-  });
-}
-
-function processData(rows) {
-  allAssets = rows.map((row, index) => {
-    [cite_start]// 1. Basic Parse (Handle standard and WGS84 headers) [cite: 2]
-    const lat = parseFloat(row["Latitude"] || row["Latitude (WGS84)"] || row["Lat"]);
-    const lng = parseFloat(row["Longitude"] || row["Longitude (WGS84)"] || row["Long"] || row["Lng"]);
-    
-    if (!lat || !lng) return null; // Skip invalid coords
-
-    [cite_start]// 2. Normalize Device Type [cite: 1]
-    let type = normalizeDeviceType(row["Device Type"]);
-
-    [cite_start]// 3. Normalize Zone [cite: 1]
-    let zoneArea = normalizeZone(row["Zone Area"] || row["Area"] || row["Zone"] || "Unknown");
-
-    [cite_start]// 4. Determine Maintenance Status & Priority [cite: 1]
-    // Logic: If specific maint columns don't exist, map from Survey Status
-    let maintStatus = "Normal";
-    let priority = "Low";
-    
-    // Check if real column exists (future proofing)
-    if (row["Maintenance Status"]) {
-      maintStatus = row["Maintenance Status"];
-    } else {
-      // Fallback mapping
-      const survey = (row["Survey Status"] || "").toString().toLowerCase();
-      if (survey.includes("pending") || survey === "false") {
-        maintStatus = "Pending CM";
-        priority = "High"; // Default pending surveys/CM to High for visibility
-      } else {
-        maintStatus = "Normal";
-        priority = "Low";
-      }
-    }
-
-    return {
-      id: row["ID"] || `UNK-${index}`,
-      name: row["Name"] || "Unknown Asset",
-      type: type,
-      zoneArea: zoneArea,
-      zone: row["Zone"] || "",
-      lat: lat,
-      lng: lng,
-      status: maintStatus,
-      priority: row["Priority"] || priority,
-      remarks: row["Remarks from Survey Team"] || row["Remarks"] || "",
-      lastUpdate: row["Timestamp"] || new Date().toISOString().split('T')[0]
+    const CONFIG = {
+        CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn94G-4yvB12f78GcBYE8h9wdABMzF6rSZJ9ZSZUt_OwTvWCp20rXjg4waDw36Y3qLcBrjFNwhJwOH/pub?gid=1727354306&single=true&output=csv',
+        MAP_CENTER: [25.3548, 51.1839],
+        COLORS: { 'RDNDCCTV': '#0ea5e9', 'RDNDPTZC': '#0ea5e9', 'RDNDVIVD': '#f59e0b', 'RDNDDMS': '#ef4444' }
     };
-  }).filter(item => item !== null);
 
-  initFilters();
-  applyFilters();
-}
+    let map, userMarker, allAssets = [];
 
-function normalizeDeviceType(raw) {
-  if (!raw) return "Other";
-  const s = raw.toString().toLowerCase();
-  if (s.includes("cctv")) return "CCTV";
-  if (s.includes("dms")) return "DMS";
-  if (s.includes("rvd")) return "RVD";
-  if (s.includes("lpr")) return "LPR";
-  if (s.includes("wim")) return "WIM";
-  if (s.includes("rwis")) return "RWIS";
-  if (s.includes("lcs")) return "LCS";
-  if (s.includes("mag")) return "Magnetometer";
-  return raw; // Fallback
-}
-
-function normalizeZone(raw) {
-  const s = raw.toString().toLowerCase();
-  if (s.includes("doha")) return "Doha Region";
-  if (s.includes("north")) return "North Region";
-  return raw;
-}
-
-// --- MAP FUNCTIONS ---
-function initMap() {
-  map = L.map('map', {
-    zoomControl: false // Move zoom control if needed
-  }).setView(CONFIG.QATAR_CENTER, 9);
-
-  // Add ESRI World Imagery
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles © Esri'
-  }).addTo(map);
-
-  // Add Labels on top (Hybrid)
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-    attribution: ''
-  }).addTo(map);
-
-  L.control.zoom({ position: 'topright' }).addTo(map);
-
-  // Locate Control
-  L.control.locate({
-    position: 'bottomright',
-    strings: { title: "Show my location" },
-    locateOptions: { enableHighAccuracy: true }
-  }).addTo(map);
-}
-
-function renderMap() {
-  // Clear existing markers (simple layer group for now, can upgrade to Cluster if >2000 points)
-  if (window.assetLayer) map.removeLayer(window.assetLayer);
-  
-  const markers = [];
-  
-  filteredAssets.forEach(asset => {
-    // Color logic
-    let color = '#22c55e'; // Green/Normal
-    if (asset.status === 'Pending CM') color = '#f97316'; // Orange
-    if (asset.priority === 'Critical') color = '#ef4444'; // Red
-
-    const marker = L.circleMarker([asset.lat, asset.lng], {
-      radius: 6,
-      fillColor: color,
-      color: '#fff',
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.9
-    });
-
-    // Calculate distance if tech location known
-    let distText = "";
-    if (technicianLocation) {
-      const d = getDistanceFromLatLonInKm(technicianLocation.lat, technicianLocation.lng, asset.lat, asset.lng);
-      distText = `<div class="popup-row" style="color:var(--accent-blue); font-weight:bold;">?? ${d.toFixed(1)} km away</div>`;
-    }
-
-    const popupContent = `
-      <div style="min-width:200px;">
-        <h3 style="margin:0; font-size:14px; color:white;">${asset.id}</h3>
-        <p style="margin:2px 0 8px 0; color:#cbd5e1; font-size:12px;">${asset.name}</p>
+    // Initialize Map
+    function initMap() {
+        map = L.map('map', { zoomControl: false }).setView(CONFIG.MAP_CENTER, 10);
         
-        <div class="popup-row"><span class="popup-label">Type:</span> ${asset.type}</div>
-        <div class="popup-row"><span class="popup-label">Zone:</span> ${asset.zoneArea}</div>
-        <div class="popup-row">
-          <span class="popup-label">Status:</span> 
-          <span class="badge ${getBadgeClass(asset.priority)}">${asset.status}</span>
-        </div>
-        ${distText}
-        <div class="popup-row" style="border:none; margin-top:4px;">
-          <span class="popup-label">Remarks:</span><br/>
-          <span style="color:#fff;">${asset.remarks || "No remarks"}</span>
-        </div>
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri'
+        }).addTo(map);
 
-        <a href="https://www.google.com/maps/dir/?api=1&destination=${asset.lat},${asset.lng}" target="_blank" class="btn-nav">
-          ?? NAVIGATE TO SITE
-        </a>
-      </div>
-    `;
-
-    marker.bindPopup(popupContent);
-    marker.assetId = asset.id; // Link for table click
-    markers.push(marker);
-  });
-
-  window.assetLayer = L.layerGroup(markers).addTo(map);
-}
-
-// --- FILTER & UPDATE LOGIC ---
-function initFilters() {
-  const zones = [...new Set(allAssets.map(a => a.zoneArea))].sort();
-  const devices = [...new Set(allAssets.map(a => a.type))].sort();
-
-  const zSel = document.getElementById('filterZone');
-  zones.forEach(z => zSel.add(new Option(z, z)));
-
-  const dSel = document.getElementById('filterDevice');
-  devices.forEach(d => dSel.add(new Option(d, d)));
-
-  // Listeners
-  ['searchInput', 'filterZone', 'filterDevice', 'filterStatus', 'filterPriority'].forEach(id => {
-    document.getElementById(id).addEventListener(id === 'searchInput' ? 'input' : 'change', applyFilters);
-  });
-}
-
-function applyFilters() {
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  const zone = document.getElementById('filterZone').value;
-  const device = document.getElementById('filterDevice').value;
-  const status = document.getElementById('filterStatus').value;
-  const priority = document.getElementById('filterPriority').value;
-
-  filteredAssets = allAssets.filter(asset => {
-    const matchesSearch = (asset.id + asset.name + asset.remarks).toLowerCase().includes(search);
-    const matchesZone = zone === "All" || asset.zoneArea === zone;
-    const matchesDevice = device === "All" || asset.type === device;
-    
-    let matchesStatus = true;
-    if (status === "Pending CM") matchesStatus = asset.status !== "Normal";
-    if (status === "Normal") matchesStatus = asset.status === "Normal";
-
-    const matchesPriority = priority === "All" || asset.priority === priority;
-
-    return matchesSearch && matchesZone && matchesDevice && matchesStatus && matchesPriority;
-  });
-
-  // Update UI Summary
-  const filtersText = [];
-  if (zone !== "All") filtersText.push(`Zone: ${zone}`);
-  if (device !== "All") filtersText.push(`Type: ${device}`);
-  if (status !== "All") filtersText.push(`Status: ${status}`);
-  if (search) filtersText.push(`Search: "${search}"`);
-  document.getElementById("activeFiltersText").textContent = "Active Filters: " + (filtersText.length ? filtersText.join(", ") : "None");
-
-  updateDashboard();
-}
-
-function updateDashboard() {
-  renderMap();
-  renderKPIs();
-  renderCharts();
-  renderTable();
-}
-
-// --- VISUALIZATION RENDERERS ---
-function renderKPIs() {
-  const total = filteredAssets.length;
-  const open = filteredAssets.filter(a => a.status !== "Normal").length;
-  const closed = total - open;
-  const critical = filteredAssets.filter(a => a.priority === "Critical" && a.status !== "Normal").length;
-
-  document.getElementById('kpi-total').textContent = total;
-  document.getElementById('kpi-open').textContent = open;
-  document.getElementById('kpi-open-pct').textContent = total > 0 ? Math.round((open/total)*100) + "% of current view" : "0%";
-  document.getElementById('kpi-closed').textContent = closed;
-  document.getElementById('kpi-critical').textContent = critical;
-  
-  // Highlight critical card if count > 0
-  const critCard = document.getElementById('kpi-critical').parentElement;
-  if(critical > 0) critCard.style.borderColor = "var(--priority-critical)";
-  else critCard.style.borderColor = "var(--glass-border)";
-}
-
-function renderCharts() {
-  // Chart 1: Status Distribution
-  const ctxStatus = document.getElementById('chartStatus').getContext('2d');
-  const statusCounts = { "Normal": 0, "Pending CM": 0, "Other": 0 };
-  
-  filteredAssets.forEach(a => {
-    if (a.status === "Normal") statusCounts["Normal"]++;
-    else if (a.status === "Pending CM") statusCounts["Pending CM"]++;
-    else statusCounts["Other"]++;
-  });
-
-  if (charts.status) charts.status.destroy();
-  charts.status = new Chart(ctxStatus, {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(statusCounts),
-      datasets: [{
-        data: Object.values(statusCounts),
-        backgroundColor: ['#22c55e', '#f97316', '#94a3b8'],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'right', labels: { color: '#94a3b8', boxWidth: 10 } } }
+        const labels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        
+        // Setup User Tracking
+        map.locate({ watch: true, enableHighAccuracy: true });
+        map.on('locationfound', (e) => {
+            if (!userMarker) {
+                userMarker = L.circleMarker(e.latlng, { radius: 8, fillColor: '#3b82f6', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
+                userMarker.bindPopup("Your Current Location");
+            } else {
+                userMarker.setLatLng(e.latlng);
+            }
+        });
     }
-  });
 
-  // Chart 2: Type Breakdown (Assets needing attention)
-  const ctxType = document.getElementById('chartType').getContext('2d');
-  const typeIssues = {};
-  
-  filteredAssets.forEach(a => {
-    if (a.status !== "Normal") {
-      typeIssues[a.type] = (typeIssues[a.type] || 0) + 1;
+    function reCenter() {
+        if (userMarker) map.setView(userMarker.getLatLng(), 16);
     }
-  });
 
-  // Sort and take top 5
-  const sortedTypes = Object.entries(typeIssues).sort((a,b) => b[1] - a[1]).slice(0, 7);
-
-  if (charts.type) charts.type.destroy();
-  charts.type = new Chart(ctxType, {
-    type: 'bar',
-    data: {
-      labels: sortedTypes.map(x => x[0]),
-      datasets: [{
-        label: 'Open CM Tickets',
-        data: sortedTypes.map(x => x[1]),
-        backgroundColor: '#38bdf8',
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
-      },
-      plugins: { legend: { display: false } }
+    // Load and Process Data
+    function loadData() {
+        Papa.parse(CONFIG.CSV_URL, {
+            download: true,
+            header: true,
+            complete: (results) => {
+                allAssets = results.data.filter(r => r["Latitude (WGS84)"]);
+                renderAssets(allAssets);
+            }
+        });
     }
-  });
-}
 
-function renderTable() {
-  const tbody = document.querySelector('#assetTable tbody');
-  tbody.innerHTML = '';
+    function renderAssets(data) {
+        if (window.markerLayer) map.removeLayer(window.markerLayer);
+        const markers = [];
+        const tbody = document.querySelector('#assetTable tbody');
+        tbody.innerHTML = '';
 
-  // Limit to first 100 for performance if list is huge
-  const displaySet = filteredAssets.slice(0, 100);
+        data.forEach(asset => {
+            const lat = parseFloat(asset["Latitude (WGS84)"]);
+            const lon = parseFloat(asset["Longitude (WGS84)"]);
+            const type = asset["GFCODE"];
+            
+            // Map Marker
+            const marker = L.circleMarker([lat, lon], {
+                radius: 6,
+                fillColor: CONFIG.COLORS[type] || '#94a3b8',
+                color: '#fff',
+                weight: 1,
+                fillOpacity: 0.8
+            });
 
-  displaySet.forEach(asset => {
-    const tr = document.createElement('tr');
-    tr.onclick = () => focusOnAsset(asset);
-    
-    tr.innerHTML = `
-      <td>${asset.id}</td>
-      <td>${asset.type}</td>
-      <td>${asset.name}</td>
-      <td>${asset.zoneArea}</td>
-      <td><span class="badge ${asset.status === 'Normal' ? 'badge-low' : 'badge-high'}">${asset.status}</span></td>
-      <td><span class="badge ${getBadgeClass(asset.priority)}">${asset.priority}</span></td>
-      <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${asset.remarks}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+            const popupHtml = `
+                <div style="min-width: 200px">
+                    <b style="font-size:14px">${asset.ASSET_TAG}</b><br/>
+                    <div style="margin-top:8px">
+                        <div class="data-row"><span class="data-label">Type:</span>${type}</div>
+                        <div class="data-row"><span class="data-label">ID:</span>${asset.ID}</div>
+                        <div class="data-row"><span class="data-label">IP:</span>${asset["IP Address "] || 'N/A'}</div>
+                        <div class="data-row"><span class="data-label">Desc:</span>${asset.DESCRIPTION}</div>
+                    </div>
+                    <div class="nav-btn-group">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="nav-btn btn-google">Google</a>
+                        <a href="https://waze.com/ul?ll=${lat},${lon}&navigate=yes" target="_blank" class="nav-btn btn-waze">Waze</a>
+                    </div>
+                </div>
+            `;
+            marker.bindPopup(popupHtml);
+            markers.push(marker);
 
-function getBadgeClass(priority) {
-  switch(priority) {
-    case 'Critical': return 'badge-critical';
-    case 'High': return 'badge-high';
-    case 'Medium': return 'badge-medium';
-    case 'Low': return 'badge-low';
-    default: return 'badge-normal';
-  }
-}
+            // Table Row
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${asset.ASSET_TAG}</td>
+                <td>${type}</td>
+                <td>${asset["IP Address "] || '-'}</td>
+                <td><button onclick="zoomTo(${lat}, ${lon})" style="background:none; border:none; color:#0ea5e9; cursor:pointer;">View</button></td>
+            `;
+            tr.onclick = () => { if(window.innerWidth > 768) zoomTo(lat, lon); };
+            tbody.appendChild(tr);
+        });
 
-// --- INTERACTION ---
-function focusOnAsset(asset) {
-  map.setView([asset.lat, asset.lng], 16);
-  
-  // Find marker
-  window.assetLayer.eachLayer(layer => {
-    if (layer.getLatLng().lat === asset.lat && layer.getLatLng().lng === asset.lng) {
-      layer.openPopup();
+        window.markerLayer = L.layerGroup(markers).addTo(map);
     }
-  });
 
-  // Scroll to map
-  document.querySelector('.map-container').scrollIntoView({ behavior: 'smooth' });
-}
+    function zoomTo(lat, lon) {
+        map.setView([lat, lon], 18);
+        if(window.innerWidth < 768) toggleDrawer();
+    }
 
-// --- GEOLOCATION ---
-function setupGeolocation() {
-  if ("geolocation" in navigator) {
-    navigator.geolocation.watchPosition(
-      (position) => {
-        technicianLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        updateTechMarker();
-      },
-      (error) => {
-        console.warn("Geolocation error: " + error.message);
-      },
-      { enableHighAccuracy: true, maximumAge: 30000, timeout: 27000 }
-    );
-  }
-}
+    function toggleDrawer() {
+        document.getElementById('drawer').classList.toggle('open');
+    }
 
-function updateTechMarker() {
-  if (!technicianLocation) return;
-
-  if (!techMarker) {
-    const icon = L.divIcon({
-      className: 'tech-icon',
-      html: '<div style="background:#3b82f6; width:16px; height:16px; border:2px solid white; border-radius:50%; box-shadow:0 0 10px #3b82f6;"></div>',
-      iconSize: [20, 20]
+    // Search Logic
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        const filtered = allAssets.filter(a => 
+            a.ASSET_TAG.toLowerCase().includes(val) || 
+            a.ID.toLowerCase().includes(val) || 
+            a.GFCODE.toLowerCase().includes(val)
+        );
+        renderAssets(filtered);
     });
-    techMarker = L.marker([technicianLocation.lat, technicianLocation.lng], {icon: icon}).addTo(map);
-    techMarker.bindPopup("You are here");
-  } else {
-    techMarker.setLatLng([technicianLocation.lat, technicianLocation.lng]);
-  }
-}
 
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-  var R = 6371; // Radius of the earth in km
-  var dLat = deg2rad(lat2-lat1); 
-  var dLon = deg2rad(lon2-lon1); 
-  var a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  var d = R * c; // Distance in km
-  return d;
-}
-
-function deg2rad(deg) {
-  return deg * (Math.PI/180)
-}
-
-// --- UTILS ---
-function toggleTheme() {
-  const body = document.body;
-  const current = body.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  body.setAttribute('data-theme', next);
-  document.querySelector('.theme-toggle').textContent = next === 'dark' ? 'Light Mode' : 'Dark Mode';
-  
-  // Refresh chart colors
-  updateDashboard();
-}
-
-function startClock() {
-  setInterval(() => {
-    document.getElementById('clock').textContent = new Date().toLocaleTimeString();
-  }, 1000);
-}
-
-function exportData(type) {
-  if (type === 'csv') {
-    // Quick CSV gen
-    const headers = ["ID", "Type", "Name", "Zone", "Status", "Priority", "Remarks"];
-    const rows = filteredAssets.map(a => [a.id, a.type, a.name, a.zoneArea, a.status, a.priority, a.remarks]);
-    let csvContent = "data:text/csv;charset=utf-8," + [headers.join(",")].concat(rows.map(e => e.join(","))).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "its_operations_view.csv");
-    document.body.appendChild(link);
-    link.click();
-  } else if (type === 'xlsx') {
-    const ws = XLSX.utils.json_to_sheet(filteredAssets);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Assets");
-    XLSX.writeFile(wb, "its_operations_view.xlsx");
-  }
-}
-
+    // Start
+    initMap();
+    loadData();
 </script>
 </body>
 </html>
