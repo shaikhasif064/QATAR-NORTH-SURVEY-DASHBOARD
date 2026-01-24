@@ -817,9 +817,9 @@
         return;
       }
 
-      const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
+      const gfcKey = getFirstKey(sourceRows[0], ["GFCODE","gfcode","Gfcode"]);
       const counts = new Map();
-      for (const r of rows){
+      for (const r of sourceRows){
         const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
         counts.set(t, (counts.get(t) || 0) + 1);
       }
@@ -843,6 +843,9 @@
       const list = $("legendList");
       list.innerHTML = "";
 
+      // Legend should represent inventory (all device types), even if some rows have missing coordinates
+      const sourceRows = rawRows.length ? rawRows : rows;
+
       const myItem = document.createElement("li");
       myItem.className = "legend-item";
       myItem.innerHTML = `
@@ -854,11 +857,11 @@
       `;
       list.appendChild(myItem);
 
-      if (!rows.length) return;
+      if (!sourceRows.length) return;
 
-      const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
+      const gfcKey = getFirstKey(sourceRows[0], ["GFCODE","gfcode","Gfcode"]);
       const counts = new Map();
-      for (const r of rows){
+      for (const r of sourceRows){
         const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
         counts.set(t, (counts.get(t) || 0) + 1);
       }
@@ -1016,6 +1019,7 @@
       // All fields (complete)
       let allRows = "";
       for (const h of headers){
+        if (seen.has(h)) continue; // avoid repeating keys already shown in the priority section
         allRows += buildPopupRow(h, row[h]);
       }
 
