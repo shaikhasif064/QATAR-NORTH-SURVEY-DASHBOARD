@@ -1,1123 +1,243 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ITS Field Operations — Map + Navigation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ITS Field Ops | Qatar North</title>
 
-  <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- PapaParse -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --dark-bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(148, 163, 184, 0.2);
+            --google-maps: #34a853;
+            --waze: #33ccff;
+        }
 
-  <style>
-    :root{
-      --bg0:#020617;
-      --bg1:#0b1120;
-      --glass:rgba(15,23,42,.78);
-      --glass2:rgba(15,23,42,.92);
-      --border:rgba(148,163,184,.35);
-      --border2:rgba(148,163,184,.55);
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --muted2:#6b7280;
-      --accent:#38bdf8;
-      --ok:#22c55e;
-      --warn:#fbbf24;
-      --bad:#ef4444;
-      --shadow:0 22px 55px rgba(15,23,42,.75);
-      --radius:18px;
-      --radius2:14px;
-      --fast:180ms cubic-bezier(.22,.61,.36,1);
-      --med:320ms cubic-bezier(.22,.61,.36,1);
-    }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, system-ui, sans-serif; background: var(--dark-bg); color: var(--text); overflow: hidden; }
 
-    *{ box-sizing:border-box; margin:0; padding:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
-    html,body{ height:100%; }
-    body{
-      min-height:100vh;
-      color:var(--text);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(56,189,248,.22), transparent 55%),
-        radial-gradient(circle at 100% 0%, rgba(168,85,247,.18), transparent 55%),
-        radial-gradient(circle at 0% 100%, rgba(249,115,22,.14), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(236,72,153,.16), transparent 60%),
-        linear-gradient(180deg, var(--bg0) 0%, var(--bg0) 100%);
-      background-attachment: fixed;
-    }
+        /* LAYOUT */
+        #map { height: 100vh; width: 100vw; z-index: 1; }
 
-    .shell{
-      max-width: 1880px;
-      margin: 0 auto;
-      padding: 12px 16px 18px;
-      min-height: 100vh;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
+        /* SEARCH BAR OVERLAY */
+        .overlay-controls {
+            position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+        }
+        .search-box {
+            background: var(--surface); padding: 12px; border-radius: 12px;
+            border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; gap: 8px; pointer-events: auto;
+        }
+        .search-box input {
+            background: transparent; border: none; color: white; flex: 1; font-size: 16px; outline: none;
+        }
 
-    header{
-      border-radius: 20px;
-      padding: 10px 16px;
-      background:
-        linear-gradient(135deg, rgba(15,23,42,.97), rgba(15,23,42,.92)),
-        linear-gradient(90deg, rgba(56,189,248,.25), rgba(168,85,247,.22), rgba(236,72,153,.18));
-      box-shadow: 0 24px 60px rgba(15,23,42,.85), 0 0 0 1px rgba(148,163,184,.25);
-      border: 1px solid rgba(148,163,184,.25);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-    }
+        /* NAVIGATION BUTTONS */
+        .nav-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .nav-btn {
+            padding: 10px; border-radius: 8px; text-decoration: none; color: white;
+            font-weight: bold; text-align: center; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn-google { background: var(--google-maps); }
+        .btn-waze { background: var(--waze); color: #000; }
 
-    .hdr-left,.hdr-right{ display:flex; align-items:center; gap:10px; }
-    .hdr-title{ display:flex; flex-direction:column; gap:2px; min-width:0; }
-    .hdr-title h1{
-      font-size: clamp(16px, 1.8vw, 22px);
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:#f9fafb;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .hdr-title .sub{
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing:.05em;
-      text-transform:uppercase;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.45);
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,.14), transparent 60%),
-        rgba(15,23,42,.82);
-      color: var(--text);
-      box-shadow: 0 14px 34px rgba(15,23,42,.65);
-      font-size: 12px;
-      user-select:none;
-    }
-    .dot{
-      width:8px; height:8px; border-radius:999px;
-      background: linear-gradient(135deg, var(--accent), var(--ok));
-      box-shadow: 0 0 12px rgba(56,189,248,.75);
-      flex:0 0 auto;
-    }
+        /* BOTTOM DRAWER (Mobile Optimized Table) */
+        .drawer {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 40vh;
+            background: var(--surface); z-index: 1001; border-top: 1px solid var(--border);
+            transition: transform 0.3s ease; transform: translateY(calc(100% - 40px));
+            display: flex; flex-direction: column;
+        }
+        .drawer.open { transform: translateY(0); }
+        .drawer-handle {
+            height: 40px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; background: var(--surface);
+        }
+        .drawer-handle::after {
+            content: ''; width: 40px; height: 4px; background: var(--text-muted); border-radius: 2px;
+        }
+        .table-container { overflow-y: auto; flex: 1; padding: 0 15px 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px; color: var(--text-muted); position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); }
+        td { padding: 10px; border-bottom: 1px solid var(--border); }
 
-    .card{
-      background:
-        radial-gradient(circle at top left, rgba(248,250,252,.12), transparent 42%),
-        linear-gradient(145deg, rgba(15,23,42,.96), rgba(15,23,42,.9));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      overflow:hidden;
-    }
+        /* RE-CENTER BUTTON */
+        .locate-btn {
+            position: absolute; bottom: calc(40vh + 20px); right: 20px; z-index: 1000;
+            background: var(--primary); width: 50px; height: 50px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            cursor: pointer; border: none;
+        }
 
-    .toolbar{
-      padding: 10px 12px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      border-bottom: 1px solid rgba(148,163,184,.18);
-    }
-
-    .controls{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-    }
-
-    .control{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width: 220px;
-    }
-    .control label{
-      font-size:10px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:var(--muted);
-      padding-left: 2px;
-    }
-    .control input, .control select{
-      height: 34px;
-      padding: 0 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.6);
-      background:
-        radial-gradient(circle at 0 0, rgba(248,250,252,.06), transparent 60%),
-        rgba(15,23,42,.92);
-      color: var(--text);
-      outline:none;
-      transition: border-color var(--fast), box-shadow var(--fast), transform var(--fast);
-      font-size: 12px;
-    }
-    .control input::placeholder{ color: rgba(148,163,184,.9); }
-    .control input:focus, .control select:focus{
-      border-color: rgba(56,189,248,.9);
-      box-shadow: 0 0 0 1px rgba(56,189,248,.7);
-      transform: translateY(-1px);
-    }
-
-    .actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      align-items:center;
-      justify-content:flex-end;
-    }
-
-    .btn{
-      height: 34px;
-      padding: 0 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.55);
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,.14), transparent 60%),
-        rgba(15,23,42,.92);
-      color: var(--text);
-      cursor:pointer;
-      transition: transform var(--fast), box-shadow var(--fast), border-color var(--fast), filter var(--fast);
-      font-size: 12px;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      user-select:none;
-      white-space:nowrap;
-    }
-    .btn.primary{
-      border-color: rgba(56,189,248,.9);
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,.28), transparent 60%),
-        linear-gradient(135deg, rgba(37,99,235,.92), rgba(56,189,248,.88));
-      color:#ecfeff;
-      box-shadow: 0 16px 35px rgba(30,64,175,.75);
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(248,250,252,.55); filter:brightness(1.03); }
-    .btn:active{ transform: translateY(0); filter:brightness(0.98); }
-
-    .status{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      justify-content:flex-end;
-      color: var(--muted);
-      font-size: 12px;
-      padding-right: 2px;
-    }
-
-    .layout{
-      display:grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-      gap:12px;
-      align-items:stretch;
-      min-height: 0;
-      flex: 1 1 auto;
-    }
-
-    .map-wrap{
-      display:flex;
-      flex-direction:column;
-      min-height: 0;
-    }
-    #map{
-      width:100%;
-      height: 66vh;
-      min-height: 360px;
-      border-radius: var(--radius2);
-      border: 1px solid var(--border2);
-      box-shadow: 0 16px 40px rgba(15,23,42,.9);
-      overflow:hidden;
-      margin: 10px 12px 12px;
-    }
-    .map-foot{
-      padding: 0 14px 12px;
-      color: var(--muted2);
-      font-size: 11px;
-      letter-spacing:.02em;
-    }
-
-    .table-wrap{
-      display:flex;
-      flex-direction:column;
-      min-height:0;
-    }
-    .table-head{
-      padding: 10px 12px 8px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      border-bottom: 1px solid rgba(148,163,184,.18);
-    }
-    .table-head .t1{
-      font-size: 11px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      color: var(--muted);
-    }
-    .table-head .t2{
-      margin-top: 3px;
-      font-size: 11px;
-      color: var(--muted2);
-    }
-
-    .table-scroll{
-      margin: 10px 12px 12px;
-      border-radius: var(--radius2);
-      border: 1px solid rgba(55,65,81,.9);
-      background:
-        radial-gradient(circle at top left, rgba(15,23,42,.9), rgba(3,7,18,.98));
-      box-shadow: 0 18px 45px rgba(15,23,42,.92);
-      overflow:auto;
-      max-height: calc(66vh - 120px);
-      min-height: 260px;
-    }
-
-    table{
-      width:100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      color: var(--text);
-    }
-    thead{
-      position: sticky;
-      top:0;
-      z-index: 2;
-    }
-    th, td{
-      padding: 7px 9px;
-      border-bottom: 1px solid rgba(31,41,55,.9);
-      text-align:left;
-      white-space: nowrap;
-      vertical-align: middle;
-    }
-    th{
-      background: linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.95));
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .10em;
-      font-size: 10px;
-      color: var(--muted);
-    }
-    tbody tr:nth-child(even){ background: rgba(15,23,42,.78); }
-    tbody tr:nth-child(odd){ background: rgba(3,7,18,.96); }
-    tbody tr:hover{
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,.16), transparent 55%),
-        rgba(3,7,18,.98);
-      cursor:pointer;
-      transition: background var(--fast);
-    }
-    tbody tr.is-active{
-      outline: 2px solid rgba(56,189,248,.55);
-      outline-offset: -2px;
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,.22), transparent 55%),
-        rgba(3,7,18,.98);
-    }
-
-    .navbtns{
-      display:flex;
-      gap:6px;
-      align-items:center;
-    }
-    .a-btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      height: 28px;
-      padding: 0 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.55);
-      background: rgba(15,23,42,.9);
-      color: var(--text);
-      text-decoration:none;
-      font-size: 11px;
-      transition: transform var(--fast), border-color var(--fast), filter var(--fast);
-    }
-    .a-btn.gm{ border-color: rgba(56,189,248,.75); }
-    .a-btn.wz{ border-color: rgba(34,197,94,.65); }
-    .a-btn:hover{ transform: translateY(-1px); filter:brightness(1.03); border-color: rgba(248,250,252,.55); }
-
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-
-    .toast{
-      position: fixed;
-      left: 12px;
-      bottom: 12px;
-      z-index: 9999;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(148,163,184,.45);
-      background: rgba(15,23,42,.92);
-      box-shadow: 0 18px 50px rgba(15,23,42,.85);
-      color: var(--text);
-      max-width: 680px;
-      display:none;
-      gap: 10px;
-      align-items:flex-start;
-    }
-    .toast.show{ display:flex; }
-    .toast .t-dot{
-      width:10px; height:10px; border-radius:999px; margin-top: 3px;
-      background: var(--warn);
-      box-shadow: 0 0 12px rgba(251,191,36,.7);
-      flex:0 0 auto;
-    }
-    .toast .t-msg{ font-size: 12px; color: var(--text); }
-    .toast .t-sub{ margin-top: 2px; font-size: 11px; color: var(--muted); }
-
-    /* Leaflet popup styling */
-    .leaflet-popup-content-wrapper{
-      background: rgba(15,23,42,.95);
-      color: var(--text);
-      border-radius: 14px;
-      border: 1px solid rgba(148,163,184,.35);
-      box-shadow: 0 22px 55px rgba(15,23,42,.85);
-    }
-    .leaflet-popup-tip{ background: rgba(15,23,42,.95); }
-    .popup-title{
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing:.08em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      color:#f9fafb;
-    }
-    .kv{
-      display:grid;
-      grid-template-columns: auto 1fr;
-      gap: 3px 10px;
-      font-size: 12px;
-      margin-bottom: 8px;
-    }
-    .kv .k{ color: var(--muted); font-size: 10px; letter-spacing:.10em; text-transform: uppercase; }
-    .kv .v{ color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 240px; }
-    .popup-actions{ display:flex; gap:8px; flex-wrap:wrap; }
-    .popup-actions a{
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      height: 30px;
-      padding: 0 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.55);
-      background: rgba(15,23,42,.9);
-      color: var(--text);
-      font-size: 11px;
-      transition: transform var(--fast), border-color var(--fast), filter var(--fast);
-    }
-    .popup-actions a:hover{ transform: translateY(-1px); filter:brightness(1.03); border-color: rgba(248,250,252,.55); }
-    .popup-actions a.gm{ border-color: rgba(56,189,248,.75); }
-    .popup-actions a.wz{ border-color: rgba(34,197,94,.65); }
-
-    /* Custom marker */
-    .asset-marker{
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      border: 2px solid rgba(248,250,252,.9);
-      box-shadow: 0 10px 24px rgba(0,0,0,.35);
-      background: var(--accent);
-    }
-    .asset-marker::after{
-      content:"";
-      position:absolute;
-      width: 28px; height: 28px;
-      left: 50%; top: 50%;
-      transform: translate(-50%,-50%);
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(56,189,248,.20), transparent 60%);
-      pointer-events:none;
-    }
-    .my-marker{
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      border: 2px solid rgba(248,250,252,.95);
-      background: linear-gradient(135deg, var(--ok), var(--accent));
-      box-shadow: 0 0 0 6px rgba(34,197,94,.12), 0 16px 30px rgba(0,0,0,.35);
-    }
-
-    @media (max-width: 1100px){
-      .layout{ grid-template-columns: 1fr; }
-      #map{ height: 52vh; min-height: 320px; }
-      .table-scroll{ max-height: calc(52vh - 120px); }
-      .control{ min-width: 220px; flex: 1 1 220px; }
-    }
-
-    @media (max-width: 520px){
-      .shell{ padding: 10px 10px 16px; }
-      header{ padding: 10px 12px; border-radius: 16px; }
-      .pill{ display:none; }
-      .control{ min-width: 100%; }
-      #map{ height: 48vh; }
-      .table-scroll{ min-height: 240px; }
-      th,td{ padding: 7px 8px; }
-    }
-  </style>
+        /* POPUP STYLING */
+        .leaflet-popup-content-wrapper { background: var(--surface); color: white; border: 1px solid var(--border); }
+        .leaflet-popup-tip { background: var(--surface); }
+        .data-row { margin-bottom: 5px; font-size: 12px; }
+        .data-label { color: var(--text-muted); font-weight: bold; margin-right: 5px; text-transform: uppercase; font-size: 10px; }
+    </style>
 </head>
-
 <body>
-  <div class="shell">
-    <header>
-      <div class="hdr-left">
-        <div class="pill" title="Field Mode">
-          <span class="dot"></span>
-          <span>Field Navigation</span>
+
+    <div class="overlay-controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search Asset Tag, ID, or Type...">
         </div>
-      </div>
-
-      <div class="hdr-title">
-        <h1>ITS Field Operations Dashboard</h1>
-        <div class="sub">Map + asset list + navigation links (Google Maps / Waze)</div>
-      </div>
-
-      <div class="hdr-right">
-        <div class="pill" title="Live CSV from Google Sheets">
-          <span class="dot"></span>
-          <span id="lastSync">Not loaded</span>
-        </div>
-      </div>
-    </header>
-
-    <section class="card">
-      <div class="toolbar">
-        <div class="controls">
-          <div class="control">
-            <label for="q">Search (ID / ASSETTAG / DESCRIPTION)</label>
-            <input id="q" type="text" placeholder="Type to filter..." autocomplete="off" />
-          </div>
-
-          <div class="control">
-            <label for="gcode">Asset Type (GFCODE)</label>
-            <select id="gcode">
-              <option value="__ALL__">All Types</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn primary" id="locateBtn" type="button" title="Get your current position and center the map">
-            Locate Me
-          </button>
-          <button class="btn" id="fitBtn" type="button" title="Fit map to currently filtered assets">
-            Fit Assets
-          </button>
-          <button class="btn" id="reloadBtn" type="button" title="Reload data from CSV">
-            Reload
-          </button>
-        </div>
-
-        <div class="status" aria-live="polite">
-          <span id="countLabel">0 assets</span>
-          <span class="mono" id="csvState"></span>
-        </div>
-      </div>
-
-      <div class="layout">
-        <div class="card map-wrap">
-          <div id="map"></div>
-          <div class="map-foot" id="mapFoot">
-            Tap a marker (or a row) to view details and open navigation.
-          </div>
-        </div>
-
-        <div class="card table-wrap">
-          <div class="table-head">
-            <div>
-              <div class="t1">Asset List</div>
-              <div class="t2">Tap a row to zoom and open the marker popup.</div>
-            </div>
-          </div>
-
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:110px;">ID</th>
-                  <th style="width:120px;">GFCODE</th>
-                  <th style="min-width:220px;">ASSETTAG</th>
-                  <th style="min-width:260px;">DESCRIPTION</th>
-                  <th style="width:120px;">LAT</th>
-                  <th style="width:120px;">LON</th>
-                  <th style="min-width:160px;">IP ADDRESS</th>
-                  <th style="width:180px;">NAV</th>
-                </tr>
-              </thead>
-              <tbody id="tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite">
-    <div class="t-dot"></div>
-    <div>
-      <div class="t-msg" id="toastMsg">Message</div>
-      <div class="t-sub" id="toastSub"></div>
     </div>
-  </div>
 
-  <script>
-    // =========================
-    // CONFIG
-    // =========================
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQn94G-4yvB12f78GcBYE8h9wdABMzF6rSZJ9ZSZUt_OwTvWCp20rXjg4waDw36Y3qLcBrjFNwhJwOH/pub?gid=1727354306&single=true&output=csv";
+    <button class="locate-btn" onclick="reCenter()" title="My Location">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+    </button>
 
-    // =========================
-    // STATE
-    // =========================
-    let all = [];
-    let filtered = [];
-    let map, assetsLayer;
-    let markersByKey = new Map();
-    let activeRowKey = null;
+    <div id="map"></div>
 
-    let myMarker = null;
-    let myAccuracyCircle = null;
+    <div class="drawer" id="drawer">
+        <div class="drawer-handle" onclick="toggleDrawer()"></div>
+        <div class="table-container">
+            <table id="assetTable">
+                <thead>
+                    <tr>
+                        <th>Asset Tag</th>
+                        <th>Type</th>
+                        <th>IP Address</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 
-    // =========================
-    // HELPERS
-    // =========================
-    const $ = (id) => document.getElementById(id);
+<script>
+    const CONFIG = {
+        CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn94G-4yvB12f78GcBYE8h9wdABMzF6rSZJ9ZSZUt_OwTvWCp20rXjg4waDw36Y3qLcBrjFNwhJwOH/pub?gid=1727354306&single=true&output=csv',
+        MAP_CENTER: [25.3548, 51.1839],
+        COLORS: { 'RDNDCCTV': '#0ea5e9', 'RDNDPTZC': '#0ea5e9', 'RDNDVIVD': '#f59e0b', 'RDNDDMS': '#ef4444' }
+    };
 
-    function showToast(msg, sub = "", kind = "warn") {
-      const t = $("toast");
-      const dot = t.querySelector(".t-dot");
-      const colors = {
-        ok: "var(--ok)",
-        warn: "var(--warn)",
-        bad: "var(--bad)",
-        info: "var(--accent)"
-      };
-      dot.style.background = colors[kind] || colors.warn;
-      dot.style.boxShadow = `0 0 12px rgba(0,0,0,.15), 0 0 12px ${dot.style.background}`;
-      $("toastMsg").textContent = msg;
-      $("toastSub").textContent = sub || "";
-      t.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => t.classList.remove("show"), 4200);
-    }
+    let map, userMarker, allAssets = [];
 
-    function nowStamp() {
-      const d = new Date();
-      return d.toLocaleString("en-US", {
-        year: "numeric", month: "short", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", second: "2-digit"
-      });
-    }
-
-    function safeStr(v) {
-      if (v === null || v === undefined) return "";
-      return String(v).trim();
-    }
-
-    function getFirst(obj, keys) {
-      for (const k of keys) {
-        if (Object.prototype.hasOwnProperty.call(obj, k)) {
-          const v = safeStr(obj[k]);
-          if (v !== "") return v;
-        }
-      }
-      return "";
-    }
-
-    function parseNum(v) {
-      const n = parseFloat(String(v).trim());
-      return Number.isFinite(n) ? n : null;
-    }
-
-    function buildKey(asset) {
-      const id = safeStr(asset.id) || "NO_ID";
-      const tag = safeStr(asset.assettag) || "NO_TAG";
-      const lat = asset.lat ?? "NO_LAT";
-      const lon = asset.lon ?? "NO_LON";
-      return `${id}||${tag}||${lat}||${lon}`;
-    }
-
-    function gmapsLink(lat, lon) {
-      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(lat)},${encodeURIComponent(lon)}`;
-    }
-
-    function wazeLink(lat, lon) {
-      return `https://waze.com/ul?ll=${encodeURIComponent(lat)},${encodeURIComponent(lon)}&navigate=yes`;
-    }
-
-    function typeColor(gcode) {
-      const s = safeStr(gcode).toUpperCase();
-      // Conservative palette; easy to distinguish.
-      if (s.includes("CCTV")) return "#38bdf8";
-      if (s.includes("PTZ")) return "#22c55e";
-      if (s.includes("LPR")) return "#a855f7";
-      if (s.includes("DMS")) return "#f97316";
-      if (s.includes("LCS")) return "#ec4899";
-      if (s.includes("RWIS")) return "#fbbf24";
-      if (s.includes("RVD")) return "#60a5fa";
-      if (s.includes("AQ")) return "#34d399";
-      if (s.includes("WIM")) return "#fb7185";
-      if (s.includes("MAG")) return "#c084fc";
-      return "#94a3b8";
-    }
-
-    function markerIcon(gcode) {
-      const c = typeColor(gcode);
-      return L.divIcon({
-        className: "",
-        html: `<div class="asset-marker" style="background:${c}; position:relative;"></div>`,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
-        popupAnchor: [0, -10]
-      });
-    }
-
-    function myLocationIcon() {
-      return L.divIcon({
-        className: "",
-        html: `<div class="my-marker" style="position:relative;"></div>`,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
-        popupAnchor: [0, -10]
-      });
-    }
-
-    function escapeHtml(s) {
-      return String(s ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    // =========================
-    // MAP
-    // =========================
+    // Initialize Map
     function initMap() {
-      map = L.map("map", {
-        zoomControl: true,
-        preferCanvas: true
-      });
+        map = L.map('map', { zoomControl: false }).setView(CONFIG.MAP_CENTER, 10);
+        
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri'
+        }).addTo(map);
 
-      // Default: Qatar-ish view
-      map.setView([25.30, 51.45], 9);
-
-      // Tiles (public)
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap contributors"
-      }).addTo(map);
-
-      assetsLayer = L.layerGroup().addTo(map);
+        const labels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        
+        // Setup User Tracking
+        map.locate({ watch: true, enableHighAccuracy: true });
+        map.on('locationfound', (e) => {
+            if (!userMarker) {
+                userMarker = L.circleMarker(e.latlng, { radius: 8, fillColor: '#3b82f6', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
+                userMarker.bindPopup("Your Current Location");
+            } else {
+                userMarker.setLatLng(e.latlng);
+            }
+        });
     }
 
-    function clearAssetsLayer() {
-      assetsLayer.clearLayers();
-      markersByKey.clear();
+    function reCenter() {
+        if (userMarker) map.setView(userMarker.getLatLng(), 16);
     }
 
-    function popupHtml(a) {
-      const lat = a.lat;
-      const lon = a.lon;
-      const gm = gmapsLink(lat, lon);
-      const wz = wazeLink(lat, lon);
-
-      const ip = a.ip ? a.ip : "";
-
-      return `
-        <div class="popup-title">${escapeHtml(a.gcode || "ASSET")}</div>
-        <div class="kv">
-          <div class="k">ID</div><div class="v mono">${escapeHtml(a.id || "")}</div>
-          <div class="k">GFCODE</div><div class="v">${escapeHtml(a.gcode || "")}</div>
-          <div class="k">ASSETTAG</div><div class="v mono">${escapeHtml(a.assettag || "")}</div>
-          <div class="k">DESC</div><div class="v" title="${escapeHtml(a.desc || "")}">${escapeHtml(a.desc || "")}</div>
-          ${ip ? `<div class="k">IP</div><div class="v mono">${escapeHtml(ip)}</div>` : ``}
-          <div class="k">COORD</div><div class="v mono">${escapeHtml(lat)}, ${escapeHtml(lon)}</div>
-        </div>
-        <div class="popup-actions">
-          <a class="gm" href="${gm}" target="_blank" rel="noopener">Open in Google Maps</a>
-          <a class="wz" href="${wz}" target="_blank" rel="noopener">Open in Waze</a>
-        </div>
-      `;
+    // Load and Process Data
+    function loadData() {
+        Papa.parse(CONFIG.CSV_URL, {
+            download: true,
+            header: true,
+            complete: (results) => {
+                allAssets = results.data.filter(r => r["Latitude (WGS84)"]);
+                renderAssets(allAssets);
+            }
+        });
     }
 
-    function renderMap(assets) {
-      clearAssetsLayer();
+    function renderAssets(data) {
+        if (window.markerLayer) map.removeLayer(window.markerLayer);
+        const markers = [];
+        const tbody = document.querySelector('#assetTable tbody');
+        tbody.innerHTML = '';
 
-      for (const a of assets) {
-        const key = a._key;
-        const m = L.marker([a.lat, a.lon], { icon: markerIcon(a.gcode), title: a.id || a.assettag || "" })
-          .bindPopup(popupHtml(a), { maxWidth: 360 });
+        data.forEach(asset => {
+            const lat = parseFloat(asset["Latitude (WGS84)"]);
+            const lon = parseFloat(asset["Longitude (WGS84)"]);
+            const type = asset["GFCODE"];
+            
+            // Map Marker
+            const marker = L.circleMarker([lat, lon], {
+                radius: 6,
+                fillColor: CONFIG.COLORS[type] || '#94a3b8',
+                color: '#fff',
+                weight: 1,
+                fillOpacity: 0.8
+            });
 
-        m.on("click", () => {
-          setActiveRow(key);
+            const popupHtml = `
+                <div style="min-width: 200px">
+                    <b style="font-size:14px">${asset.ASSET_TAG}</b><br/>
+                    <div style="margin-top:8px">
+                        <div class="data-row"><span class="data-label">Type:</span>${type}</div>
+                        <div class="data-row"><span class="data-label">ID:</span>${asset.ID}</div>
+                        <div class="data-row"><span class="data-label">IP:</span>${asset["IP Address "] || 'N/A'}</div>
+                        <div class="data-row"><span class="data-label">Desc:</span>${asset.DESCRIPTION}</div>
+                    </div>
+                    <div class="nav-btn-group">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" class="nav-btn btn-google">Google</a>
+                        <a href="https://waze.com/ul?ll=${lat},${lon}&navigate=yes" target="_blank" class="nav-btn btn-waze">Waze</a>
+                    </div>
+                </div>
+            `;
+            marker.bindPopup(popupHtml);
+            markers.push(marker);
+
+            // Table Row
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${asset.ASSET_TAG}</td>
+                <td>${type}</td>
+                <td>${asset["IP Address "] || '-'}</td>
+                <td><button onclick="zoomTo(${lat}, ${lon})" style="background:none; border:none; color:#0ea5e9; cursor:pointer;">View</button></td>
+            `;
+            tr.onclick = () => { if(window.innerWidth > 768) zoomTo(lat, lon); };
+            tbody.appendChild(tr);
         });
 
-        markersByKey.set(key, m);
-        m.addTo(assetsLayer);
-      }
+        window.markerLayer = L.layerGroup(markers).addTo(map);
     }
 
-    function fitToAssets(assets) {
-      if (!assets || assets.length === 0) return;
-      const bounds = L.latLngBounds(assets.map(a => [a.lat, a.lon]));
-      map.fitBounds(bounds.pad(0.12), { animate: true, duration: 0.35 });
+    function zoomTo(lat, lon) {
+        map.setView([lat, lon], 18);
+        if(window.innerWidth < 768) toggleDrawer();
     }
 
-    function flyToAsset(key, openPopup = true) {
-      const m = markersByKey.get(key);
-      if (!m) return;
-
-      const ll = m.getLatLng();
-      map.flyTo(ll, Math.max(map.getZoom(), 16), { animate: true, duration: 0.55 });
-
-      if (openPopup) {
-        setTimeout(() => m.openPopup(), 250);
-      }
+    function toggleDrawer() {
+        document.getElementById('drawer').classList.toggle('open');
     }
 
-    // =========================
-    // TABLE
-    // =========================
-    function navButtons(lat, lon) {
-      return `
-        <div class="navbtns">
-          <a class="a-btn gm" href="${gmapsLink(lat, lon)}" target="_blank" rel="noopener">Google Maps</a>
-          <a class="a-btn wz" href="${wazeLink(lat, lon)}" target="_blank" rel="noopener">Waze</a>
-        </div>
-      `;
-    }
+    // Search Logic
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        const filtered = allAssets.filter(a => 
+            a.ASSET_TAG.toLowerCase().includes(val) || 
+            a.ID.toLowerCase().includes(val) || 
+            a.GFCODE.toLowerCase().includes(val)
+        );
+        renderAssets(filtered);
+    });
 
-    function renderTable(assets) {
-      const tb = $("tbody");
-      tb.innerHTML = "";
-
-      for (const a of assets) {
-        const tr = document.createElement("tr");
-        tr.dataset.key = a._key;
-
-        const ip = a.ip ? escapeHtml(a.ip) : "";
-        const id = escapeHtml(a.id || "");
-        const gcode = escapeHtml(a.gcode || "");
-        const tag = escapeHtml(a.assettag || "");
-        const desc = escapeHtml(a.desc || "");
-        const lat = escapeHtml(a.lat);
-        const lon = escapeHtml(a.lon);
-
-        tr.innerHTML = `
-          <td class="mono">${id}</td>
-          <td>${gcode}</td>
-          <td class="mono" title="${tag}">${tag}</td>
-          <td title="${desc}" style="max-width:320px; overflow:hidden; text-overflow:ellipsis;">${desc}</td>
-          <td class="mono">${lat}</td>
-          <td class="mono">${lon}</td>
-          <td class="mono" title="${ip}">${ip}</td>
-          <td>${navButtons(a.lat, a.lon)}</td>
-        `;
-
-        tr.addEventListener("click", (e) => {
-          // Allow clicking nav buttons without triggering row zoom
-          const target = e.target;
-          if (target && (target.tagName === "A" || target.closest("a"))) return;
-
-          const key = tr.dataset.key;
-          setActiveRow(key);
-          flyToAsset(key, true);
-        });
-
-        tb.appendChild(tr);
-      }
-
-      // Keep active row highlight if still visible
-      if (activeRowKey) setActiveRow(activeRowKey, false);
-    }
-
-    function setActiveRow(key, scrollIntoView = true) {
-      activeRowKey = key;
-
-      const rows = document.querySelectorAll("tbody#tbody tr");
-      for (const r of rows) {
-        r.classList.toggle("is-active", r.dataset.key === key);
-      }
-
-      if (scrollIntoView) {
-        const r = document.querySelector(`tbody#tbody tr[data-key="${CSS.escape(key)}"]`);
-        if (r) r.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      }
-    }
-
-    // =========================
-    // FILTERING
-    // =========================
-    function applyFilters() {
-      const q = safeStr($("q").value).toLowerCase();
-      const g = $("gcode").value;
-
-      filtered = all.filter(a => {
-        if (g !== "__ALL__" && safeStr(a.gcode) !== g) return false;
-
-        if (q) {
-          const hay = [
-            a.id, a.assettag, a.desc
-          ].map(s => safeStr(s).toLowerCase()).join(" | ");
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      });
-
-      $("countLabel").textContent = `${filtered.length} assets`;
-      renderMap(filtered);
-      renderTable(filtered);
-
-      if (filtered.length > 0) {
-        $("mapFoot").textContent = `Showing ${filtered.length} assets. Tap a marker or row to navigate.`;
-      } else {
-        $("mapFoot").textContent = "No assets match current filters.";
-      }
-    }
-
-    function populateGcodeOptions() {
-      const sel = $("gcode");
-      const current = sel.value;
-
-      const codes = Array.from(new Set(all.map(a => safeStr(a.gcode)).filter(Boolean)))
-        .sort((a,b) => a.localeCompare(b, undefined, { sensitivity:"base" }));
-
-      sel.innerHTML = `<option value="__ALL__">All Types</option>`;
-      for (const c of codes) {
-        const opt = document.createElement("option");
-        opt.value = c;
-        opt.textContent = c;
-        sel.appendChild(opt);
-      }
-
-      // Restore if possible
-      if ([...sel.options].some(o => o.value === current)) sel.value = current;
-    }
-
-    // =========================
-    // GEOLOCATION (MY LOCATION)
-    // =========================
-    function setMyLocation(lat, lon, accuracyMeters) {
-      const ll = L.latLng(lat, lon);
-
-      if (!myMarker) {
-        myMarker = L.marker(ll, { icon: myLocationIcon(), title: "My Location" })
-          .bindPopup(`<div class="popup-title">My Location</div><div class="kv"><div class="k">COORD</div><div class="v mono">${lat.toFixed(6)}, ${lon.toFixed(6)}</div></div>`);
-        myMarker.addTo(map);
-      } else {
-        myMarker.setLatLng(ll);
-      }
-
-      if (Number.isFinite(accuracyMeters) && accuracyMeters > 0) {
-        if (!myAccuracyCircle) {
-          myAccuracyCircle = L.circle(ll, {
-            radius: accuracyMeters,
-            color: "rgba(34,197,94,.8)",
-            weight: 2,
-            fillColor: "rgba(34,197,94,.15)",
-            fillOpacity: 0.35
-          }).addTo(map);
-        } else {
-          myAccuracyCircle.setLatLng(ll);
-          myAccuracyCircle.setRadius(accuracyMeters);
-        }
-      }
-
-      map.flyTo(ll, Math.max(map.getZoom(), 16), { animate: true, duration: 0.6 });
-    }
-
-    function locateMe() {
-      if (!navigator.geolocation) {
-        showToast("Geolocation is not supported in this browser.", "Use a modern browser and allow location access.", "bad");
-        return;
-      }
-
-      $("locateBtn").disabled = true;
-      $("locateBtn").textContent = "Locating...";
-
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          const acc = pos.coords.accuracy;
-
-          setMyLocation(lat, lon, acc);
-          showToast("Location updated.", `Accuracy: ${Math.round(acc)} m`, "ok");
-
-          $("locateBtn").disabled = false;
-          $("locateBtn").textContent = "Locate Me";
-        },
-        (err) => {
-          let msg = "Unable to fetch location.";
-          let sub = err && err.message ? err.message : "Check permissions and GPS availability.";
-          if (err && err.code === 1) sub = "Permission denied. Enable location access for this page.";
-          if (err && err.code === 2) sub = "Position unavailable. Try moving outdoors or enabling GPS.";
-          if (err && err.code === 3) sub = "Timeout. Try again.";
-
-          showToast(msg, sub, "bad");
-
-          $("locateBtn").disabled = false;
-          $("locateBtn").textContent = "Locate Me";
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 12000,
-          maximumAge: 15000
-        }
-      );
-    }
-
-    // =========================
-    // CSV LOADING
-    // =========================
-    function normalizeRow(row) {
-      // Accept multiple possible header names (case/spacing variations).
-      const latRaw = getFirst(row, ["Latitude WGS84", "Latitude", "Lat", "LAT", "lat", "latitude"]);
-      const lonRaw = getFirst(row, ["Longitude WGS84", "Longitude", "Lon", "LON", "lng", "longitude"]);
-
-      const lat = parseNum(latRaw);
-      const lon = parseNum(lonRaw);
-      if (lat === null || lon === null) return null;
-
-      const id = getFirst(row, ["ID", "Id", "id"]);
-      const gcode = getFirst(row, ["GFCODE", "Gfcode", "gfcode", "Asset Type", "Device Type"]);
-      const assettag = getFirst(row, ["ASSETTAG", "AssetTag", "asset tag", "Asset Tag", "assettag"]);
-      const desc = getFirst(row, ["DESCRIPTION", "Description", "description", "Name", "NAME"]);
-      const ip = getFirst(row, ["IP Address", "IP", "IPAddress", "IPADDRESS", "IP address"]);
-      const logicId = getFirst(row, ["logic id", "Logic id", "Logic ID", "LOGIC ID", "LogicId"]);
-      const projectId = getFirst(row, ["Project id", "Project ID", "PROJECT ID", "ProjectId"]);
-      const srNo = getFirst(row, ["Sr No.", "Sr No", "SR No", "SRNO", "SrNo", "S.No", "SNO"]);
-
-      const asset = {
-        srNo,
-        id,
-        gcode,
-        assettag,
-        desc,
-        ip,
-        logicId,
-        projectId,
-        lat: +lat.toFixed(6),
-        lon: +lon.toFixed(6),
-        _raw: row
-      };
-      asset._key = buildKey(asset);
-      return asset;
-    }
-
-    function loadCsv() {
-      $("csvState").textContent = "Loading...";
-      $("lastSync").textContent = "Loading...";
-      $("reloadBtn").disabled = true;
-
-      Papa.parse(CSV_URL, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: (res) => {
-          const rows = Array.isArray(res.data) ? res.data : [];
-          const parsed = [];
-          let dropped = 0;
-
-          for (const r of rows) {
-            const a = normalizeRow(r);
-            if (!a) { dropped++; continue; }
-            parsed.push(a);
-          }
-
-          all = parsed;
-          populateGcodeOptions();
-          applyFilters();
-
-          $("csvState").textContent = "";
-          $("lastSync").textContent = `Synced: ${nowStamp()}`;
-          $("reloadBtn").disabled = false;
-
-          if (all.length > 0) {
-            fitToAssets(all);
-          }
-
-          if (dropped > 0) {
-            showToast("Loaded data with some skipped rows.", `${dropped} rows missing valid coordinates were ignored.`, "warn");
-          } else {
-            showToast("Assets loaded.", `${all.length} assets ready.`, "ok");
-          }
-        },
-        error: (err) => {
-          $("csvState").textContent = "Load failed";
-          $("lastSync").textContent = "Load failed";
-          $("reloadBtn").disabled = false;
-          showToast("Failed to load CSV.", err && err.message ? err.message : "Check network access.", "bad");
-        }
-      });
-    }
-
-    // =========================
-    // EVENTS
-    // =========================
-    function wireEvents() {
-      $("q").addEventListener("input", () => applyFilters());
-      $("gcode").addEventListener("change", () => applyFilters());
-
-      $("locateBtn").addEventListener("click", locateMe);
-
-      $("fitBtn").addEventListener("click", () => {
-        if (filtered.length > 0) {
-          fitToAssets(filtered);
-          showToast("Fitted to assets.", `${filtered.length} assets in view.`, "info");
-        } else {
-          showToast("Nothing to fit.", "No assets match current filters.", "warn");
-        }
-      });
-
-      $("reloadBtn").addEventListener("click", () => loadCsv());
-
-      // Close toast on click
-      $("toast").addEventListener("click", () => $("toast").classList.remove("show"));
-    }
-
-    // =========================
-    // BOOT
-    // =========================
-    (function boot(){
-      initMap();
-      wireEvents();
-      loadCsv();
-    })();
-  </script>
+    // Start
+    initMap();
+    loadData();
+</script>
 </body>
 </html>
