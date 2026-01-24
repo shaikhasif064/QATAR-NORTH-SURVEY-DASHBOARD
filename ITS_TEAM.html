@@ -159,14 +159,18 @@
       overflow:hidden;
     }
 
+    /* KPI cards: wrap to 2+ lines (no horizontal scroll) */
     .kpi-wrap{
-      display:flex;gap:8px;flex-wrap:nowrap;overflow:auto hidden;padding-bottom:4px;scroll-snap-type:x proximity
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:stretch;
+      padding-bottom:2px;
     }
-    .kpi-wrap::-webkit-scrollbar{height:8px}
-    .kpi-wrap::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:999px}
     .kpi{
+      flex:0 0 auto;
       min-width:172px;
-      scroll-snap-align:start;
+      max-width:220px;
       border-radius:var(--radius-md);
       padding:10px 12px;
       border:1px solid rgba(148,163,184,.55);
@@ -242,7 +246,7 @@
     .export-group{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
 
     .map-card{padding:10px}
-    .map-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 6px 10px}
+    .map-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 6px 10px;flex-wrap:wrap}
     .map-title{
       font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--text2);
       display:flex;align-items:center;gap:8px;
@@ -257,7 +261,7 @@
 
     .legend{
       position:absolute;top:12px;right:12px;
-      width:260px;max-width:calc(100% - 24px);
+      width:300px;max-width:calc(100% - 24px);
       max-height:calc(100% - 24px);
       overflow:hidden;
       border-radius:var(--radius-md);
@@ -298,7 +302,10 @@
     .legend-body::-webkit-scrollbar{width:10px}
     .legend-body::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:999px}
     .legend-list{list-style:none;display:flex;flex-direction:column;gap:8px}
-    .legend-item{display:flex;align-items:center;gap:10px;color:var(--text1);font-size:12px}
+    .legend-item{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--text1);font-size:12px}
+    .legend-left{display:flex;align-items:center;gap:10px;min-width:0}
+    .legend-type{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .legend-count{font-size:11px;color:var(--text3);flex:0 0 auto}
     .swatch{width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.45);flex:0 0 auto;box-shadow:0 0 10px rgba(15,23,42,.35)}
     body[data-theme="light"] .swatch{border-color:rgba(2,6,23,.20)}
     .swatch.circle{border-radius:999px}
@@ -309,7 +316,7 @@
     }
     .legend-note{margin-top:10px;font-size:10px;color:var(--text3);line-height:1.35}
     .legend.is-collapsed .legend-body{display:none}
-    .legend.is-collapsed{width:180px}
+    .legend.is-collapsed{width:190px}
 
     .map-footer{padding:10px 6px 2px;font-size:11px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 
@@ -360,8 +367,10 @@
       border:1px solid rgba(148,163,184,.35) !important;
       overflow:hidden !important;
       box-shadow:0 18px 45px rgba(15,23,42,.55) !important;
+      max-width:520px !important;
     }
     body[data-theme="light"] .esri-popup__main-container{box-shadow:0 18px 45px rgba(148,163,184,.22) !important}
+
     .popup-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .popup-link{
       display:inline-flex;align-items:center;justify-content:center;gap:6px;
@@ -377,12 +386,53 @@
       box-shadow:0 14px 30px rgba(88,28,135,.35);
     }
 
+    .popup-kv{
+      margin-top:8px;
+      border:1px solid rgba(148,163,184,.25);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    .popup-kv table{width:100%;border-collapse:collapse;font-size:12px}
+    .popup-kv td{
+      padding:6px 10px;
+      border-bottom:1px solid rgba(148,163,184,.18);
+      vertical-align:top;
+      white-space:normal;
+    }
+    .popup-kv tr:last-child td{border-bottom:none}
+    .popup-kv td:first-child{
+      width:40%;
+      color:rgba(156,163,175,.95);
+      font-weight:700;
+      letter-spacing:.02em;
+    }
+    body[data-theme="light"] .popup-kv td:first-child{color:rgba(55,65,81,.85)}
+    .popup-details{
+      margin-top:10px;
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    .popup-details summary{
+      padding:8px 10px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+      color:rgba(156,163,175,.95);
+      background:rgba(15,23,42,.35);
+      user-select:none;
+      list-style:none;
+    }
+    .popup-details summary::-webkit-details-marker{display:none}
+    body[data-theme="light"] .popup-details summary{background:rgba(243,244,246,.75);color:rgba(55,65,81,.85)}
+    .popup-details .inner{padding:8px 10px}
+
     @media (max-width:980px){
       header{flex-wrap:wrap;padding:10px 14px}
       .header-center{text-align:left}
       .map-box{height:440px}
       .filter select{min-width:220px}
-      .legend{width:240px}
+      .legend{width:280px}
     }
     @media (max-width:640px){
       .shell{padding:10px 10px 20px}
@@ -452,7 +502,6 @@
 
           <div class="export-group">
             <button class="btn" id="exportCsvBtn" type="button">CSV</button>
-            <button class="btn" id="exportXlsxBtn" type="button">Excel (XLSX)</button>
             <button class="btn" id="exportPdfBtn" type="button">PDF</button>
           </div>
         </div>
@@ -484,7 +533,7 @@
         </div>
 
         <div class="map-footer">
-          <div>Map is constrained to Qatar extent. Use “Locate Me” to center on current position.</div>
+          <div id="mapFooterLeft">Map is constrained to Qatar extent. Use “Locate Me” to center on current position.</div>
           <div class="small-muted">Data source: Google Sheet (CSV)</div>
         </div>
       </div>
@@ -521,17 +570,35 @@
     ];
     const SHAPES = ["circle","square","diamond","triangle","cross","x"];
 
+    // Priority fields in popup (match your typical Excel names)
+    const POPUP_PRIORITY = [
+      "Sr No.","SR NO","SrNo","SrNo.","Serial No.","Serial Number",
+      "Project id","Project ID","PROJECT ID","project id",
+      "logic id","Logic id","Logic ID","LOGIC ID",
+      "MXASSETNUM","MxAssetNum","Maximo Asset","Maximo Asset Number",
+      "IP Address","IP","IPAddress","Ip Address",
+      "ASSETTAG","Asset Tag","AssetTag",
+      "ID","Id","id",
+      "DESCRIPTION","Description","description",
+      "Camera ID","CAMERA ID","camera id",
+      "User","USER","username","Username",
+      "Password","PASSWORD","pass","Pass",
+      "GFCODE","gfcode","Gfcode",
+      "Type","TYPE","Device Type","DEVICE TYPE",
+      "Latitude WGS84","Longitude WGS84","Latitude","Longitude"
+    ];
+
     // ===================== STATE =====================
     let rawRows = [];
     let headers = [];
     let filteredRows = [];
+    let skippedNoCoords = 0;
 
     let view, devicesLayer, myLayer;
     const deviceGraphicsByKey = new Map();
     let selectedGraphic = null;
 
-    // Export libraries (lazy)
-    let XLSX = null;
+    // Export libs
     let jsPDF = null;
     let autoTableLoaded = false;
 
@@ -561,7 +628,12 @@
       return String(s).replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
     }
     function toNumberMaybe(v){
-      const n = parseFloat(String(v ?? "").trim());
+      // tolerate spaces, commas, and stray text
+      const s = String(v ?? "")
+        .replace(/\u00A0/g," ")
+        .trim()
+        .replace(/,/g,""); // remove thousand separators or accidental commas
+      const n = parseFloat(s);
       return Number.isFinite(n) ? n : null;
     }
     function stableHash(str){
@@ -582,6 +654,7 @@
       };
     }
     function getFirstKey(row, candidates){
+      if (!row) return null;
       for (const k of candidates){
         if (Object.prototype.hasOwnProperty.call(row, k)) return k;
       }
@@ -619,7 +692,6 @@
 
     // ===================== CSV PARSER (NO LIBS) =====================
     function parseCSV(text){
-      // Handles commas, quotes, newlines in quoted fields
       const rows = [];
       let i = 0, field = "", row = [];
       let inQuotes = false;
@@ -640,26 +712,16 @@
 
         if (c === '"'){ inQuotes = true; i++; continue; }
         if (c === ','){ pushField(); i++; continue; }
-        if (c === '\r'){
-          // ignore, handle on \n
-          i++; continue;
-        }
-        if (c === '\n'){
-          pushField();
-          pushRow();
-          i++; continue;
-        }
+        if (c === '\r'){ i++; continue; }
+        if (c === '\n'){ pushField(); pushRow(); i++; continue; }
 
         field += c; i++;
       }
 
-      // last field/row
       pushField();
       pushRow();
 
-      // remove possible trailing empty row
       while (rows.length && rows[rows.length-1].every(v => String(v ?? "").trim() === "")) rows.pop();
-
       return rows;
     }
 
@@ -702,7 +764,7 @@
         $("hintText").textContent = "Tip: Click a marker (or a table row) to open navigation options (Google Maps / Waze).";
 
         renderAll();
-        applyFilters(); // also refresh map
+        applyFilters();
       }catch(err){
         setStatus(false, "Load error");
         $("lastSync").textContent = nowString();
@@ -783,19 +845,26 @@
 
       const myItem = document.createElement("li");
       myItem.className = "legend-item";
-      myItem.innerHTML = `<span class="swatch circle" style="background:${"#22c55e"}"></span> My Location`;
+      myItem.innerHTML = `
+        <div class="legend-left">
+          <span class="swatch circle" style="background:${"#22c55e"}"></span>
+          <span class="legend-type">My Location</span>
+        </div>
+        <span class="legend-count"></span>
+      `;
       list.appendChild(myItem);
 
       if (!rows.length) return;
 
       const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
-      const types = new Set();
+      const counts = new Map();
       for (const r of rows){
-        types.add(sanitize(gfcKey ? r[gfcKey] : "UNKNOWN"));
+        const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
+        counts.set(t, (counts.get(t) || 0) + 1);
       }
-      const sorted = [...types].sort((a,b)=>a.localeCompare(b));
+      const sorted = [...counts.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
 
-      for (const t of sorted){
+      for (const [t, cnt] of sorted){
         const { color, shape } = symbolForType(t);
 
         let swatchHTML = "";
@@ -811,7 +880,13 @@
 
         const item = document.createElement("li");
         item.className = "legend-item";
-        item.innerHTML = `${swatchHTML} ${escapeHtml(t)}`;
+        item.innerHTML = `
+          <div class="legend-left">
+            ${swatchHTML}
+            <span class="legend-type" title="${escapeHtml(t)}">${escapeHtml(t)}</span>
+          </div>
+          <span class="legend-count">${cnt}</span>
+        `;
         list.appendChild(item);
       }
     }
@@ -895,6 +970,87 @@
       };
     }
 
+    // ===================== POPUP CONTENT (ALL FIELDS + PRIORITY) =====================
+    function buildPopupRow(label, value){
+      return `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(sanitize(value))}</td></tr>`;
+    }
+
+    function buildPopupHTML(row){
+      // coords: try exact headers first then fallbacks
+      const latKey = getFirstKey(row, ["Latitude WGS84","Latitude_WGS84","Latitude","LATITUDE","lat"]);
+      const lonKey = getFirstKey(row, ["Longitude WGS84","Longitude_WGS84","Longitude","LONGITUDE","lon","LON"]);
+
+      const latS = sanitize(latKey ? row[latKey] : "");
+      const lonS = sanitize(lonKey ? row[lonKey] : "");
+      const lat = toNumberMaybe(latS);
+      const lon = toNumberMaybe(lonS);
+
+      const gUrl = (lat !== null && lon !== null) ? googleMapsUrl(lat, lon) : "#";
+      const wUrl = (lat !== null && lon !== null) ? wazeUrl(lat, lon) : "#";
+
+      const idKey  = getFirstKey(row, ["ID","Id","id"]);
+      const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
+      const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
+      const title = sanitize(idKey ? row[idKey] : "") !== "N/A"
+        ? sanitize(row[idKey])
+        : (sanitize(tagKey ? row[tagKey] : "") !== "N/A" ? sanitize(row[tagKey]) : "ITS Asset");
+
+      // Priority table (only keys that exist in this sheet)
+      const existingKeys = new Set(headers);
+      const seen = new Set();
+      let priorityRows = "";
+
+      for (const want of POPUP_PRIORITY){
+        const k = headers.find(h => String(h).trim().toLowerCase() === String(want).trim().toLowerCase());
+        if (k && existingKeys.has(k) && !seen.has(k)){
+          seen.add(k);
+          priorityRows += buildPopupRow(k, row[k]);
+        }
+      }
+
+      // Always include coordinates line in priority
+      if (!seen.has("Coordinates")){
+        priorityRows += buildPopupRow("Coordinates", (latS === "N/A" || lonS === "N/A") ? "N/A" : `${latS}, ${lonS}`);
+      }
+
+      // All fields (complete)
+      let allRows = "";
+      for (const h of headers){
+        allRows += buildPopupRow(h, row[h]);
+      }
+
+      return `
+        <div style="font-size:12px;line-height:1.35;">
+          <div style="font-weight:800;font-size:13px;margin-bottom:6px;">${escapeHtml(title)}</div>
+          <div style="color:rgba(156,163,175,.95);font-size:12px;margin-bottom:6px;">
+            <strong>GFCODE:</strong> ${escapeHtml(sanitize(gfcKey ? row[gfcKey] : "UNKNOWN"))}
+          </div>
+
+          <div class="popup-kv">
+            <table>
+              ${priorityRows}
+            </table>
+          </div>
+
+          <div class="popup-btns">
+            <a class="popup-link" href="${gUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
+            <a class="popup-link waze" href="${wUrl}" target="_blank" rel="noopener">Open in Waze</a>
+          </div>
+
+          <details class="popup-details">
+            <summary>Show all fields (Excel row)</summary>
+            <div class="inner">
+              <div class="popup-kv">
+                <table>
+                  ${allRows}
+                </table>
+              </div>
+            </div>
+          </details>
+        </div>
+      `;
+    }
+
     // ===================== MAP (ARCGIS) =====================
     function initMap(){
       return new Promise((resolve, reject)=>{
@@ -953,45 +1109,6 @@
               size: selected ? 14 : 11,
               outline: { color: "#ffffff", width: selected ? 2.5 : 1.5 }
             };
-          }
-
-          function popupContentFromRow(row){
-            const idKey  = getFirstKey(row, ["ID","Id","id"]);
-            const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
-            const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
-            const descKey= getFirstKey(row, ["DESCRIPTION","Description","description"]);
-            const ipKey  = getFirstKey(row, ["IP Address","IP","ip address","IPAddress","Ip Address"]);
-            const latKey = getFirstKey(row, ["Latitude WGS84","Latitude","lat","LATITUDE","Latitude_WGS84"]);
-            const lonKey = getFirstKey(row, ["Longitude WGS84","Longitude","lon","LON","LONGITUDE","Longitude_WGS84"]);
-
-            const id   = sanitize(idKey ? row[idKey] : "");
-            const gfc  = sanitize(gfcKey ? row[gfcKey] : "");
-            const tag  = sanitize(tagKey ? row[tagKey] : "");
-            const desc = sanitize(descKey ? row[descKey] : "");
-            const ip   = sanitize(ipKey ? row[ipKey] : "");
-            const latS = sanitize(latKey ? row[latKey] : "");
-            const lonS = sanitize(lonKey ? row[lonKey] : "");
-
-            const lat = toNumberMaybe(latS);
-            const lon = toNumberMaybe(lonS);
-            const gUrl = (lat !== null && lon !== null) ? googleMapsUrl(lat, lon) : "#";
-            const wUrl = (lat !== null && lon !== null) ? wazeUrl(lat, lon) : "#";
-
-            return `
-              <div style="font-size:12px;line-height:1.35;">
-                <div style="font-weight:800;font-size:13px;margin-bottom:6px;">${escapeHtml(id !== "N/A" ? id : (tag !== "N/A" ? tag : "ITS Asset"))}</div>
-                <div><strong>ID:</strong> ${escapeHtml(id)}</div>
-                <div><strong>GFCODE:</strong> ${escapeHtml(gfc)}</div>
-                <div><strong>ASSETTAG:</strong> ${escapeHtml(tag)}</div>
-                <div><strong>DESCRIPTION:</strong> ${escapeHtml(desc)}</div>
-                <div><strong>IP Address:</strong> ${escapeHtml(ip)}</div>
-                <div><strong>Coordinates:</strong> ${escapeHtml(latS)}, ${escapeHtml(lonS)}</div>
-                <div class="popup-btns">
-                  <a class="popup-link" href="${gUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
-                  <a class="popup-link waze" href="${wUrl}" target="_blank" rel="noopener">Open in Waze</a>
-                </div>
-              </div>
-            `;
           }
 
           function clearSelection(){
@@ -1054,7 +1171,6 @@
             PopupTemplate,
             Point,
             markerSymbol,
-            popupContentFromRow,
             clearSelection,
             focusGraphicInternal,
             setMyLocation
@@ -1087,19 +1203,26 @@
       devicesLayer.removeAll();
       deviceGraphicsByKey.clear();
       window.__GIS__.clearSelection();
+      skippedNoCoords = 0;
 
-      if (!rows.length) return;
+      if (!rows.length){
+        $("mapFooterLeft").textContent = "Map is constrained to Qatar extent. Use “Locate Me” to center on current position.";
+        return;
+      }
 
-      // Keys for coords/types based on headers present
-      const latKey = getFirstKey(rows[0], ["Latitude WGS84","Latitude","lat","LATITUDE","Latitude_WGS84"]);
-      const lonKey = getFirstKey(rows[0], ["Longitude WGS84","Longitude","lon","LON","LONGITUDE","Longitude_WGS84"]);
+      // Best-match keys for coords/types based on actual headers present
+      const latKey = getFirstKey(rows[0], ["Latitude WGS84","Latitude_WGS84","Latitude","LATITUDE","lat"]);
+      const lonKey = getFirstKey(rows[0], ["Longitude WGS84","Longitude_WGS84","Longitude","LONGITUDE","lon","LON"]);
       const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
 
       require(["esri/Graphic","esri/geometry/Point","esri/PopupTemplate"], (Graphic, Point, PopupTemplate)=>{
         for (const r of rows){
-          const lat = toNumberMaybe(r[latKey]);
-          const lon = toNumberMaybe(r[lonKey]);
-          if (lat === null || lon === null) continue;
+          const lat = toNumberMaybe(latKey ? r[latKey] : null);
+          const lon = toNumberMaybe(lonKey ? r[lonKey] : null);
+          if (lat === null || lon === null){
+            skippedNoCoords++;
+            continue;
+          }
 
           const type = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
           const pt = new Point({ latitude: lat, longitude: lon, spatialReference: { wkid: 4326 } });
@@ -1110,13 +1233,19 @@
             attributes: { __key: buildDeviceKey(r), __type: type },
             popupTemplate: new PopupTemplate({
               title: "{__type}",
-              content: () => window.__GIS__.popupContentFromRow(r)
+              content: () => buildPopupHTML(r)
             })
           });
 
           devicesLayer.add(g);
+          // Note: duplicates overwrite the lookup map, but graphics still display
           deviceGraphicsByKey.set(buildDeviceKey(r), g);
         }
+
+        $("mapFooterLeft").textContent =
+          skippedNoCoords > 0
+            ? `Map is constrained to Qatar extent. Skipped ${skippedNoCoords} row(s) with missing/invalid coordinates.`
+            : "Map is constrained to Qatar extent. Use “Locate Me” to center on current position.";
       });
     }
 
@@ -1151,7 +1280,7 @@
       );
     }
 
-    // ===================== EXPORT (LAZY LOAD LIBS) =====================
+    // ===================== EXPORT (CSV + PDF) =====================
     function csvEscape(val){
       const s = sanitize(val);
       const needs = /[",\n\r]/.test(s);
@@ -1176,7 +1305,6 @@
       a.remove();
       URL.revokeObjectURL(url);
     }
-
     function loadScript(url){
       return new Promise((resolve, reject)=>{
         const s = document.createElement("script");
@@ -1188,30 +1316,25 @@
       });
     }
 
-    async function ensureExportLibs(){
-      // Prevent AMD interception (ArcGIS uses AMD). Temporarily hide define to force UMD libs to attach to window.
+    async function ensurePdfLibs(){
+      // Critical: ArcGIS uses AMD (dojo). Force UMD libs to attach to window.
       const savedDefine = window.define;
+      const savedRequire = window.require;
       try{
         window.define = undefined;
-
-        if (!XLSX){
-          await loadScript("https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js");
-          XLSX = window.XLSX || null;
-          if (!XLSX) throw new Error("XLSX library did not initialize.");
-        }
-
+        // keep window.require (ArcGIS) intact, but UMD libs mainly look for define/define.amd
         if (!jsPDF){
           await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
           jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
           if (!jsPDF) throw new Error("jsPDF library did not initialize.");
         }
-
         if (!autoTableLoaded){
           await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js");
           autoTableLoaded = true;
         }
       } finally {
         window.define = savedDefine;
+        window.require = savedRequire;
       }
     }
 
@@ -1222,26 +1345,12 @@
       downloadBlob(new Blob([csv], { type:"text/csv;charset=utf-8" }), `ITS_Field_Operations_${Date.now()}.csv`);
     }
 
-    async function exportXLSX(){
-      const rows = filteredRows.length ? filteredRows : rawRows;
-      if (!headers.length) return;
-      try{
-        await ensureExportLibs();
-        const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "ITS_DATA");
-        const out = XLSX.write(wb, { bookType:"xlsx", type:"array" });
-        downloadBlob(new Blob([out], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `ITS_Field_Operations_${Date.now()}.xlsx`);
-      }catch(err){
-        alert("Export XLSX failed: " + (err?.message || err));
-      }
-    }
-
     async function exportPDF(){
       const rows = filteredRows.length ? filteredRows : rawRows;
       if (!headers.length) return;
       try{
-        await ensureExportLibs();
+        await ensurePdfLibs();
+
         const doc = new jsPDF({ orientation:"landscape", unit:"pt", format:"a4" });
 
         doc.setFont("helvetica","bold");
@@ -1254,7 +1363,11 @@
         doc.text(`Rows: ${rows.length}`, 40, 66);
 
         const body = rows.map(r => headers.map(h => sanitize(r[h])));
-        doc.autoTable({
+
+        const at = doc.autoTable || (doc.constructor && doc.constructor.API && doc.constructor.API.autoTable);
+        if (!at) throw new Error("PDF table engine not available (autoTable).");
+
+        (doc.autoTable ? doc.autoTable.bind(doc) : doc.constructor.API.autoTable.bind(doc))({
           head: [headers],
           body,
           startY: 80,
@@ -1266,7 +1379,7 @@
 
         downloadBlob(doc.output("blob"), `ITS_Field_Operations_${Date.now()}.pdf`);
       }catch(err){
-        alert("Export PDF failed: " + (err?.message || err));
+        alert("PDF export failed: " + (err?.message || err));
       }
     }
 
@@ -1286,7 +1399,6 @@
       $("reloadBtn").addEventListener("click", loadCSV);
 
       $("exportCsvBtn").addEventListener("click", exportCSV);
-      $("exportXlsxBtn").addEventListener("click", exportXLSX);
       $("exportPdfBtn").addEventListener("click", exportPDF);
     }
 
