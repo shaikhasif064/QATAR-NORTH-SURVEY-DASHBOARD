@@ -3,20 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ITS Field Operations — Map + Table + Navigation</title>
+  <title>ITS Field Operations — ESRI Map + Table</title>
 
-  <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+  <!-- ArcGIS JS API (ESRI) -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/dark/main.css" />
+  <script src="https://js.arcgis.com/4.30/"></script>
 
   <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -25,7 +16,7 @@
     :root{
       --bg0:#020617;
       --bg1:#0b1120;
-      --glass:rgba(15,23,42,.78);
+      --glass:rgba(15,23,42,.82);
       --glass2:rgba(15,23,42,.92);
       --border:rgba(148,163,184,.35);
       --border2:rgba(148,163,184,.55);
@@ -227,6 +218,7 @@
     }
     .btn:hover{ transform: translateY(-1px); border-color: rgba(248,250,252,.55); filter:brightness(1.03); }
     .btn:active{ transform: translateY(0); filter:brightness(0.98); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
 
     .status{
       display:flex;
@@ -238,50 +230,122 @@
       font-size: 12px;
       padding-right: 2px;
     }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
-    .layout{
-      display:grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-      gap:12px;
+    .cards{
+      padding: 10px 12px 0;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
       align-items:stretch;
-      min-height: 0;
-      flex: 1 1 auto;
     }
-
-    .map-wrap{
+    .fcard{
+      flex: 1 1 220px;
+      min-width: 220px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.28);
+      background:
+        radial-gradient(circle at 0 0, rgba(56,189,248,.14), transparent 60%),
+        rgba(15,23,42,.88);
+      box-shadow: 0 16px 40px rgba(15,23,42,.72);
+      padding: 10px 12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .fcard .k{
+      font-size: 10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color: var(--muted);
+      line-height:1.2;
+    }
+    .fcard .v{
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing:.02em;
+      color: #f9fafb;
+      line-height:1;
+    }
+    .sw{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(248,250,252,.7);
+      box-shadow: 0 0 12px rgba(0,0,0,.25);
+      flex:0 0 auto;
+    }
+    .fcard .left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .fcard .txt{
       display:flex;
       flex-direction:column;
-      min-height: 0;
+      gap:2px;
+      min-width:0;
     }
-    #map{
+
+    #viewDiv{
       width:100%;
-      height: 66vh;
-      min-height: 360px;
+      height: 56vh;
+      min-height: 380px;
+      margin: 10px 12px 12px;
       border-radius: var(--radius2);
       border: 1px solid var(--border2);
       box-shadow: 0 16px 40px rgba(15,23,42,.9);
       overflow:hidden;
-      margin: 10px 12px 12px;
-    }
-    .map-foot{
-      padding: 0 14px 12px;
-      color: var(--muted2);
-      font-size: 11px;
-      letter-spacing:.02em;
     }
 
-    .table-wrap{
+    .legend-host{
+      margin: 0 12px 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.25);
+      background: rgba(15,23,42,.86);
+      box-shadow: 0 16px 40px rgba(15,23,42,.75);
       display:flex;
-      flex-direction:column;
-      min-height:0;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
     }
+    .legend-host .title{
+      font-size: 11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .legend-items{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+      flex: 1 1 auto;
+    }
+    .legend-item{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.25);
+      background: rgba(3,7,18,.55);
+      font-size: 12px;
+      color: var(--text);
+      white-space:nowrap;
+    }
+
     .table-head{
       padding: 10px 12px 8px;
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
       gap:12px;
+      border-top: 1px solid rgba(148,163,184,.12);
       border-bottom: 1px solid rgba(148,163,184,.18);
     }
     .table-head .t1{
@@ -304,8 +368,8 @@
         radial-gradient(circle at top left, rgba(15,23,42,.9), rgba(3,7,18,.98));
       box-shadow: 0 18px 45px rgba(15,23,42,.92);
       overflow:auto;
-      max-height: calc(66vh - 120px);
-      min-height: 260px;
+      max-height: 42vh;
+      min-height: 240px;
     }
 
     table{
@@ -351,29 +415,7 @@
         rgba(3,7,18,.98);
     }
 
-    .navbtns{
-      display:flex;
-      gap:6px;
-      align-items:center;
-    }
-    .a-btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      height: 28px;
-      padding: 0 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.55);
-      background: rgba(15,23,42,.9);
-      color: var(--text);
-      text-decoration:none;
-      font-size: 11px;
-      transition: transform var(--fast), border-color var(--fast), filter var(--fast);
-      user-select:none;
-    }
-    .a-btn.gm{ border-color: rgba(56,189,248,.75); }
-    .a-btn.wz{ border-color: rgba(34,197,94,.65); }
-    .a-btn:hover{ transform: translateY(-1px); filter:brightness(1.03); border-color: rgba(248,250,252,.55); }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
 
     .toast{
       position: fixed;
@@ -402,33 +444,49 @@
     .toast .t-msg{ font-size: 12px; color: var(--text); }
     .toast .t-sub{ margin-top: 2px; font-size: 11px; color: var(--muted); }
 
-    /* Leaflet popup styling */
-    .leaflet-popup-content-wrapper{
-      background: rgba(15,23,42,.95);
-      color: var(--text);
-      border-radius: 14px;
-      border: 1px solid rgba(148,163,184,.35);
-      box-shadow: 0 22px 55px rgba(15,23,42,.85);
+    @media (max-width: 520px){
+      .shell{ padding: 10px 10px 16px; }
+      header{ padding: 10px 12px; border-radius: 16px; }
+      .pill{ display:none; }
+      #viewDiv{ height: 50vh; min-height: 320px; }
+      .table-scroll{ max-height: 45vh; }
     }
-    .leaflet-popup-tip{ background: rgba(15,23,42,.95); }
-    .popup-title{
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing:.08em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      color:#f9fafb;
+
+    /* ArcGIS UI tweaks */
+    .esri-ui .esri-widget, .esri-ui .esri-component{
+      border-radius: 14px !important;
+      background: rgba(15,23,42,.92) !important;
+      border: 1px solid rgba(148,163,184,.25) !important;
+      color: var(--text) !important;
+      box-shadow: 0 18px 45px rgba(15,23,42,.85) !important;
     }
-    .kv{
-      display:grid;
-      grid-template-columns: auto 1fr;
-      gap: 3px 10px;
-      font-size: 12px;
-      margin-bottom: 8px;
+    .esri-popup__main-container{
+      border-radius: 14px !important;
+      background: rgba(15,23,42,.95) !important;
+      border: 1px solid rgba(148,163,184,.25) !important;
+      color: var(--text) !important;
+      box-shadow: 0 18px 45px rgba(15,23,42,.85) !important;
     }
-    .kv .k{ color: var(--muted); font-size: 10px; letter-spacing:.10em; text-transform: uppercase; }
-    .kv .v{ color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 260px; }
-    .popup-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+    .esri-popup__header-title, .esri-popup__header-title:hover{
+      color: #f9fafb !important;
+      letter-spacing:.08em !important;
+      text-transform: uppercase !important;
+      font-weight: 800 !important;
+      font-size: 12px !important;
+    }
+    .esri-popup__content{
+      color: var(--text) !important;
+      font-size: 12px !important;
+    }
+    .esri-popup__footer, .esri-popup__button{
+      color: var(--text) !important;
+    }
+    .popup-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
     .popup-actions a{
       text-decoration:none;
       display:inline-flex;
@@ -447,60 +505,14 @@
     .popup-actions a:hover{ transform: translateY(-1px); filter:brightness(1.03); border-color: rgba(248,250,252,.55); }
     .popup-actions a.gm{ border-color: rgba(56,189,248,.75); }
     .popup-actions a.wz{ border-color: rgba(34,197,94,.65); }
-
-    /* Different colored pins (devices vs my location) */
-    .device-pin{
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      border: 2px solid rgba(248,250,252,.9);
-      box-shadow: 0 10px 24px rgba(0,0,0,.35);
-      position: relative;
+    .kv{
+      display:grid;
+      grid-template-columns: auto 1fr;
+      gap: 3px 10px;
+      font-size: 12px;
     }
-    .device-pin::after{
-      content:"";
-      position:absolute;
-      width: 30px; height: 30px;
-      left: 50%; top: 50%;
-      transform: translate(-50%,-50%);
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(56,189,248,.18), transparent 60%);
-      pointer-events:none;
-    }
-    .my-pin{
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      border: 2px solid rgba(248,250,252,.95);
-      background: linear-gradient(135deg, #22c55e, #38bdf8);
-      box-shadow: 0 0 0 7px rgba(34,197,94,.14), 0 16px 30px rgba(0,0,0,.35);
-      position: relative;
-    }
-    .my-pin::after{
-      content:"";
-      position:absolute;
-      width: 34px; height: 34px;
-      left: 50%; top: 50%;
-      transform: translate(-50%,-50%);
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(34,197,94,.20), transparent 62%);
-      pointer-events:none;
-    }
-
-    @media (max-width: 1100px){
-      .layout{ grid-template-columns: 1fr; }
-      #map{ height: 52vh; min-height: 320px; }
-      .table-scroll{ max-height: calc(52vh - 120px); }
-    }
-
-    @media (max-width: 520px){
-      .shell{ padding: 10px 10px 16px; }
-      header{ padding: 10px 12px; border-radius: 16px; }
-      .pill{ display:none; }
-      #map{ height: 48vh; }
-      .table-scroll{ min-height: 240px; }
-      th,td{ padding: 7px 8px; }
-    }
+    .kv .k{ color: var(--muted); font-size: 10px; letter-spacing:.10em; text-transform: uppercase; }
+    .kv .v{ color: var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   </style>
 </head>
 
@@ -514,7 +526,7 @@
 
       <div class="hdr-title">
         <h1>ITS Field Operations Dashboard</h1>
-        <div class="sub">Map + full Excel table + global search + Google/Waze navigation</div>
+        <div class="sub">ESRI map + device-type pins + legend + global search + filter + my location</div>
       </div>
 
       <div class="pill" title="Live CSV from Google Sheets">
@@ -527,12 +539,12 @@
       <div class="toolbar">
         <div class="controls">
           <div class="control">
-            <label for="q">Global Search (IP / logic id / name / anything)</label>
+            <label for="q">Global Search (IP / logic id / any field)</label>
             <input id="q" type="text" placeholder="Type to search across all columns..." autocomplete="off" />
           </div>
 
           <div class="control">
-            <label for="gcode">Filter by GFCODE (Asset Type)</label>
+            <label for="gcode">Filter by GFCODE (Device Type)</label>
             <select id="gcode">
               <option value="__ALL__">All Types</option>
             </select>
@@ -540,42 +552,42 @@
         </div>
 
         <div class="actions">
-          <button class="btn primary" id="locateBtn" type="button" title="Get your current position and center the map">Locate Me</button>
-          <button class="btn" id="fitBtn" type="button" title="Fit map to currently filtered assets">Fit Assets</button>
-          <button class="btn" id="reloadBtn" type="button" title="Reload data from CSV">Reload</button>
+          <button class="btn primary" id="locateBtn" type="button">Locate Me</button>
+          <button class="btn" id="fitBtn" type="button">Fit Filtered</button>
+          <button class="btn" id="reloadBtn" type="button">Reload</button>
         </div>
 
         <div class="status" aria-live="polite">
-          <span id="countLabel">0 assets</span>
-          <span class="mono" id="csvState"></span>
+          <span id="countLabel">0 devices</span>
+          <span id="csvState"></span>
         </div>
       </div>
 
-      <div class="layout">
-        <div class="card map-wrap">
-          <div id="map"></div>
-          <div class="map-foot" id="mapFoot">
-            Tap a device marker (or table row) to view details and open navigation. My Location uses a different colored pin.
-          </div>
-        </div>
+      <div class="cards" id="cards">
+        <!-- Flash cards injected here -->
+      </div>
 
-        <div class="card table-wrap">
-          <div class="table-head">
-            <div>
-              <div class="t1">Asset List (All Excel Columns)</div>
-              <div class="t2">Tap a row to zoom and open the marker popup. Rows without valid coordinates will not have map markers.</div>
-            </div>
-          </div>
+      <div id="viewDiv"></div>
 
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr id="theadRow"></tr>
-              </thead>
-              <tbody id="tbody"></tbody>
-            </table>
-          </div>
+      <div class="legend-host">
+        <div class="title">Legend</div>
+        <div class="legend-items" id="legendItems"></div>
+      </div>
+
+      <div class="table-head">
+        <div>
+          <div class="t1">All Data (from Excel/CSV)</div>
+          <div class="t2">Tap a row to zoom to the device and open popup (Google/Waze available inside popup only).</div>
         </div>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr id="theadRow"></tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
       </div>
     </section>
   </div>
@@ -589,29 +601,9 @@
   </div>
 
   <script>
-    // =========================
-    // CONFIG
-    // =========================
+    // UPDATED CSV LINK (your latest)
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSKAtXDwzYQCNXtLlFOz5fkof4kCLCtzkf7GokGaINUmrurF7CFPbsm6bF8HXXV3MA8PyfYOzMVK8Q/pub?gid=223122268&single=true&output=csv";
 
-    // =========================
-    // STATE
-    // =========================
-    let allRows = [];            // normalized rows with meta (coords, key, searchIndex)
-    let filteredRows = [];
-    let rawHeaders = [];         // original header order
-    let headerMap = new Map();   // normalized header => original header label
-
-    let map, deviceLayer;
-    let markersByKey = new Map();
-    let activeKey = null;
-
-    let myMarker = null;
-    let myAccuracyCircle = null;
-
-    // =========================
-    // DOM HELPERS
-    // =========================
     const $ = (id) => document.getElementById(id);
 
     function showToast(msg, sub = "", kind = "warn") {
@@ -636,22 +628,12 @@
       });
     }
 
-    function escapeHtml(s) {
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
     function canonicalHeader(h) {
-      // Normalize headers to match even if casing/spaces differ.
       return String(h ?? "")
         .trim()
         .toLowerCase()
         .replaceAll(/\s+/g, " ")
-        .replaceAll(/[\u200B-\u200D\uFEFF]/g, "")  // zero-width
+        .replaceAll(/[\u200B-\u200D\uFEFF]/g, "")
         .replaceAll(/[()]/g, "")
         .replaceAll(/[._-]/g, " ")
         .replaceAll(/\s+/g, " ")
@@ -660,7 +642,6 @@
 
     function cleanValue(v) {
       if (v === null || v === undefined) return "";
-      // preserve as string; trim; collapse excessive spaces
       return String(v).replaceAll(/\u00A0/g, " ").trim().replaceAll(/\s+/g, " ");
     }
 
@@ -677,27 +658,13 @@
       return Number.isFinite(n) ? n : null;
     }
 
-    function getAny(row, names) {
-      for (const n of names) {
-        const key = canonicalHeader(n);
-        const orig = headerMap.get(key);
-        if (orig && Object.prototype.hasOwnProperty.call(row, orig)) {
-          const val = cleanValue(row[orig]);
-          if (val !== "") return val;
-        }
-        // also allow direct access if already exact (fallback)
-        if (Object.prototype.hasOwnProperty.call(row, n)) {
-          const val2 = cleanValue(row[n]);
-          if (val2 !== "") return val2;
-        }
-      }
-      return "";
-    }
-
-    function buildKey(rowObj, lat, lon) {
-      const id = cleanValue(rowObj._id) || "NO_ID";
-      const tag = cleanValue(rowObj._assettag) || "NO_TAG";
-      return `${id}||${tag}||${lat ?? "NO_LAT"}||${lon ?? "NO_LON"}||${rowObj._rowIndex}`;
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
     function gmapsLink(lat, lon) {
@@ -707,9 +674,7 @@
       return `https://waze.com/ul?ll=${encodeURIComponent(lat)},${encodeURIComponent(lon)}&navigate=yes`;
     }
 
-    // =========================
-    // DEVICE PIN COLORS (by GFCODE keywords)
-    // =========================
+    // Color mapping by device type (GFCODE keyword-based; extend as needed)
     function typeColor(gcode) {
       const s = cleanValue(gcode).toUpperCase();
       if (!s) return "#94a3b8";
@@ -727,154 +692,103 @@
       return "#94a3b8";
     }
 
-    function deviceIcon(gcode) {
-      const c = typeColor(gcode);
-      return L.divIcon({
-        className: "",
-        html: `<div class="device-pin" style="background:${c};"></div>`,
-        iconSize: [18,18],
-        iconAnchor: [9,9],
-        popupAnchor: [0,-10]
-      });
+    function normalizeType(gcode) {
+      // Use raw GFCODE if present; otherwise "UNKNOWN"
+      const s = cleanValue(gcode);
+      return s ? s : "UNKNOWN";
     }
 
-    function myLocationIcon() {
-      // Different colored pin for current location (green/blue)
-      return L.divIcon({
-        className: "",
-        html: `<div class="my-pin"></div>`,
-        iconSize: [20,20],
-        iconAnchor: [10,10],
-        popupAnchor: [0,-10]
-      });
-    }
+    // State
+    let rawHeaders = [];
+    let headerMap = new Map();      // canonical -> original label
+    let allRows = [];
+    let filteredRows = [];
+    let activeKey = null;
 
-    // =========================
-    // MAP
-    // =========================
-    function initMap() {
-      map = L.map("map", { zoomControl: true, preferCanvas: true });
-      map.setView([25.30, 51.45], 9);
+    // ArcGIS objects
+    let view, map, devicesLayer, myLayer;
+    let deviceGraphicsByKey = new Map();
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap contributors"
-      }).addTo(map);
+    // My location objects
+    let myPointGraphic = null;
+    let myCircleGraphic = null;
 
-      deviceLayer = L.layerGroup().addTo(map);
-    }
-
-    function clearDevices() {
-      deviceLayer.clearLayers();
-      markersByKey.clear();
-    }
-
-    function popupHtml(r) {
-      // Required fields + show available extras (without crashing)
-      const lat = r._lat, lon = r._lon;
-
-      const id = displayValue(r._id);
-      const gcode = displayValue(r._gcode);
-      const tag = displayValue(r._assettag);
-      const desc = displayValue(r._desc);
-      const ip = displayValue(r._ip);
-
-      const gm = (r._hasCoords) ? gmapsLink(lat, lon) : "";
-      const wz = (r._hasCoords) ? wazeLink(lat, lon) : "";
-
-      // Include a few common extra fields if present (still field-friendly)
-      const logicId = displayValue(r._logicId);
-      const projectId = displayValue(r._projectId);
-      const camId = displayValue(r._cameraId);
-
-      return `
-        <div class="popup-title">${escapeHtml(gcode === "N/A" ? "DEVICE" : gcode)}</div>
-        <div class="kv">
-          <div class="k">ID</div><div class="v mono">${escapeHtml(id)}</div>
-          <div class="k">GFCODE</div><div class="v">${escapeHtml(gcode)}</div>
-          <div class="k">ASSETTAG</div><div class="v mono">${escapeHtml(tag)}</div>
-          <div class="k">DESC</div><div class="v" title="${escapeHtml(desc)}">${escapeHtml(desc)}</div>
-          <div class="k">IP</div><div class="v mono">${escapeHtml(ip)}</div>
-          <div class="k">LOGIC ID</div><div class="v mono">${escapeHtml(logicId)}</div>
-          <div class="k">PROJECT</div><div class="v mono">${escapeHtml(projectId)}</div>
-          <div class="k">CAMERA ID</div><div class="v mono">${escapeHtml(camId)}</div>
-          <div class="k">COORD</div><div class="v mono">${escapeHtml(r._hasCoords ? (lat.toFixed(6) + ", " + lon.toFixed(6)) : "N/A")}</div>
-        </div>
-        <div class="popup-actions">
-          ${r._hasCoords ? `<a class="gm" href="${gm}" target="_blank" rel="noopener">Open in Google Maps</a>` : ``}
-          ${r._hasCoords ? `<a class="wz" href="${wz}" target="_blank" rel="noopener">Open in Waze</a>` : ``}
-        </div>
-      `;
-    }
-
-    function renderMap(rows) {
-      clearDevices();
-
-      let countMarkers = 0;
-      for (const r of rows) {
-        if (!r._hasCoords) continue;
-
-        const key = r._key;
-        const m = L.marker([r._lat, r._lon], {
-          icon: deviceIcon(r._gcode),
-          title: cleanValue(r._id) || cleanValue(r._assettag) || "Device"
-        }).bindPopup(popupHtml(r), { maxWidth: 380 });
-
-        m.on("click", () => setActiveRow(key, true));
-        markersByKey.set(key, m);
-        m.addTo(deviceLayer);
-        countMarkers++;
+    function buildHeaderMap(headers) {
+      headerMap.clear();
+      rawHeaders = [];
+      for (const h of headers) {
+        const label = cleanValue(h);
+        if (!label) continue;
+        rawHeaders.push(label);
+        headerMap.set(canonicalHeader(label), label);
       }
-
-      return countMarkers;
     }
 
-    function fitToRows(rows) {
-      const pts = rows.filter(r => r._hasCoords).map(r => [r._lat, r._lon]);
-      if (!pts.length) return false;
-      const b = L.latLngBounds(pts);
-      map.fitBounds(b.pad(0.12), { animate: true, duration: 0.35 });
-      return true;
+    function getAny(rawRow, names) {
+      for (const n of names) {
+        const key = canonicalHeader(n);
+        const orig = headerMap.get(key);
+        if (orig && Object.prototype.hasOwnProperty.call(rawRow, orig)) {
+          const val = cleanValue(rawRow[orig]);
+          if (val !== "") return val;
+        }
+        if (Object.prototype.hasOwnProperty.call(rawRow, n)) {
+          const val2 = cleanValue(rawRow[n]);
+          if (val2 !== "") return val2;
+        }
+      }
+      return "";
     }
 
-    function flyToKey(key, openPopup = true) {
-      const m = markersByKey.get(key);
-      if (!m) return;
-      const ll = m.getLatLng();
-      map.flyTo(ll, Math.max(map.getZoom(), 16), { animate: true, duration: 0.55 });
-      if (openPopup) setTimeout(() => m.openPopup(), 220);
+    function buildKey(r) {
+      const id = cleanValue(r._id) || "NO_ID";
+      const tag = cleanValue(r._assettag) || "NO_TAG";
+      const lat = r._lat ?? "NO_LAT";
+      const lon = r._lon ?? "NO_LON";
+      return `${id}||${tag}||${lat}||${lon}||${r._rowIndex}`;
     }
 
-    // =========================
-    // TABLE (ALL COLUMNS + NAV COLUMN)
-    // =========================
+    function normalizeRow(raw, rowIndex) {
+      const obj = { _raw: {}, _rowIndex: rowIndex };
+
+      for (const h of rawHeaders) obj._raw[h] = cleanValue(raw[h]);
+
+      const latVal = getAny(obj._raw, ["Latitude (WGS84)", "Latitude WGS84", "Latitude", "Lat", "LAT"]);
+      const lonVal = getAny(obj._raw, ["Longitude (WGS84)", "Longitude WGS84", "Longitude", "Lon", "LON", "Lng", "Long"]);
+      const lat = parseNum(latVal);
+      const lon = parseNum(lonVal);
+
+      obj._lat = lat;
+      obj._lon = lon;
+      obj._hasCoords = (lat !== null && lon !== null);
+
+      obj._id = getAny(obj._raw, ["ID", "Id", "id"]);
+      obj._gcode = getAny(obj._raw, ["GFCODE", "Gfcode", "Asset Type", "Device Type"]);
+      obj._assettag = getAny(obj._raw, ["ASSETTAG", "ASSET_TAG", "Asset Tag", "AssetTag", "asset tag"]);
+      obj._desc = getAny(obj._raw, ["DESCRIPTION", "Description", "desc", "Name"]);
+      obj._ip = getAny(obj._raw, ["IP Address", "IP", "IPAddress", "IPADDRESS"]);
+      obj._logicId = getAny(obj._raw, ["logic id", "Logic ID", "Logic id", "LogicId"]);
+      obj._projectId = getAny(obj._raw, ["Project id", "Project ID", "ProjectId"]);
+      obj._cameraId = getAny(obj._raw, ["Camera ID", "Camera Id", "CameraId"]);
+
+      const parts = [];
+      for (const h of rawHeaders) parts.push(cleanValue(obj._raw[h]).toLowerCase());
+      obj._searchIndex = parts.join(" | ");
+
+      obj._type = normalizeType(obj._gcode);
+      obj._key = buildKey(obj);
+
+      return obj;
+    }
+
     function buildTableHeader() {
       const tr = $("theadRow");
       tr.innerHTML = "";
-
-      // Navigation column always first for technician workflow
-      const thNav = document.createElement("th");
-      thNav.textContent = "NAV";
-      thNav.style.minWidth = "180px";
-      tr.appendChild(thNav);
-
       for (const h of rawHeaders) {
         const th = document.createElement("th");
         th.textContent = h;
         tr.appendChild(th);
       }
-    }
-
-    function navButtonsForRow(r) {
-      if (!r._hasCoords) {
-        return `<span class="mono" style="color:rgba(156,163,175,.9); font-size:11px;">N/A</span>`;
-      }
-      return `
-        <div class="navbtns">
-          <a class="a-btn gm" href="${gmapsLink(r._lat, r._lon)}" target="_blank" rel="noopener">Google Maps</a>
-          <a class="a-btn wz" href="${wazeLink(r._lat, r._lon)}" target="_blank" rel="noopener">Waze</a>
-        </div>
-      `;
     }
 
     function renderTable(rows) {
@@ -885,22 +799,12 @@
         const tr = document.createElement("tr");
         tr.dataset.key = r._key;
 
-        // NAV cell first
-        const tdNav = document.createElement("td");
-        tdNav.innerHTML = navButtonsForRow(r);
-        tr.appendChild(tdNav);
-
         for (const h of rawHeaders) {
           const td = document.createElement("td");
           const val = displayValue(r._raw[h]);
           td.textContent = val;
           if (val !== "N/A" && String(val).length > 24) td.title = val;
-          if (val !== "N/A" && String(val).length > 30) {
-            td.style.maxWidth = "360px";
-            td.style.overflow = "hidden";
-            td.style.textOverflow = "ellipsis";
-          }
-          // monospaced for likely IDs/IP fields
+
           const hc = canonicalHeader(h);
           if (hc.includes("ip") || hc.includes("id") || hc.includes("asset") || hc.includes("mxasset") || hc.includes("sr no") || hc.includes("logic") || hc.includes("project") || hc.includes("camera")) {
             td.classList.add("mono");
@@ -908,12 +812,20 @@
           tr.appendChild(td);
         }
 
-        tr.addEventListener("click", (e) => {
-          const a = e.target.closest("a");
-          if (a) return; // allow nav links
+        tr.addEventListener("click", () => {
           setActiveRow(r._key, true);
-          if (r._hasCoords) flyToKey(r._key, true);
-          else showToast("No coordinates for this row.", "Add Latitude/Longitude later; it will appear on the map after reload.", "warn");
+          if (!r._hasCoords) {
+            showToast("No coordinates for this row.", "Add Latitude/Longitude later; it will appear on the map after reload.", "warn");
+            return;
+          }
+          const g = deviceGraphicsByKey.get(r._key);
+          if (g) {
+            view.goTo({ target: g.geometry, zoom: Math.max(view.zoom, 16) }, { duration: 500 });
+            view.popup.open({
+              features: [g],
+              location: g.geometry
+            });
+          }
         });
 
         tb.appendChild(tr);
@@ -932,14 +844,11 @@
       }
     }
 
-    // =========================
-    // FILTERING (GLOBAL SEARCH + GFCODE)
-    // =========================
     function populateGcodeOptions() {
       const sel = $("gcode");
       const current = sel.value;
 
-      const codes = Array.from(new Set(allRows.map(r => cleanValue(r._gcode)).filter(Boolean)))
+      const codes = Array.from(new Set(allRows.map(r => cleanValue(r._type)).filter(Boolean)))
         .sort((a,b) => a.localeCompare(b, undefined, { sensitivity:"base" }));
 
       sel.innerHTML = `<option value="__ALL__">All Types</option>`;
@@ -958,58 +867,330 @@
       const g = $("gcode").value;
 
       filteredRows = allRows.filter(r => {
-        if (g !== "__ALL__" && cleanValue(r._gcode) !== g) return false;
+        if (g !== "__ALL__" && cleanValue(r._type) !== g) return false;
         if (q) return r._searchIndex.includes(q);
         return true;
       });
 
-      $("countLabel").textContent = `${filteredRows.length} assets`;
-      const markerCount = renderMap(filteredRows);
+      $("countLabel").textContent = `${filteredRows.length} devices`;
+      renderCards(filteredRows);
+      renderLegendFromData(filteredRows);
       renderTable(filteredRows);
+      renderGraphics(filteredRows);
+    }
 
-      if (filteredRows.length === 0) {
-        $("mapFoot").textContent = "No assets match current filters.";
-      } else {
-        $("mapFoot").textContent = `Showing ${filteredRows.length} assets (${markerCount} mapped). Tap a marker or row to navigate.`;
+    function renderCards(rows) {
+      // Total + each type counts
+      const counts = new Map();
+      for (const r of rows) {
+        const t = cleanValue(r._type) || "UNKNOWN";
+        counts.set(t, (counts.get(t) || 0) + 1);
+      }
+
+      const sorted = Array.from(counts.entries()).sort((a,b) => b[1] - a[1]);
+
+      const cards = $("cards");
+      cards.innerHTML = "";
+
+      // Total card
+      const totalCard = document.createElement("div");
+      totalCard.className = "fcard";
+      totalCard.innerHTML = `
+        <div class="left">
+          <span class="sw" style="background:linear-gradient(135deg,var(--accent),var(--ok));"></span>
+          <div class="txt">
+            <div class="k">Total Devices</div>
+            <div class="v">${rows.length}</div>
+          </div>
+        </div>
+        <div class="k">Filtered</div>
+      `;
+      cards.appendChild(totalCard);
+
+      // Type cards (cap to keep clean on mobile; still shows key info)
+      const cap = 10;
+      const slice = sorted.slice(0, cap);
+      for (const [type, n] of slice) {
+        const c = typeColor(type);
+        const el = document.createElement("div");
+        el.className = "fcard";
+        el.title = type;
+        el.innerHTML = `
+          <div class="left">
+            <span class="sw" style="background:${c};"></span>
+            <div class="txt">
+              <div class="k">${escapeHtml(type)}</div>
+              <div class="v">${n}</div>
+            </div>
+          </div>
+          <div class="k">Count</div>
+        `;
+        cards.appendChild(el);
+      }
+
+      if (sorted.length > cap) {
+        const more = document.createElement("div");
+        more.className = "fcard";
+        more.innerHTML = `
+          <div class="left">
+            <span class="sw" style="background:#94a3b8;"></span>
+            <div class="txt">
+              <div class="k">More types</div>
+              <div class="v">+${sorted.length - cap}</div>
+            </div>
+          </div>
+          <div class="k">Scroll legend</div>
+        `;
+        cards.appendChild(more);
       }
     }
 
-    // =========================
-    // GEOLOCATION (MY LOCATION - DIFFERENT PIN COLOR)
-    // =========================
-    function setMyLocation(lat, lon, accuracyMeters) {
-      const ll = L.latLng(lat, lon);
+    function renderLegendFromData(rows) {
+      // Legend: show unique types in current filtered set (and My Location)
+      const types = Array.from(new Set(rows.map(r => cleanValue(r._type)).filter(Boolean)))
+        .sort((a,b) => a.localeCompare(b, undefined, { sensitivity:"base" }));
 
-      if (!myMarker) {
-        myMarker = L.marker(ll, { icon: myLocationIcon(), title: "My Location" })
-          .bindPopup(
-            `<div class="popup-title">My Location</div>
-             <div class="kv">
-               <div class="k">COORD</div><div class="v mono">${lat.toFixed(6)}, ${lon.toFixed(6)}</div>
-             </div>`,
-            { maxWidth: 320 }
-          );
-        myMarker.addTo(map);
-      } else {
-        myMarker.setLatLng(ll);
+      const host = $("legendItems");
+      host.innerHTML = "";
+
+      // My location legend item
+      const myItem = document.createElement("div");
+      myItem.className = "legend-item";
+      myItem.innerHTML = `<span class="sw" style="background:linear-gradient(135deg,#22c55e,#38bdf8);"></span> My Location`;
+      host.appendChild(myItem);
+
+      for (const t of types) {
+        const item = document.createElement("div");
+        item.className = "legend-item";
+        item.innerHTML = `<span class="sw" style="background:${typeColor(t)};"></span> ${escapeHtml(t)}`;
+        host.appendChild(item);
+      }
+    }
+
+    // ArcGIS: build popup HTML
+    function popupContentForRow(r) {
+      const lat = r._lat, lon = r._lon;
+
+      const id = displayValue(r._id);
+      const gcode = displayValue(r._gcode);
+      const tag = displayValue(r._assettag);
+      const desc = displayValue(r._desc);
+      const ip = displayValue(r._ip);
+      const logicId = displayValue(r._logicId);
+      const projectId = displayValue(r._projectId);
+      const camId = displayValue(r._cameraId);
+
+      const coord = (r._hasCoords) ? `${lat.toFixed(6)}, ${lon.toFixed(6)}` : "N/A";
+
+      const gm = (r._hasCoords) ? gmapsLink(lat, lon) : "";
+      const wz = (r._hasCoords) ? wazeLink(lat, lon) : "";
+
+      return `
+        <div class="kv">
+          <div class="k">ID</div><div class="v mono">${escapeHtml(id)}</div>
+          <div class="k">GFCODE</div><div class="v">${escapeHtml(gcode)}</div>
+          <div class="k">ASSETTAG</div><div class="v mono">${escapeHtml(tag)}</div>
+          <div class="k">DESC</div><div class="v" title="${escapeHtml(desc)}">${escapeHtml(desc)}</div>
+          <div class="k">IP</div><div class="v mono">${escapeHtml(ip)}</div>
+          <div class="k">LOGIC ID</div><div class="v mono">${escapeHtml(logicId)}</div>
+          <div class="k">PROJECT</div><div class="v mono">${escapeHtml(projectId)}</div>
+          <div class="k">CAMERA ID</div><div class="v mono">${escapeHtml(camId)}</div>
+          <div class="k">COORD</div><div class="v mono">${escapeHtml(coord)}</div>
+        </div>
+        <div class="popup-actions">
+          ${r._hasCoords ? `<a class="gm" href="${gm}" target="_blank" rel="noopener">Open in Google Maps</a>` : ``}
+          ${r._hasCoords ? `<a class="wz" href="${wz}" target="_blank" rel="noopener">Open in Waze</a>` : ``}
+        </div>
+      `;
+    }
+
+    // ArcGIS init
+    function initEsri() {
+      return new Promise((resolve) => {
+        require([
+          "esri/Map",
+          "esri/views/MapView",
+          "esri/layers/GraphicsLayer",
+          "esri/Graphic",
+          "esri/geometry/Point",
+          "esri/geometry/Circle",
+          "esri/geometry/Extent",
+          "esri/core/reactiveUtils"
+        ], (Map, MapView, GraphicsLayer, Graphic, Point, Circle, Extent, reactiveUtils) => {
+
+          map = new Map({
+            basemap: "hybrid" // Esri imagery with labels
+          });
+
+          devicesLayer = new GraphicsLayer({ title: "Devices" });
+          myLayer = new GraphicsLayer({ title: "My Location" });
+
+          map.addMany([devicesLayer, myLayer]);
+
+          view = new MapView({
+            container: "viewDiv",
+            map,
+            center: [51.45, 25.30],
+            zoom: 9,
+            popup: {
+              dockEnabled: false
+            }
+          });
+
+          // Improve UX: highlight row when popup opens
+          view.popup.watch("selectedFeature", (f) => {
+            if (!f || !f.attributes) return;
+            const key = f.attributes.__key;
+            if (key) setActiveRow(key, true);
+          });
+
+          // Expose constructors we need in other functions
+          window.__ESRI__ = { Graphic, Point, Circle, Extent };
+
+          resolve();
+        });
+      });
+    }
+
+    function clearGraphics() {
+      devicesLayer.removeAll();
+      deviceGraphicsByKey.clear();
+    }
+
+    function makeDeviceSymbol(color) {
+      return {
+        type: "simple-marker",
+        style: "circle",
+        color: color,
+        size: 10,
+        outline: { color: [255,255,255,0.85], width: 1.5 }
+      };
+    }
+
+    function makeMyLocationSymbol() {
+      return {
+        type: "simple-marker",
+        style: "circle",
+        color: [34,197,94,1],  // green
+        size: 12,
+        outline: { color: [56,189,248,0.95], width: 2 }
+      };
+    }
+
+    function makeMyCircleSymbol() {
+      return {
+        type: "simple-fill",
+        color: [34,197,94,0.14],
+        outline: { color: [34,197,94,0.85], width: 2 }
+      };
+    }
+
+    function renderGraphics(rows) {
+      if (!view) return;
+      clearGraphics();
+
+      const { Graphic, Point } = window.__ESRI__;
+
+      let mapped = 0;
+      const pts = [];
+
+      for (const r of rows) {
+        if (!r._hasCoords) continue;
+
+        const p = new Point({ longitude: r._lon, latitude: r._lat });
+        pts.push(p);
+
+        const sym = makeDeviceSymbol(typeColor(r._type));
+        const g = new Graphic({
+          geometry: p,
+          symbol: sym,
+          attributes: {
+            __key: r._key,
+            ID: r._id || "",
+            GFCODE: r._gcode || "",
+            ASSETTAG: r._assettag || "",
+            DESCRIPTION: r._desc || "",
+            IP: r._ip || "",
+            LOGIC_ID: r._logicId || "",
+            PROJECT_ID: r._projectId || "",
+            CAMERA_ID: r._cameraId || "",
+            LAT: r._lat,
+            LON: r._lon
+          },
+          popupTemplate: {
+            title: "{GFCODE}",
+            content: popupContentForRow(r)
+          }
+        });
+
+        devicesLayer.add(g);
+        deviceGraphicsByKey.set(r._key, g);
+        mapped++;
       }
 
+      // Fit to filtered points
+      if (pts.length) {
+        view.goTo(pts, { duration: 450 }).catch(() => {});
+      }
+
+      return mapped;
+    }
+
+    function fitFiltered() {
+      const pts = filteredRows.filter(r => r._hasCoords).map(r => deviceGraphicsByKey.get(r._key)?.geometry).filter(Boolean);
+      if (!pts.length) {
+        showToast("No mapped devices to fit.", "Filtered rows have no valid coordinates.", "warn");
+        return;
+      }
+      view.goTo(pts, { duration: 450 }).catch(() => {});
+    }
+
+    function setMyLocation(lat, lon, accuracyMeters) {
+      if (!view) return;
+      const { Graphic, Point, Circle } = window.__ESRI__;
+
+      const p = new Point({ longitude: lon, latitude: lat });
+
+      // My location pin
+      if (!myPointGraphic) {
+        myPointGraphic = new Graphic({
+          geometry: p,
+          symbol: makeMyLocationSymbol(),
+          attributes: { __key: "__MY_LOCATION__" },
+          popupTemplate: {
+            title: "My Location",
+            content: `<div class="kv">
+              <div class="k">COORD</div><div class="v mono">${lat.toFixed(6)}, ${lon.toFixed(6)}</div>
+              <div class="k">ACCURACY</div><div class="v mono">${Number.isFinite(accuracyMeters) ? Math.round(accuracyMeters) + " m" : "N/A"}</div>
+            </div>`
+          }
+        });
+        myLayer.add(myPointGraphic);
+      } else {
+        myPointGraphic.geometry = p;
+      }
+
+      // Accuracy circle
       if (Number.isFinite(accuracyMeters) && accuracyMeters > 0) {
-        if (!myAccuracyCircle) {
-          myAccuracyCircle = L.circle(ll, {
-            radius: accuracyMeters,
-            color: "rgba(34,197,94,.85)",
-            weight: 2,
-            fillColor: "rgba(34,197,94,.15)",
-            fillOpacity: 0.35
-          }).addTo(map);
+        const circle = new Circle({
+          center: p,
+          radius: accuracyMeters,
+          radiusUnit: "meters"
+        });
+
+        if (!myCircleGraphic) {
+          myCircleGraphic = new Graphic({
+            geometry: circle,
+            symbol: makeMyCircleSymbol(),
+            attributes: { __key: "__MY_CIRCLE__" }
+          });
+          myLayer.add(myCircleGraphic);
         } else {
-          myAccuracyCircle.setLatLng(ll);
-          myAccuracyCircle.setRadius(accuracyMeters);
+          myCircleGraphic.geometry = circle;
         }
       }
 
-      map.flyTo(ll, Math.max(map.getZoom(), 16), { animate:true, duration:0.6 });
+      view.goTo({ target: p, zoom: Math.max(view.zoom, 16) }, { duration: 600 }).catch(() => {});
     }
 
     function locateMe() {
@@ -1048,56 +1229,6 @@
       );
     }
 
-    // =========================
-    // CSV LOADING (ROBUST TO EMPTY SPACES)
-    // =========================
-    function buildHeaderMap(headers) {
-      headerMap.clear();
-      rawHeaders = [];
-      for (const h of headers) {
-        const label = cleanValue(h);
-        if (!label) continue;
-        rawHeaders.push(label);
-        headerMap.set(canonicalHeader(label), label);
-      }
-    }
-
-    function normalizeRow(raw, rowIndex) {
-      // keep raw in original labels
-      const obj = { _raw: {}, _rowIndex: rowIndex };
-
-      for (const h of rawHeaders) obj._raw[h] = cleanValue(raw[h]);
-
-      // coords (support typical variants)
-      const latVal = getAny(obj._raw, ["Latitude (WGS84)", "Latitude WGS84", "Latitude", "Lat", "LAT"]);
-      const lonVal = getAny(obj._raw, ["Longitude (WGS84)", "Longitude WGS84", "Longitude", "Lon", "LON", "Lng", "Long"]);
-      const lat = parseNum(latVal);
-      const lon = parseNum(lonVal);
-
-      obj._lat = lat;
-      obj._lon = lon;
-      obj._hasCoords = (lat !== null && lon !== null);
-
-      // common fields for popup + coloring + filtering
-      obj._id = getAny(obj._raw, ["ID", "Id", "id"]);
-      obj._gcode = getAny(obj._raw, ["GFCODE", "Gfcode", "Asset Type", "Device Type"]);
-      obj._assettag = getAny(obj._raw, ["ASSETTAG", "ASSET_TAG", "Asset Tag", "AssetTag", "asset tag"]);
-      obj._desc = getAny(obj._raw, ["DESCRIPTION", "Description", "desc", "Name"]);
-      obj._ip = getAny(obj._raw, ["IP Address", "IP", "IPAddress", "IPADDRESS"]);
-      obj._logicId = getAny(obj._raw, ["logic id", "Logic ID", "Logic id", "LogicId"]);
-      obj._projectId = getAny(obj._raw, ["Project id", "Project ID", "ProjectId"]);
-      obj._cameraId = getAny(obj._raw, ["Camera ID", "Camera Id", "CameraId"]);
-
-      // global search index across ALL columns (defensive against empty spaces)
-      const parts = [];
-      for (const h of rawHeaders) parts.push(cleanValue(obj._raw[h]).toLowerCase());
-      obj._searchIndex = parts.join(" | ");
-
-      obj._key = buildKey(obj, obj._lat, obj._lon);
-
-      return obj;
-    }
-
     function loadCsv() {
       $("csvState").textContent = "Loading...";
       $("lastSync").textContent = "Loading...";
@@ -1107,7 +1238,7 @@
         download: true,
         header: true,
         skipEmptyLines: true,
-        complete: (res) => {
+        complete: async (res) => {
           const headers = res.meta && res.meta.fields ? res.meta.fields : [];
           if (!headers.length) {
             $("csvState").textContent = "No headers";
@@ -1125,9 +1256,7 @@
           let dropped = 0;
 
           for (let i = 0; i < rows.length; i++) {
-            // Keep rows even if coords missing (table should show everything)
-            const r = normalizeRow(rows[i], i + 2); // +2 to approximate sheet row number
-            // Drop completely empty rows
+            const r = normalizeRow(rows[i], i + 2);
             const anyVal = rawHeaders.some(h => cleanValue(r._raw[h]) !== "");
             if (!anyVal) { dropped++; continue; }
             allRows.push(r);
@@ -1140,11 +1269,7 @@
           $("lastSync").textContent = `Synced: ${nowStamp()}`;
           $("reloadBtn").disabled = false;
 
-          // Fit to assets (prefer mapped points)
-          const okFit = fitToRows(allRows);
-          if (!okFit) map.setView([25.30, 51.45], 9);
-
-          showToast("Assets loaded.", `${allRows.length} rows ready. (${dropped} empty rows ignored)`, "ok");
+          showToast("Devices loaded.", `${allRows.length} rows ready. (${dropped} empty rows ignored)`, "ok");
         },
         error: (err) => {
           $("csvState").textContent = "Load failed";
@@ -1155,34 +1280,20 @@
       });
     }
 
-    // =========================
-    // EVENTS
-    // =========================
     function wireEvents() {
       $("q").addEventListener("input", () => applyFilters());
       $("gcode").addEventListener("change", () => applyFilters());
       $("locateBtn").addEventListener("click", locateMe);
-      $("fitBtn").addEventListener("click", () => {
-        if (filteredRows.length === 0) {
-          showToast("Nothing to fit.", "No assets match current filters.", "warn");
-          return;
-        }
-        const ok = fitToRows(filteredRows);
-        showToast(ok ? "Fitted to assets." : "No mapped assets to fit.", ok ? "Map centered to filtered devices." : "Filtered rows have no valid coordinates.", ok ? "info" : "warn");
-      });
+      $("fitBtn").addEventListener("click", fitFiltered);
       $("reloadBtn").addEventListener("click", () => loadCsv());
       $("toast").addEventListener("click", () => $("toast").classList.remove("show"));
     }
 
-    // =========================
-    // BOOT
-    // =========================
-    (function boot(){
-      initMap();
+    (async function boot(){
+      await initEsri();
       wireEvents();
       loadCsv();
     })();
   </script>
 </body>
-
 </html>
