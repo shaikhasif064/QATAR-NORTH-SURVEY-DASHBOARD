@@ -49,12 +49,11 @@
     .page{
       min-height:100vh;
       background:
-        linear-gradient(180deg, rgba(2,6,23,.35), rgba(2,6,23,.55)),
-        url("bg-image.png") center / cover no-repeat fixed,
-        radial-gradient(circle at 0% 0%, rgba(56,189,248,.18), transparent 55%),
-        radial-gradient(circle at 100% 0%, rgba(236,72,153,.14), transparent 55%),
-        radial-gradient(circle at 0% 100%, rgba(249,115,22,.12), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(168,85,247,.14), transparent 60%);
+        radial-gradient(circle at 0% 0%, rgba(56,189,248,.26), transparent 55%),
+        radial-gradient(circle at 100% 0%, rgba(236,72,153,.22), transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(249,115,22,.18), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(168,85,247,.22), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg0));
       padding-bottom:18px;
     }
     .shell{max-width:1880px;margin:0 auto;padding:12px 16px 24px}
@@ -260,6 +259,50 @@
       background:rgba(0,0,0,.12);
     }
 
+    .legend{
+      position:absolute;top:12px;right:12px;
+      width:300px;max-width:calc(100% - 24px);
+      max-height:calc(100% - 24px);
+      overflow:hidden;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(148,163,184,.55);
+      background:
+        radial-gradient(circle at top left, rgba(248,250,252,.10), transparent 45%),
+        linear-gradient(145deg, rgba(15,23,42,.92), rgba(15,23,42,.86));
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      box-shadow:0 18px 45px rgba(15,23,42,.55);
+      display:flex;flex-direction:column;z-index:20;
+    }
+    body[data-theme="light"] .legend{
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.85), transparent 55%),
+        linear-gradient(145deg, rgba(255,255,255,.94), rgba(243,244,246,.94));
+      box-shadow:0 18px 45px rgba(148,163,184,.22);
+    }
+      padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+      border-bottom:1px solid rgba(148,163,184,.28);
+    }
+      border:1px solid rgba(148,163,184,.55);
+      background:rgba(15,23,42,.70);
+      color:var(--text2);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:11px;
+      cursor:pointer;
+      transition:transform var(--trans), box-shadow var(--trans);
+      white-space:nowrap;
+    }
+    .swatch{width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.45);flex:0 0 auto;box-shadow:0 0 10px rgba(15,23,42,.35)}
+    body[data-theme="light"] .swatch{border-color:rgba(2,6,23,.20)}
+    .swatch.circle{border-radius:999px}
+    .swatch.diamond{transform:rotate(45deg);border-radius:3px}
+    .swatch.triangle{
+      width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:14px solid;
+      border-radius:0;border:0;box-shadow:0 0 10px rgba(15,23,42,.35)
+    }
+    .legend.is-collapsed{width:190px}
+
     .map-footer{padding:10px 6px 2px;font-size:11px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 
     .table-card{padding:12px 14px}
@@ -381,7 +424,6 @@
       .map-box{height:380px}
       .legend{right:10px;left:10px;width:auto;bottom:10px;top:auto;max-height:48%}
       .legend.is-collapsed{width:auto}
-      .legend-body{max-height:220px}
       .filter select{min-width:100%}
       .controls-bar{gap:8px}
       .export-group{width:100%;justify-content:flex-start;margin-left:0}
@@ -449,7 +491,7 @@
         </div>
 
         <div class="small-muted" style="margin-top:6px;" id="hintText">
-          Tip: Use the Layers button on the map to toggle boundaries/areas. Click a marker (or a table row) for navigation options (Google Maps / Waze).
+          Tip: Click a marker (or a table row) to open navigation options (Google Maps / Waze).
         </div>
       </div>
 
@@ -461,12 +503,12 @@
 
         <div class="map-box">
           <div id="mapView" style="width:100%;height:100%;"></div>
-        </div>
-</div>
+
+          <div 
         </div>
 
         <div class="map-footer">
-          <div id="mapFooterLeft">Map is constrained to Qatar extent. Use “Layers” to toggle boundaries/areas. Use “Locate Me” to center on current position.</div>
+          <div id="mapFooterLeft">Map is constrained to Qatar extent. Use “Locate Me” to center on current position.</div>
           <div class="small-muted">Data source: Google Sheet (CSV)</div>
         </div>
       </div>
@@ -694,7 +736,7 @@
 
         setStatus(true, "Loaded");
         $("lastSync").textContent = nowString();
-        $("hintText").textContent = "Tip: Use the Layers button on the map to toggle boundaries/areas. Click a marker (or a table row) for navigation options (Google Maps / Waze).";
+        $("hintText").textContent = "Tip: Click a marker (or a table row) to open navigation options (Google Maps / Waze).";
 
         renderAll();
         applyFilters();
@@ -771,52 +813,20 @@
 
       $("deviceCountLabel").textContent = `${rows.length} devices`;
     }
-      const sorted = [...counts.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
 
-      for (const [t, cnt] of sorted){
-        const { color, shape } = symbolForType(t);
+    function renderLegend(rows){
+      list.innerHTML = "";
 
-        let swatchHTML = "";
-        if (shape === "triangle"){
-          swatchHTML = `<span class="swatch triangle" style="border-bottom-color:${color}"></span>`;
-        } else if (shape === "diamond"){
-          swatchHTML = `<span class="swatch diamond" style="background:${color}"></span>`;
-        } else if (shape === "circle"){
-          swatchHTML = `<span class="swatch circle" style="background:${color}"></span>`;
-        } else {
-          swatchHTML = `<span class="swatch" style="background:${color}"></span>`;
-        }
+      const myItem = document.createElement("li");
+      myItem.innerHTML = `
+          <span class="swatch circle" style="background:${"#22c55e"}"></span>
+        </div>
+      `;
+      list.appendChild(myItem);
 
-        const item = document.createElement("li");
-        item.className = "legend-item";
-        item.innerHTML = `
-          <div class="legend-left">
-            ${swatchHTML}
-            <span class="legend-type" title="${escapeHtml(t)}">${escapeHtml(t)}</span>
-          </div>
-          <span class="legend-count">${cnt}</span>
-        `;
-        list.appendChild(item);
-      }
+      if (!rows.length) return;
 
-      function renderTable(rows){
-      const headRow = $("tableHeadRow");
-      const body = $("tableBody");
-      headRow.innerHTML = "";
-      body.innerHTML = "";
-
-      if (!headers.length) return;
-
-      for (const h of headers){
-        const th = document.createElement("th");
-        th.textContent = h;
-        headRow.appendChild(th);
-      }
-
-      const frag = document.createDocumentFragment();
-      for (const r of rows){
-        const tr = document.createElement("tr");
-        tr.dataset.key = buildDeviceKey(r);
+      const gfcKr);
         for (const h of headers){
           const td = document.createElement("td");
           td.textContent = sanitize(r[h]);
@@ -881,74 +891,80 @@
     }
 
     function buildPopupHTML(row){
-  // coords: try exact headers first then fallbacks
-  const latKey = getFirstKey(row, ["Latitude WGS84","Latitude_WGS84","Latitude","LATITUDE","lat"]);
-  const lonKey = getFirstKey(row, ["Longitude WGS84","Longitude_WGS84","Longitude","LONGITUDE","lon","LON"]);
+      // coords: try exact headers first then fallbacks
+      const latKey = getFirstKey(row, ["Latitude WGS84","Latitude_WGS84","Latitude","LATITUDE","lat"]);
+      const lonKey = getFirstKey(row, ["Longitude WGS84","Longitude_WGS84","Longitude","LONGITUDE","lon","LON"]);
 
-  const latS = sanitize(latKey ? row[latKey] : "");
-  const lonS = sanitize(lonKey ? row[lonKey] : "");
-  const lat = toNumberMaybe(latS);
-  const lon = toNumberMaybe(lonS);
+      const latS = sanitize(latKey ? row[latKey] : "");
+      const lonS = sanitize(lonKey ? row[lonKey] : "");
+      const lat = toNumberMaybe(latS);
+      const lon = toNumberMaybe(lonS);
 
-  const gUrl = (lat !== null && lon !== null) ? googleMapsUrl(lat, lon) : "#";
-  const wUrl = (lat !== null && lon !== null) ? wazeUrl(lat, lon) : "#";
+      const gUrl = (lat !== null && lon !== null) ? googleMapsUrl(lat, lon) : "#";
+      const wUrl = (lat !== null && lon !== null) ? wazeUrl(lat, lon) : "#";
 
-  const idKey  = getFirstKey(row, ["ID","Id","id"]);
-  const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
-  const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
+      const idKey  = getFirstKey(row, ["ID","Id","id"]);
+      const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
+      const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
+      const title = sanitize(idKey ? row[idKey] : "") !== "N/A"
+        ? sanitize(row[idKey])
+        : (sanitize(tagKey ? row[tagKey] : "") !== "N/A" ? sanitize(row[tagKey]) : "ITS Asset");
 
-  const title = sanitize(idKey ? row[idKey] : "") !== "N/A"
-    ? sanitize(row[idKey])
-    : (sanitize(tagKey ? row[tagKey] : "") !== "N/A" ? sanitize(row[tagKey]) : "ITS Asset");
+      // Priority table (only keys that exist in this sheet)
+      const existingKeys = new Set(headers);
+      const seen = new Set();
+      let priorityRows = "";
 
-  // Build ONE table only: priority fields first, then the remaining fields (no duplicates).
-  const existingKeys = new Set(headers);
-  const used = new Set();
-  let rowsHTML = "";
+      for (const want of POPUP_PRIORITY){
+        const k = headers.find(h => String(h).trim().toLowerCase() === String(want).trim().toLowerCase());
+        if (k && existingKeys.has(k) && !seen.has(k)){
+          seen.add(k);
+          priorityRows += buildPopupRow(k, row[k]);
+        }
+      }
 
-  const addRowByKey = (k) => {
-    if (!k || !existingKeys.has(k) || used.has(k)) return;
-    used.add(k);
-    rowsHTML += buildPopupRow(k, row[k]);
-  };
+      // Always include coordinates line in priority
+      if (!seen.has("Coordinates")){
+        priorityRows += buildPopupRow("Coordinates", (latS === "N/A" || lonS === "N/A") ? "N/A" : `${latS}, ${lonS}`);
+      }
 
-  // Priority fields (case-insensitive match to current headers)
-  for (const want of POPUP_PRIORITY){
-    const k = headers.find(h => String(h).trim().toLowerCase() === String(want).trim().toLowerCase());
-    addRowByKey(k);
-  }
+      // All fields (complete)
+      let allRows = "";
+      for (const h of headers){
+        allRows += buildPopupRow(h, row[h]);
+      }
 
-  // Always include coordinates row (once)
-  if (!used.has("Coordinates")){
-    used.add("Coordinates");
-    rowsHTML += buildPopupRow("Coordinates", (latS === "N/A" || lonS === "N/A") ? "N/A" : `${latS}, ${lonS}`);
-  }
+      return `
+        <div style="font-size:12px;line-height:1.35;">
+          <div style="font-weight:800;font-size:13px;margin-bottom:6px;">${escapeHtml(title)}</div>
+          <div style="color:rgba(156,163,175,.95);font-size:12px;margin-bottom:6px;">
+            <strong>GFCODE:</strong> ${escapeHtml(sanitize(gfcKey ? row[gfcKey] : "UNKNOWN"))}
+          </div>
 
-  // Remaining fields (in original sheet order)
-  for (const h of headers){
-    if (!used.has(h)) addRowByKey(h);
-  }
+          <div class="popup-kv">
+            <table>
+              ${priorityRows}
+            </table>
+          </div>
 
-  return `
-    <div style="font-size:12px;line-height:1.35;">
-      <div style="font-weight:800;font-size:13px;margin-bottom:6px;">${escapeHtml(title)}</div>
-      <div style="color:rgba(156,163,175,.95);font-size:12px;margin-bottom:6px;">
-        <strong>GFCODE:</strong> ${escapeHtml(sanitize(gfcKey ? row[gfcKey] : "UNKNOWN"))}
-      </div>
+          <div class="popup-btns">
+            <a class="popup-link" href="${gUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
+            <a class="popup-link waze" href="${wUrl}" target="_blank" rel="noopener">Open in Waze</a>
+          </div>
 
-      <div class="popup-kv">
-        <table>
-          ${rowsHTML}
-        </table>
-      </div>
-
-      <div class="popup-btns">
-        <a class="popup-link" href="${gUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
-        <a class="popup-link waze" href="${wUrl}" target="_blank" rel="noopener">Open in Waze</a>
-      </div>
-    </div>
-  `;
-}
+          <details class="popup-details">
+            <summary>Show all fields (Excel row)</summary>
+            <div class="inner">
+              <div class="popup-kv">
+                <table>
+                  ${allRows}
+                </table>
+              </div>
+            </div>
+          </details>
+        </div>
+      `;
+    }
 
     // ===================== MAP (ARCGIS) =====================
     function initMap(){
@@ -963,15 +979,12 @@
           "esri/views/MapView",
           "esri/Graphic",
           "esri/layers/GraphicsLayer",
-          "esri/layers/GeoJSONLayer",
-          "esri/widgets/LayerList",
-          "esri/widgets/Expand",
           "esri/geometry/Extent",
           "esri/geometry/Polygon",
           "esri/geometry/Point",
           "esri/geometry/geometryEngine",
           "esri/PopupTemplate"
-        ], (Map, MapView, Graphic, GraphicsLayer, GeoJSONLayer, LayerList, Expand, Extent, Polygon, Point, geometryEngine, PopupTemplate) => {
+        ], (Map, MapView, Graphic, GraphicsLayer, Extent, Polygon, Point, geometryEngine, PopupTemplate) => {
 
           const qatarExtent = new Extent({
             xmin: QATAR_EXTENT_WGS84.xmin,
@@ -982,70 +995,7 @@
           });
           const qatarPoly = Polygon.fromExtent(qatarExtent);
 
-
           const map = new Map({ basemap: "satellite" });
-
-          // ===================== OVERLAY LAYERS (GEOJSON) =====================
-          // Note: filenames contain spaces in your repo; URLs use %20 to be safe on GitHub Pages.
-          const boundaryLayers = [
-            new GeoJSONLayer({
-              url: "./Qatar%20North%20Boundary.geojson",
-              title: "Qatar North Boundary",
-              opacity: 1,
-              renderer: {
-                type: "simple",
-                symbol: { type: "simple-fill", color: [0,0,0,0], outline: { color: [0,255,255,0.95], width: 2 } }
-              }
-            }),
-            new GeoJSONLayer({
-              url: "./Strategic%20Highways%20Boundary.geojson",
-              title: "Strategic Highways Boundary",
-              opacity: 1,
-              renderer: {
-                type: "simple",
-                symbol: { type: "simple-fill", color: [0,0,0,0], outline: { color: [255,255,0,0.90], width: 2 } }
-              }
-            }),
-            new GeoJSONLayer({
-              url: "./Area-01.geojson",
-              title: "Area 01",
-              opacity: 1,
-              renderer: {
-                type: "simple",
-                symbol: { type: "simple-fill", color: [0,0,0,0], outline: { color: [34,197,94,0.95], width: 2 } }
-              }
-            }),
-            new GeoJSONLayer({
-              url: "./Area-02.geojson",
-              title: "Area 02",
-              opacity: 1,
-              renderer: {
-                type: "simple",
-                symbol: { type: "simple-fill", color: [0,0,0,0], outline: { color: [59,130,246,0.95], width: 2 } }
-              }
-            }),
-            new GeoJSONLayer({
-              url: "./Area-03.geojson",
-              title: "Area 03",
-              opacity: 1,
-              renderer: {
-                type: "simple",
-                symbol: { type: "simple-fill", color: [0,0,0,0], outline: { color: [168,85,247,0.95], width: 2 } }
-              }
-            }),
-            new GeoJSONLayer({
-              url: "./Area-04.geojson",
-              title: "Area 04",
-              opacity: 1,
-              renderer: {
-                type: "simple",
-                symbol: { type: "simple-fill", color: [0,0,0,0], outline: { color: [249,115,22,0.95], width: 2 } }
-              }
-            })
-          ];
-
-          // Add boundaries first so device markers stay on top
-          map.addMany(boundaryLayers);
 
           devicesLayer = new GraphicsLayer({ id: "devicesLayer" });
           myLayer = new GraphicsLayer({ id: "myLayer" });
@@ -1065,23 +1015,12 @@
             popup: { dockEnabled: false, highlightEnabled: true }
           });
 
-          // Layers toggle (left side)
-          const layerList = new LayerList({ view: view });
-          const layersExpand = new Expand({
-            view: view,
-            content: layerList,
-            expandIcon: "layers",
-            expandTooltip: "Layers"
-          });
-          view.ui.add(layersExpand, "top-left");
-
-
           function markerSymbol(type, selected=false){
-            // Single, consistent symbol for all devices (to avoid confusion)
+            const { color, shape } = symbolForType(type);
             return {
               type: "simple-marker",
-              style: "circle",
-              color: "#38bdf8",
+              style: shape,
+              color: color,
               size: selected ? 14 : 11,
               outline: { color: "#ffffff", width: selected ? 2.5 : 1.5 }
             };
@@ -1151,7 +1090,8 @@
             focusGraphicInternal,
             setMyLocation
           };
-            const collapsed = panel.classList.toggle("is-collapsed");
+
+          });
 
           view.on("click", (evt) => {
             view.hitTest(evt).then((res)=>{
@@ -1177,7 +1117,7 @@
       skippedNoCoords = 0;
 
       if (!rows.length){
-        $("mapFooterLeft").textContent = "Map is constrained to Qatar extent. Use “Layers” to toggle boundaries/areas. Use “Locate Me” to center on current position.";
+        $("mapFooterLeft").textContent = "Map is constrained to Qatar extent. Use “Locate Me” to center on current position.";
         return;
       }
 
@@ -1216,7 +1156,7 @@
         $("mapFooterLeft").textContent =
           skippedNoCoords > 0
             ? `Map is constrained to Qatar extent. Skipped ${skippedNoCoords} row(s) with missing/invalid coordinates.`
-            : "Map is constrained to Qatar extent. Use “Layers” to toggle boundaries/areas. Use “Locate Me” to center on current position.";
+            : "Map is constrained to Qatar extent. Use “Locate Me” to center on current position.";
       });
     }
 
