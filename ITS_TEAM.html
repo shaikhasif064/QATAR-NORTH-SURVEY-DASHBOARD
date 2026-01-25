@@ -471,7 +471,7 @@
         </div>
       </div>
 
-      <div class="glass-card table-card" style="margin-top:12px;">
+      <div class="glass-card table-card" style="margin-top:4px;">
         <div class="table-title">
           <div>All Data (from Excel/CSV)</div>
           <div class="table-hint">Click a row to zoom to the device and open navigation options.</div>
@@ -527,7 +527,8 @@
     let filteredRows = [];
     let skippedNoCoords = 0;
 
-    let view, devicesLayer, myLayer;
+    let view, devicesGroup, boundariesGroup, myLayer;
+    const deviceTypeLayers = new Map();
     const deviceGraphicsByKey = new Map();
     let selectedGraphic = null;
 
@@ -935,6 +936,7 @@
           "esri/views/MapView",
           "esri/Graphic",
           "esri/layers/GraphicsLayer",
+          "esri/layers/GroupLayer",
           "esri/layers/GeoJSONLayer",
           "esri/widgets/LayerList",
           "esri/widgets/Expand",
@@ -943,7 +945,7 @@
           "esri/geometry/Point",
           "esri/geometry/geometryEngine",
           "esri/PopupTemplate"
-        ], (Map, MapView, Graphic, GraphicsLayer, GeoJSONLayer, LayerList, Expand, Extent, Polygon, Point, geometryEngine, PopupTemplate) => {
+        ], (Map, MapView, Graphic, GraphicsLayer, GroupLayer, GeoJSONLayer, LayerList, Expand, Extent, Polygon, Point, geometryEngine, PopupTemplate) => {
 
           const qatarExtent = new Extent({
             xmin: QATAR_EXTENT_WGS84.xmin,
@@ -963,6 +965,7 @@
             new GeoJSONLayer({
               url: "./Qatar%20North%20Boundary.geojson",
               title: "Qatar North Boundary",
+              visible: false,
               opacity: 1,
               renderer: {
                 type: "simple",
@@ -972,6 +975,7 @@
             new GeoJSONLayer({
               url: "./Strategic%20Highways%20Boundary.geojson",
               title: "Strategic Highways Boundary",
+              visible: false,
               opacity: 1,
               renderer: {
                 type: "simple",
@@ -981,6 +985,7 @@
             new GeoJSONLayer({
               url: "./Area-01.geojson",
               title: "Area 01",
+              visible: false,
               opacity: 1,
               renderer: {
                 type: "simple",
@@ -990,6 +995,7 @@
             new GeoJSONLayer({
               url: "./Area-02.geojson",
               title: "Area 02",
+              visible: false,
               opacity: 1,
               renderer: {
                 type: "simple",
@@ -999,6 +1005,7 @@
             new GeoJSONLayer({
               url: "./Area-03.geojson",
               title: "Area 03",
+              visible: false,
               opacity: 1,
               renderer: {
                 type: "simple",
@@ -1008,6 +1015,7 @@
             new GeoJSONLayer({
               url: "./Area-04.geojson",
               title: "Area 04",
+              visible: false,
               opacity: 1,
               renderer: {
                 type: "simple",
@@ -1016,12 +1024,24 @@
             })
           ];
 
-          // Add boundaries first so device markers stay on top
-          map.addMany(boundaryLayers);
+          // Group layers for clean LayerList
+          boundariesGroup = new GroupLayer({
+            title: "Boundaries",
+            visibilityMode: "independent",
+            visible: false,
+            layers: boundaryLayers
+          });
 
-          devicesLayer = new GraphicsLayer({ id: "devicesLayer" });
-          myLayer = new GraphicsLayer({ id: "myLayer" });
-          map.addMany([devicesLayer, myLayer]);
+          devicesGroup = new GroupLayer({
+            title: "Devices",
+            visibilityMode: "independent",
+            visible: true
+          });
+
+          myLayer = new GraphicsLayer({ id: "myLocationLayer", title: "My Location", visible: true });
+
+          // Add in order: boundaries (below), devices, my location (top)
+          map.addMany([boundariesGroup, devicesGroup, myLayer]);
 
           view = new MapView({
             container: "mapView",
@@ -1127,7 +1147,7 @@
           view.on("click", (evt) => {
             view.hitTest(evt).then((res)=>{
               const hits = res.results || [];
-              const devHit = hits.find(h => h.graphic && h.graphic.layer && h.graphic.layer.id === "devicesLayer");
+              const devHit = hits.find(h => h.graphic && h.graphic.layer && typeof h.graphic.layer.id === "string" && h.graphic.layer.id.startsWith("dev_"));
               if (!devHit) clearSelection();
             });
           });
@@ -1140,9 +1160,12 @@
     }
 
     function refreshMapGraphics(rows){
-      if (!devicesLayer || !window.__GIS__) return;
+      if (!devicesGroup || !window.__GIS__) return;
 
-      devicesLayer.removeAll();
+      // Rebuild per-device-type layers under Devices group (for LayerList toggles)
+      devicesGroup.layers.removeAll();
+      deviceTypeLayers.clear();
+
       deviceGraphicsByKey.clear();
       window.__GIS__.clearSelection();
       skippedNoCoords = 0;
@@ -1157,7 +1180,7 @@
       const lonKey = getFirstKey(rows[0], ["Longitude WGS84","Longitude_WGS84","Longitude","LONGITUDE","lon","LON"]);
       const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
 
-      require(["esri/Graphic","esri/geometry/Point","esri/PopupTemplate"], (Graphic, Point, PopupTemplate)=>{
+      require(["esri/Graphic","esri/geometry/Point","esri/PopupTemplate","esri/layers/GraphicsLayer"], (Graphic, Point, PopupTemplate, GraphicsLayer)=>{
         for (const r of rows){
           const lat = toNumberMaybe(latKey ? r[latKey] : null);
           const lon = toNumberMaybe(lonKey ? r[lonKey] : null);
@@ -1179,7 +1202,13 @@
             })
           });
 
-          devicesLayer.add(g);
+          let lyr = deviceTypeLayers.get(type);
+          if (!lyr){
+            lyr = new GraphicsLayer({ id: `dev_${type}`, title: type, visible: true });
+            deviceTypeLayers.set(type, lyr);
+            devicesGroup.layers.add(lyr);
+          }
+          lyr.add(g);
           // Note: duplicates overwrite the lookup map, but graphics still display
           deviceGraphicsByKey.set(buildDeviceKey(r), g);
         }
