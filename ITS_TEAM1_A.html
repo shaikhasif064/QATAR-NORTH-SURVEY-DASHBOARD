@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>ITS Field Operations Dashboard</title>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<!-- ArcGIS JS (Esri Map) -->
-<link href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" rel="stylesheet"/>
-<script src="https://js.arcgis.com/4.29/"></script>
-<style>
+  <meta charset="UTF-8" />
+  <title>ITS Field Operations Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ArcGIS JS (Esri Map) -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
+  <script src="https://js.arcgis.com/4.29/"></script>
+
+  <style>
     :root{
       --bg0:#020617;
       --glass:rgba(15,23,42,.72);
@@ -433,12 +434,12 @@
     .btn.warn:hover{ filter: brightness(1.06); }
 
   
-    #globalSearch:focus { border-color: var(--accent-blue) !important; box-shadow: 0 0 0 2px rgba(56,189,248,0.2) !important; }
-    .table-header-actions .btn { font-size: 11px !important; height: 36px; }
+    #globalSearch:focus { border-color: var(--accent-blue); box-shadow: 0 0 10px rgba(56,189,248,0.2); }
+    .btn { white-space: nowrap; }
+</style>
 
-  </style>
-<!-- Firebase (App + Auth + Firestore) -->
-<script type="module">
+  <!-- Firebase (App + Auth + Firestore) -->
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, serverTimestamp, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
@@ -465,105 +466,151 @@
 
     window.dispatchEvent(new CustomEvent("firebase-ready"));
   </script>
+
 </head>
+
 <body data-theme="dark">
-<!-- Auth Overlay (shown when not signed in) -->
-<div aria-hidden="true" class="auth-overlay" id="authOverlay">
-<div class="auth-card">
-<div class="auth-title">Sign in</div>
-<div class="auth-subtitle">ITS Field Operations Dashboard</div>
-<form autocomplete="on" id="authForm">
-<label class="auth-label" for="authEmail">Email</label>
-<input class="auth-input" id="authEmail" placeholder="name@company.com" required="" type="email"/>
-<label class="auth-label" for="authPassword">Password</label>
-<input class="auth-input" id="authPassword" placeholder="••••••••" required="" type="password"/>
-<label class="auth-label" for="deviceName">Device name (optional)</label>
-<input class="auth-input" id="deviceName" placeholder="Tab-01 / Kim / Team-1" type="text"/>
-<button class="btn auth-btn" type="submit">Sign in</button>
-<div class="auth-msg" id="authMsg"></div>
-<div class="auth-hint">Tip: Each tablet should have its own login (recommended) so locations are shown separately.</div>
-</form>
-</div>
-</div>
-<div class="page">
-<div class="shell">
-<header>
-<div class="header-left">
-<img alt="Aktor Qatar" class="header-logo" src="aktor-logo.png"/>
-</div>
-<div class="header-center">
-<div class="header-title">ITS FIELD OPERATIONS DASHBOARD</div>
-<div class="header-subtitle">Live from Google Sheet — Map + Full Data Table + Global Search + Type Filter + My Location</div>
-<div class="header-meta"><span id="currentDateTime"></span></div>
-</div>
-<div class="header-right">
-<img alt="MRTC-AKTOR JV" class="header-logo header-logo-small" src="MRTC-AKTOR JV.png"/>
-</div>
-</header>
-<div class="top-row">
-<div class="pill">
-<span class="status-dot" id="statusDot"></span>
-<span id="statusText">Not loaded</span>
-</div>
-<button class="theme-toggle" id="themeToggle" type="button">Dark</button>
-<div class="pill">
-<span class="small-muted">Last Sync:</span>
-<span id="lastSync">—</span>
-</div>
-</div>
-<div class="glass-card">
-<div class="kpi-wrap" id="kpiWrap"></div>
 
-<div class="small-muted" id="hintText" style="margin-top:6px;">
-          Tip: Use the Layers button on the map to toggle boundaries/areas. Click a marker (or a table row) for navigation options (Google Maps / Waze).
+  <!-- Auth Overlay (shown when not signed in) -->
+  <div id="authOverlay" class="auth-overlay" aria-hidden="true">
+    <div class="auth-card">
+      <div class="auth-title">Sign in</div>
+      <div class="auth-subtitle">ITS Field Operations Dashboard</div>
+
+      <form id="authForm" autocomplete="on">
+        <label class="auth-label" for="authEmail">Email</label>
+        <input id="authEmail" class="auth-input" type="email" placeholder="name@company.com" required />
+
+        <label class="auth-label" for="authPassword">Password</label>
+        <input id="authPassword" class="auth-input" type="password" placeholder="••••••••" required />
+
+        <label class="auth-label" for="deviceName">Device name (optional)</label>
+        <input id="deviceName" class="auth-input" type="text" placeholder="Tab-01 / Kim / Team-1" />
+
+        <button class="btn auth-btn" type="submit">Sign in</button>
+        <div id="authMsg" class="auth-msg"></div>
+        <div class="auth-hint">Tip: Each tablet should have its own login (recommended) so locations are shown separately.</div>
+      </form>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="shell">
+      <header>
+        <div class="header-left">
+          <img src="aktor-logo.png" alt="Aktor Qatar" class="header-logo" />
         </div>
-</div>
-<div class="glass-card map-card" style="margin-top:12px;">
-<div class="map-header">
-<div class="map-title"><span class="dot"></span><span>ESRI MAP (SATELLITE) — LOCKED TO QATAR</span></div>
-<div class="small-muted" id="deviceCountLabel">0 devices</div>
-</div>
-<div class="map-box">
-<div id="mapView" style="width:100%;height:100%;"></div>
-</div>
-</div>
-<div class="map-footer">
-<div id="mapFooterLeft">Map is constrained to Qatar extent. Use “Layers” to toggle boundaries/areas. Use “Locate Me” to center on current position.</div>
-<div class="small-muted">Data source: Google Sheet (CSV)</div>
-</div>
-</div>
 
-      <div class="glass-card table-card" style="margin-top:12px;">
-        <div class="table-header-actions" style="display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
-          <div style="font-size:14px; font-weight:800; color:var(--text0); white-space:nowrap;">ALL DATA (FROM EXCEL/CSV)</div>
+        <div class="header-center">
+          <div class="header-title">ITS FIELD OPERATIONS DASHBOARD</div>
+          <div class="header-subtitle">Live from Google Sheet — Map + Full Data Table + Global Search + Type Filter + My Location</div>
+          <div class="header-meta"><span id="currentDateTime"></span></div>
+        </div>
 
-          <div style="flex:1; min-width:300px; display:flex; gap:10px; align-items:center;">
-            <input id="globalSearch" type="text" placeholder="Search table (IP, ID, Asset, Description...)" 
-                   style="flex:1; padding:10px 18px; border-radius:25px; border:1px solid var(--border); background:var(--glass); color:var(--text1); outline:none;" />
+        <div class="header-right">
+          <img src="MRTC-AKTOR JV.png" alt="MRTC-AKTOR JV" class="header-logo header-logo-small" />
+        </div>
+      </header>
 
-            <div class="action-buttons" style="display:flex; gap:8px; align-items:center;">
-              <button class="btn" id="locateBtn" type="button" style="padding:8px 15px;">Locate Me</button>
-              <button class="btn secondary" id="clearBtn" type="button" style="padding:8px 15px;">Clear</button>
-              <button class="btn secondary" id="reloadBtn" type="button" style="padding:8px 15px;">Reload</button>
-              <button class="btn secondary" id="logoutBtn" type="button" style="padding:8px 15px; display:none;">Logout</button>
-              <button class="btn" id="exportCsvBtn" type="button" style="padding:8px 15px;">CSV</button>
-              <button class="btn" id="exportPdfBtn" type="button" style="padding:8px 15px;">PDF</button>
-            </div>
+      <div class="top-row">
+        <div class="pill">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Not loaded</span>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" type="button">Dark</button>
+
+        <div class="pill">
+          <span class="small-muted">Last Sync:</span>
+          <span id="lastSync">—</span>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="kpi-wrap" id="kpiWrap"></div>
+
+        
+
+          <div class="filter">
+            <select id="typeFilter">
+              <option value="__ALL__">All Device Types (GFCODE)</option>
+            </select>
+          </div>
+
+          <button class="btn" id="locateBtn" type="button">Locate Me</button>
+          
+          
+          <button class="btn secondary" id="logoutBtn" type="button" title="Sign out" style="display:none;">Logout</button>
+          <button class="btn secondary" id="clearBtn" type="button">Clear</button>
+          <button class="btn secondary" id="reloadBtn" type="button">Reload</button>
+
+          <div class="export-group">
+            <button class="btn" id="exportCsvBtn" type="button">CSV</button>
+            <button class="btn" id="exportPdfBtn" type="button">PDF</button>
           </div>
         </div>
 
-        <div class="table-hint" style="font-size:11px; color:var(--text3); margin-bottom:10px;">Click a row to zoom to the device and open navigation options.</div>
+        <div class="small-muted" style="margin-top:6px;" id="hintText">
+          Tip: Use the Layers button on the map to toggle boundaries/areas. Click a marker (or a table row) for navigation options (Google Maps / Waze).
+        </div>
+      </div>
 
+      <div class="glass-card map-card" style="margin-top:12px;">
+        <div class="map-header">
+          <div class="map-title"><span class="dot"></span><span>ESRI MAP (SATELLITE) — LOCKED TO QATAR</span></div>
+          <div class="small-muted" id="deviceCountLabel">0 devices</div>
+        </div>
+
+        <div class="map-box">
+          <div id="mapView" style="width:100%;height:100%;"></div>
+        </div>
+</div>
+        </div>
+
+        <div class="map-footer">
+          <div id="mapFooterLeft">Map is constrained to Qatar extent. Use “Layers” to toggle boundaries/areas. Use “Locate Me” to center on current position.</div>
+          <div class="small-muted">Data source: Google Sheet (CSV)</div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-top:12px; padding: 15px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:15px; flex-wrap:wrap;">
+          <div style="font-size:12px; font-weight:800; color:var(--text2); letter-spacing:0.1em;">ALL DATA (EXCEL/CSV)</div>
+
+          <div style="flex:1; min-width:300px; display:flex; gap:10px; align-items:center;">
+            <input id="globalSearch" type="text" placeholder="Search table (IP, ID, Asset, Description...)" 
+                   style="flex:1; padding:10px 18px; border-radius:25px; border:1px solid var(--border); background:rgba(15,23,42,0.4); color:var(--text1); outline:none; font-size:13px;" />
+
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+              <button class="btn" id="locateBtn" type="button">Locate Me</button>
+              <button class="btn secondary" id="clearBtn" type="button">Clear</button>
+              <button class="btn secondary" id="reloadBtn" type="button">Reload</button>
+              <button class="btn secondary" id="logoutBtn" type="button" style="display:none;">Logout</button>
+              <button class="btn" id="exportCsvBtn" type="button">CSV</button>
+              <button class="btn" id="exportPdfBtn" type="button">PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="glass-card table-card" style="margin-top:4px;">
+        <div class="table-title">
+          <div>All Data (from Excel/CSV)</div>
+          <div class="table-hint">Click a row to zoom to the device and open navigation options.</div>
+        </div>
         <div class="table-wrap">
-<table id="dataTable">
-<thead><tr id="tableHeadRow"></tr></thead>
-<tbody id="tableBody"></tbody>
-</table>
-</div>
-</div>
-</div>
+          <table id="dataTable">
+            <thead><tr id="tableHeadRow"></tr></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
 
-<script>
+    </div>
+  </div>
+
+  <script>
     // ===================== CONFIG =====================
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSKAtXDwzYQCNXtLlFOz5fkof4kCLCtzkf7GokGaINUmrurF7CFPbsm6bF8HXXV3MA8PyfYOzMVK8Q/pub?gid=223122268&single=true&output=csv";
 
@@ -698,7 +745,7 @@
         } catch(_){}
       });
 
-      // tracking disabled?.addEventListener("click", async () => {
+      $("trackBtn")?.addEventListener("click", async () => {
         await startTracking();
       });
 
@@ -800,7 +847,7 @@
 
       if (trackingTimer) return;
 
-      // tracking disabled && (// tracking disabled.disabled = true);
+      $("trackBtn") && ($("trackBtn").disabled = true);
       $("stopTrackBtn") && ($("stopTrackBtn").disabled = false);
 
       const deviceId = getDeviceId();
@@ -843,7 +890,7 @@
         clearInterval(trackingTimer);
         trackingTimer = null;
       }
-      // tracking disabled && (// tracking disabled.disabled = false);
+      $("trackBtn") && ($("trackBtn").disabled = false);
       $("stopTrackBtn") && ($("stopTrackBtn").disabled = true);
 
       if (clearRemote && fb && authUser){
@@ -1708,8 +1755,7 @@
     async function startApp(){
       if (window.__APP_BOOTED__) return;
       window.__APP_BOOTED__ = true;
-      // App is already initialized via boot() and onAuthStateChanged
-      console.log("Dashboard initialized and ready.");
+      // App initialized
     }
     window.__START_APP__ = startApp;
 
