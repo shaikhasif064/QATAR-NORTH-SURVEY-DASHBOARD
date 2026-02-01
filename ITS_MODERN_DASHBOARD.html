@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ITS Field Ops — Pro Edition</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css">
+  <script src="https://js.arcgis.com/4.29/"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-dark: #0a0e1a;
+      --glass: rgba(15, 23, 42, 0.75);
+      --glass-border: rgba(148, 163, 184, 0.2);
+      --text: #f1f5f9;
+      --text-dim: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.4);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated gradient background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.15), transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.12), transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.08), transparent 60%);
+      animation: gradientShift 15s ease infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 24px 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #38bdf8, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--accent-glow);
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #38bdf8, #3b82f6);
+      border: none;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 12px 32px var(--accent-glow);
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    /* Controls */
+    .controls {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 300px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    select {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Map Container */
+    .map-container {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .map-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .map-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .map-box {
+      width: 100%;
+      height: 600px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+    }
+
+    /* Table */
+    .table-container {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .table-wrapper {
+      max-height: 500px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+    }
+
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      border-bottom: 2px solid var(--glass-border);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--glass-border);
+      color: var(--text);
+    }
+
+    tbody tr {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    tbody tr:hover {
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    /* Auth Overlay */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-overlay.show { display: flex; }
+
+    .auth-card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 40px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    }
+
+    .auth-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 24px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text);
+      font-size: 14px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    .auth-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .auth-msg {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--danger);
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--glass-border);
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+    }
+
+    .status-dot.online { background: var(--success); box-shadow: 0 0 12px var(--success); }
+    .status-dot.offline { background: var(--danger); box-shadow: 0 0 12px var(--danger); }
+
+    @media (max-width: 768px) {
+      .header { padding: 20px; }
+      .header-title { font-size: 22px; }
+      .map-box { height: 400px; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Overlay -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-title">Sign In</div>
+      <div class="auth-subtitle">ITS Field Operations Dashboard</div>
+      <form id="authForm">
+        <input id="authEmail" class="auth-input" type="email" placeholder="Email" required>
+        <input id="authPassword" class="auth-input" type="password" placeholder="Password" required>
+        <input id="deviceName" class="auth-input" type="text" placeholder="Device Name (Optional)">
+        <button class="btn btn-primary" type="submit" style="width:100%">Sign In</button>
+        <div id="authMsg" class="auth-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <div class="header-title">ITS FIELD OPERATIONS</div>
+        <div class="header-subtitle">Real-time Asset Tracking & Management</div>
+      </div>
+      <div class="header-actions">
+        <div class="status-badge">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Loading...</span>
+        </div>
+        <button class="btn" id="logoutBtn" style="display:none">Logout</button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="search-box">
+        <input id="searchInput" type="text" placeholder="Search assets...">
+      </div>
+      <select id="typeFilter">
+        <option value="__ALL__">All Types</option>
+      </select>
+      <button class="btn btn-primary" id="locateBtn">Locate Me</button>
+      <button class="btn" id="reloadBtn">Reload</button>
+      <button class="btn" id="exportCsvBtn">Export CSV</button>
+    </div>
+
+    <!-- Map -->
+    <div class="map-container">
+      <div class="map-header">
+        <div class="map-title">Live Map View</div>
+        <div id="deviceCount" style="font-size:13px; color:var(--text-dim)">0 devices</div>
+      </div>
+      <div class="map-box">
+        <div id="mapView" style="width:100%; height:100%"></div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+      <div class="map-header">
+        <div class="map-title">Asset Data</div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr id="tableHead"></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDi3nqYLnlDPEzhFquWHo0Be5t2Bhmyvs",
+      authDomain: "qatar-north-its-dashboard.firebaseapp.com",
+      projectId: "qatar-north-its-dashboard",
+      storageBucket: "qatar-north-its-dashboard.firebasestorage.app",
+      messagingSenderId: "1038045527292",
+      appId: "1:1038045527292:web:087b3d29d3e7c15686ab79"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const authOverlay = document.getElementById('authOverlay');
+    const authForm = document.getElementById('authForm');
+    const authMsg = document.getElementById('authMsg');
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authOverlay.classList.remove('show');
+        document.getElementById('logoutBtn').style.display = '';
+        window.initDashboard && window.initDashboard();
+      } else {
+        authOverlay.classList.add('show');
+      }
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await signInWithEmailAndPassword(auth, 
+          document.getElementById('authEmail').value,
+          document.getElementById('authPassword').value
+        );
+      } catch (err) {
+        authMsg.textContent = err.message;
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+  </script>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSKAtXDwzYQCNXtLlFOz5fkof4kCLCtzkf7GokGaINUmrurF7CFPbsm6bF8HXXV3MA8PyfYOzMVK8Q/pub?gid=223122268&single=true&output=csv";
+
+    let rawData = [];
+    let filteredData = [];
+    let headers = [];
+    let view, devicesLayer;
+
+    const $ = (id) => document.getElementById(id);
+
+    function setStatus(online, text) {
+      const dot = $('statusDot');
+      dot.className = 'status-dot ' + (online ? 'online' : 'offline');
+      $('statusText').textContent = text;
+    }
+
+    async function loadData() {
+      try {
+        setStatus(false, 'Loading...');
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
+        const lines = text.split('\n').filter(l => l.trim());
+
+        headers = lines[0].split(',').map(h => h.trim());
+        rawData = lines.slice(1).map(line => {
+          const values = line.split(',');
+          let obj = {};
+          headers.forEach((h, i) => obj[h] = values[i] || '');
+          return obj;
+        });
+
+        filteredData = [...rawData];
+        setStatus(true, 'Online');
+        renderAll();
+      } catch (err) {
+        setStatus(false, 'Error');
+        console.error(err);
+      }
+    }
+
+    function renderKPIs() {
+      const grid = $('kpiGrid');
+      grid.innerHTML = '';
+
+      const total = document.createElement('div');
+      total.className = 'kpi-card';
+      total.innerHTML = `
+        <div class="kpi-label">Total Devices</div>
+        <div class="kpi-value">${filteredData.length}</div>
+      `;
+      grid.appendChild(total);
+
+      const gfcKey = headers.find(h => h.toLowerCase().includes('gfcode'));
+      if (gfcKey) {
+        const types = {};
+        filteredData.forEach(r => {
+          const t = r[gfcKey] || 'Unknown';
+          types[t] = (types[t] || 0) + 1;
+        });
+
+        Object.entries(types).slice(0, 5).forEach(([type, count]) => {
+          const card = document.createElement('div');
+          card.className = 'kpi-card';
+          card.innerHTML = `
+            <div class="kpi-label">${type}</div>
+            <div class="kpi-value">${count}</div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+    }
+
+    function renderTable() {
+      const head = $('tableHead');
+      const body = $('tableBody');
+      head.innerHTML = '';
+      body.innerHTML = '';
+
+      headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        head.appendChild(th);
+      });
+
+      filteredData.forEach(row => {
+        const tr = document.createElement('tr');
+        headers.forEach(h => {
+          const td = document.createElement('td');
+          td.textContent = row[h] || 'N/A';
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+    }
+
+    function renderAll() {
+      renderKPIs();
+      renderTable();
+      renderMap();
+      $('deviceCount').textContent = `${filteredData.length} devices`;
+    }
+
+    function renderMap() {
+      if (!view || !devicesLayer) return;
+
+      devicesLayer.removeAll();
+
+      const latKey = headers.find(h => h.toLowerCase().includes('latitude'));
+      const lonKey = headers.find(h => h.toLowerCase().includes('longitude'));
+
+      if (!latKey || !lonKey) return;
+
+      require(["esri/Graphic"], (Graphic) => {
+        filteredData.forEach(row => {
+          const lat = parseFloat(row[latKey]);
+          const lon = parseFloat(row[lonKey]);
+
+          if (isNaN(lat) || isNaN(lon)) return;
+
+          const graphic = new Graphic({
+            geometry: { type: "point", latitude: lat, longitude: lon },
+            symbol: {
+              type: "simple-marker",
+              color: "#38bdf8",
+              size: 10,
+              outline: { color: "#fff", width: 1.5 }
+            },
+            popupTemplate: {
+              title: row[headers[0]] || "Asset",
+              content: headers.map(h => `<b>${h}:</b> ${row[h] || 'N/A'}`).join('<br>')
+            }
+          });
+
+          devicesLayer.add(graphic);
+        });
+      });
+    }
+
+    function initMap() {
+      require(["esri/Map", "esri/views/MapView", "esri/layers/GraphicsLayer"], 
+        (Map, MapView, GraphicsLayer) => {
+
+        const map = new Map({ basemap: "satellite" });
+        devicesLayer = new GraphicsLayer();
+        map.add(devicesLayer);
+
+        view = new MapView({
+          container: "mapView",
+          map: map,
+          center: [51.18, 25.35],
+          zoom: 10
+        });
+
+        renderMap();
+      });
+    }
+
+    function applyFilters() {
+      const search = $('searchInput').value.toLowerCase();
+      const type = $('typeFilter').value;
+
+      filteredData = rawData.filter(row => {
+        const matchSearch = !search || JSON.stringify(row).toLowerCase().includes(search);
+        const matchType = type === '__ALL__' || row[headers.find(h => h.toLowerCase().includes('gfcode'))] === type;
+        return matchSearch && matchType;
+      });
+
+      renderAll();
+    }
+
+    function exportCSV() {
+      const csv = [headers.join(','), ...filteredData.map(r => headers.map(h => r[h]).join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ITS_Export_${Date.now()}.csv`;
+      a.click();
+    }
+
+    window.initDashboard = async () => {
+      await loadData();
+      initMap();
+    };
+
+    $('searchInput').addEventListener('input', applyFilters);
+    $('typeFilter').addEventListener('change', applyFilters);
+    $('reloadBtn').addEventListener('click', loadData);
+    $('exportCsvBtn').addEventListener('click', exportCSV);
+    $('locateBtn').addEventListener('click', () => {
+      navigator.geolocation.getCurrentPosition(pos => {
+        view.goTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 15 });
+      });
+    });
+  </script>
+</body>
+</html>
