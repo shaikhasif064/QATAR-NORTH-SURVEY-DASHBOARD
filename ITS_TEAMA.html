@@ -433,6 +433,44 @@
     }
     .btn.warn:hover{ filter: brightness(1.06); }
 
+  
+    /* Move Locate and Logout to the top right */
+    .header-right { display: flex; gap: 10px; align-items: center; }
+
+    /* Re-organize the controls bar to appear below the map */
+    .controls-bar {
+        display: flex;
+        position: relative;
+        order: 10; /* Move to bottom of its parent */
+        margin-top: 20px;
+        padding: 15px;
+        background: var(--glass);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* Hide tracking buttons */
+    #trackBtn, #stopTrackBtn { display: none !important; }
+
+    /* Ensure the search bar takes priority space */
+    .search { flex: 2; min-width: 300px; }
+    .filter { flex: 1; min-width: 200px; }
+
+    /* Layout adjustment for the whole page */
+    .glass-card:has(.controls-bar) {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Move the controls bar specifically below the map card */
+    .page .shell { display: flex; flex-direction: column; }
+    .glass-card:has(.kpi-wrap) { order: 1; }
+    .map-card { order: 2; margin-top: 15px; }
+    .glass-card:has(.controls-bar) { order: 3; margin-top: 15px; }
+    .table-card { order: 4; margin-top: 15px; }
+
   </style>
 
   <!-- Firebase (App + Auth + Firestore) -->
@@ -526,23 +564,27 @@
       <div class="glass-card">
         <div class="kpi-wrap" id="kpiWrap"></div>
 
-        
+        <div class="controls-bar">
+          <div class="search">
+            <input id="globalSearch" type="text" placeholder="Global search (IP / logic id / ID / ASSETTAG / DESCRIPTION / any field)..." />
+          </div>
 
           <div class="filter">
-            
+            <select id="typeFilter">
+              <option value="__ALL__">All Device Types (GFCODE)</option>
             </select>
           </div>
 
-          
+          <button class="btn" id="locateBtn" type="button">Locate Me</button>
           <button class="btn warn" id="trackBtn" type="button" title="Share your live location to the Team map">Start Tracking</button>
           <button class="btn secondary" id="stopTrackBtn" type="button" title="Stop sharing your live location" disabled>Stop</button>
           <button class="btn secondary" id="logoutBtn" type="button" title="Sign out" style="display:none;">Logout</button>
-          
-          
+          <button class="btn secondary" id="clearBtn" type="button">Clear</button>
+          <button class="btn secondary" id="reloadBtn" type="button">Reload</button>
 
           <div class="export-group">
-            
-            
+            <button class="btn" id="exportCsvBtn" type="button">CSV</button>
+            <button class="btn" id="exportPdfBtn" type="button">PDF</button>
           </div>
         </div>
 
@@ -567,25 +609,7 @@
           <div id="mapFooterLeft">Map is constrained to Qatar extent. Use “Layers” to toggle boundaries/areas. Use “Locate Me” to center on current position.</div>
           <div class="small-muted">Data source: Google Sheet (CSV)</div>
         </div>
-      
-      <div class="glass-card" style="margin-top:10px;padding:12px;">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-
-          <select id="typeFilter" class="btn secondary" style="min-width:220px;">
-            <option value="__ALL__">All Device Types (GFCODE)</option>
-          </select>
-
-          <input id="globalSearch" type="text" placeholder="Search (IP, ID, Asset, Description…)" 
-                 style="flex:1;min-width:260px;padding:9px 16px;border-radius:999px;border:1px solid var(--border);background:var(--glass);color:var(--text1);" />
-
-          <button class="btn secondary" id="clearBtn">Clear</button>
-          <button class="btn secondary" id="reloadBtn">Reload</button>
-          <button class="btn" id="exportCsvBtn">CSV</button>
-          <button class="btn" id="exportPdfBtn">PDF</button>
-        </div>
       </div>
-
-</div>
 
       <div class="glass-card table-card" style="margin-top:4px;">
         <div class="table-title">
@@ -1787,5 +1811,20 @@
       loadCSV();
     })();
   </script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const headerRight = document.querySelector('.header-right');
+        const locateBtn = document.getElementById('locateBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const themeToggle = document.getElementById('themeToggle');
+
+        if(headerRight && locateBtn && logoutBtn) {
+            headerRight.prepend(logoutBtn);
+            headerRight.prepend(locateBtn);
+            // Ensure they are visible
+            locateBtn.style.display = 'inline-flex';
+        }
+    });
+</script>
 </body>
 </html>
