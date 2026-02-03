@@ -1706,28 +1706,44 @@
 
 
           // ===================== ICON MARKERS (12 TYPES) =====================
-          // PNGs are in the repo root (same folder as this HTML) per your screenshot.
-          // If you move them into /icons later, change SITE_ROOT + "RNDNAIDC.png" -> "./icons/RNDNAIDC.png" etc.
-                    const SITE_ROOT = location.origin + "/" + (location.pathname.split("/")[1] || "") + (location.pathname.split("/")[1] ? "/" : "");
-const ICONS_BY_GFCODE = {
-            "RNDNAIDC": SITE_ROOT + "RNDNAIDC.png",
-            "RNDNCCTV": SITE_ROOT + "RNDNCCTV.png",
-            "RNDNDYMS": SITE_ROOT + "RNDNDYMS.png",
-            "RNDNFIXC": SITE_ROOT + "RNDNFIXC.png",
-            "RNDNLCS": SITE_ROOT + "RNDNLCS.png",
-            "RNDNPRD": SITE_ROOT + "RNDNLPRD.png",
-            "RNDNLPRD": SITE_ROOT + "RNDNLPRD.png",
-            "RNDNMAP": SITE_ROOT + "RNDNMMAP.png",
-            "RNDNMMAP": SITE_ROOT + "RNDNMMAP.png",
-            "RNDNMDS": SITE_ROOT + "RNDNMMDS.png",
-            "RNDNMMDS": SITE_ROOT + "RNDNMMDS.png",
-            "RNDNPTZC": SITE_ROOT + "RNDNPTZC.png",
-            "RNDNRVDE": SITE_ROOT + "RNDNRVDE.png",
-            "RNDNSDMS": SITE_ROOT + "RNDNSDMS.png",
-            "RNDNVIVD": SITE_ROOT + "RNDNVIVD.png",
+          // Icons are in the SAME folder as this HTML (repo root in your screenshot).
+          // We build absolute URLs using document.baseURI so it works whether you open:
+          //   .../ITS_TEAMSS.html  OR  .../ITS_TEAMSS  (GitHub Pages)
+          const ICON_FILES = {
+            "RNDNAIDC": "RNDNAIDC.png",
+            "RNDNCCTV": "RNDNCCTV.png",
+            "RNDNDYMS": "RNDNDYMS.png",
+            "RNDNFIXC": "RNDNFIXC.png",
+            "RNDNLCS":  "RNDNLCS.png",
+            "RNDNLPRD": "RNDNLPRD.png",
+            "RNDNMMAP": "RNDNMMAP.png",
+            "RNDNMMDS": "RNDNMMDS.png",
+            "RNDNPTZC": "RNDNPTZC.png",
+            "RNDNRVDE": "RNDNRVDE.png",
+            "RNDNSDMS": "RNDNSDMS.png",
+            "RNDNVIVD": "RNDNVIVD.png"
           };
 
+          // Also accept some alternate GFCODE variants found in sheets
+          const ICON_ALIASES = {
+            "RNDNPRD": "RNDNLPRD",
+            "RNDNMAP": "RNDNMMAP",
+            "RNDNMDS": "RNDNMMDS",
+            "PRD": "RNDNLPRD",
+            "MAP": "RNDNMMAP",
+            "MDS": "RNDNMMDS"
+          };
+
+          function resolveIconUrl(gfcode){
+            const k = normalizeGfcode(gfcode);
+            const key = ICON_FILES[k] ? k : (ICON_ALIASES[k] || (ICON_FILES["RNDN"+k] ? ("RNDN"+k) : null));
+            if (!key) return null;
+            const file = ICON_FILES[key];
+            return new URL(file, document.baseURI).href;
+          }
+
           function normalizeGfcode(v){
+
             return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
           }
 
@@ -1735,15 +1751,15 @@ const ICONS_BY_GFCODE = {
             const raw = String(type || "");
             const key = normalizeGfcode(raw);
             // Match both: "RNDNAIDC" and also "AIDC" (will map to "RNDNAIDC")
-            const iconUrl = ICONS_BY_GFCODE[key] || ICONS_BY_GFCODE["RNDN" + key];
+            const iconUrl = resolveIconUrl(raw);
             if (iconUrl){
               const size = selected ? 30 : 24;
               return {
                 type: "picture-marker",
                 url: iconUrl,
-                width: `${size}px`,
-                height: `${size}px`,
-                yoffset: `${Math.round(size/2)}px`
+                width: size,
+                height: size,
+                yoffset: Math.round(size/2)
               };
             }
             // Fallback = original blue pin
