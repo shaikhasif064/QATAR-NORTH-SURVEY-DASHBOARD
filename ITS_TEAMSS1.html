@@ -553,6 +553,149 @@
       .popup-link{ flex: 1 1 auto; width: 100%; justify-content:center; }
     }
 
+
+    /* ========== MOVE KPI TO BOTTOM AS COLLAPSIBLE PANEL ========== */
+    .kpi-wrap {
+        display: none !important; /* Hide original KPI cards */
+    }
+
+    /* Mini stats bar at top */
+    .mini-stats-bar {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--glass);
+        border-radius: var(--radius-lg);
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .mini-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text1);
+    }
+
+    .mini-stat-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--accent-blue);
+    }
+
+    /* Statistics panel at bottom */
+    .stats-panel {
+        margin-top: 16px;
+        background: var(--glass);
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        border: 1px solid var(--border);
+    }
+
+    .stats-toggle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+        transition: background var(--trans);
+        user-select: none;
+    }
+
+    .stats-toggle:hover {
+        background: rgba(56, 189, 248, 0.08);
+    }
+
+    .stats-toggle-title {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stats-arrow {
+        font-size: 16px;
+        color: var(--text2);
+        transition: transform var(--trans);
+    }
+
+    .stats-arrow.open {
+        transform: rotate(180deg);
+    }
+
+    .stats-content {
+        display: none;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .stats-content.open {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+    }
+
+    .stat-card {
+        background: linear-gradient(145deg, rgba(15,23,42,.96), rgba(15,23,42,.90));
+        border: 1px solid rgba(148,163,184,.55);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        box-shadow: 0 8px 20px rgba(15,23,42,.4);
+    }
+
+    body[data-theme="light"] .stat-card {
+        background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(243,244,246,.96));
+        box-shadow: 0 8px 20px rgba(148,163,184,.15);
+    }
+
+    .stat-card-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text2);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stat-card-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text0);
+    }
+
+    .stat-badge {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        background: var(--accent-blue);
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+    }
+
+    @media (max-width: 640px) {
+        .mini-stats-bar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stats-content.open {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
 </style>
 
   <!-- Firebase (App + Auth + Firestore) -->
@@ -643,7 +786,20 @@
         </div>
       </div>
 
-      <div class="glass-card">
+      
+      <!-- Mini Stats Bar (One-line summary) -->
+      <div class="mini-stats-bar" id="miniStatsBar">
+        <div class="mini-stat-item">
+          <span>Total:</span>
+          <span class="mini-stat-value" id="miniTotal">0</span>
+        </div>
+<div class="mini-stat-item">
+          <span>Types:</span>
+          <span class="mini-stat-value" id="miniTypes">0</span>
+        </div>
+      </div>
+
+<div class="glass-card">
         <div class="kpi-wrap" id="kpiWrap"></div>
 
         <div class="controls-bar">
@@ -704,7 +860,22 @@
         </div>
       </div>
 
-    </div>
+    
+      <!-- Statistics Panel (Collapsible) -->
+      <div class="stats-panel">
+        <div class="stats-toggle" id="statsToggle">
+          <div class="stats-toggle-title">
+            <span>📊</span>
+            <span>Statistics</span>
+          </div>
+          <span class="stats-arrow" id="statsArrow">▼</span>
+        </div>
+        <div class="stats-content" id="statsContent">
+          <!-- Will be populated by JavaScript -->
+        </div>
+      </div>
+
+</div>
   </div>
 
   <script>
@@ -1504,10 +1675,10 @@
           myLayer = new GraphicsLayer({ id: "myLocationLayer", title: "My Location", visible: true });
 
           // Add in order: boundaries (below), devices, my location (top)
-          teamLayer = new GraphicsLayer({ id: "teamLiveLayer", title: "Team Live", visible: true });
+          // Team Live layer removed as tracking is no longer used
 
           // Add in order: boundaries (below), devices, team live, my location (top)
-          map.addMany([boundariesGroup, devicesGroup, teamLayer, myLayer]);
+          map.addMany([boundariesGroup, devicesGroup, myLayer]);
 
           view = new MapView({
             container: "mapView",
@@ -1534,8 +1705,48 @@
           view.ui.add(layersExpand, "top-left");
 
 
+          // ===================== ICON MARKERS (12 TYPES) =====================
+          // PNGs are in the repo root (same folder as this HTML) per your screenshot.
+          // If you move them into /icons later, change SITE_ROOT + "RNDNAIDC.png" -> "./icons/RNDNAIDC.png" etc.
+                    const SITE_ROOT = location.origin + "/" + (location.pathname.split("/")[1] || "") + (location.pathname.split("/")[1] ? "/" : "");
+const ICONS_BY_GFCODE = {
+            "RNDNAIDC": SITE_ROOT + "RNDNAIDC.png",
+            "RNDNCCTV": SITE_ROOT + "RNDNCCTV.png",
+            "RNDNDYMS": SITE_ROOT + "RNDNDYMS.png",
+            "RNDNFIXC": SITE_ROOT + "RNDNFIXC.png",
+            "RNDNLCS": SITE_ROOT + "RNDNLCS.png",
+            "RNDNPRD": SITE_ROOT + "RNDNLPRD.png",
+            "RNDNLPRD": SITE_ROOT + "RNDNLPRD.png",
+            "RNDNMAP": SITE_ROOT + "RNDNMMAP.png",
+            "RNDNMMAP": SITE_ROOT + "RNDNMMAP.png",
+            "RNDNMDS": SITE_ROOT + "RNDNMMDS.png",
+            "RNDNMMDS": SITE_ROOT + "RNDNMMDS.png",
+            "RNDNPTZC": SITE_ROOT + "RNDNPTZC.png",
+            "RNDNRVDE": SITE_ROOT + "RNDNRVDE.png",
+            "RNDNSDMS": SITE_ROOT + "RNDNSDMS.png",
+            "RNDNVIVD": SITE_ROOT + "RNDNVIVD.png",
+          };
+
+          function normalizeGfcode(v){
+            return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+          }
+
           function markerSymbol(type, selected=false){
-            // Single, consistent symbol for all devices (to avoid confusion)
+            const raw = String(type || "");
+            const key = normalizeGfcode(raw);
+            // Match both: "RNDNAIDC" and also "AIDC" (will map to "RNDNAIDC")
+            const iconUrl = ICONS_BY_GFCODE[key] || ICONS_BY_GFCODE["RNDN" + key];
+            if (iconUrl){
+              const size = selected ? 30 : 24;
+              return {
+                type: "picture-marker",
+                url: iconUrl,
+                width: `${size}px`,
+                height: `${size}px`,
+                yoffset: `${Math.round(size/2)}px`
+              };
+            }
+            // Fallback = original blue pin
             return {
               type: "simple-marker",
               style: "circle",
@@ -1890,6 +2101,95 @@
 
       loadCSV();
     })();
+    // ========== MINI STATS BAR & STATISTICS PANEL ==========
+    function updateMiniStats(rows) {
+        const total = rows.length;
+
+        // Count unique device types (GFCODE)
+        const gfcKey = getFirstKey(rows[0] || {}, ["GFCODE","gfcode","Gfcode"]);
+        const types = new Set();
+        for (const r of rows) {
+            const type = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
+            types.add(type);
+        }
+
+        // Update mini stats bar
+        const miniTotal = document.getElementById("miniTotal");
+        const miniTypes = document.getElementById("miniTypes");
+        if (miniTotal) miniTotal.textContent = total;
+        if (miniTypes) miniTypes.textContent = types.size;
+    }
+
+    function updateStatsPanel(rows) {
+        const statsContent = document.getElementById("statsContent");
+        if (!statsContent) return;
+
+        statsContent.innerHTML = "";
+
+        if (!rows.length) return;
+
+        const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
+
+        // Total card
+        const totalCard = document.createElement("div");
+        totalCard.className = "stat-card";
+        totalCard.innerHTML = `
+            <div class="stat-card-label">
+                <span class="stat-badge"></span>
+                <span>Total Devices</span>
+            </div>
+            <div class="stat-card-value">${rows.length}</div>
+        `;
+        statsContent.appendChild(totalCard);
+
+        // Count by type
+        const counts = new Map();
+        for (const r of rows) {
+            const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
+            counts.set(t, (counts.get(t) || 0) + 1);
+        }
+
+        const sorted = [...counts.entries()].sort((a,b) => b[1] - a[1]);
+        for (const [type, cnt] of sorted) {
+            const card = document.createElement("div");
+            card.className = "stat-card";
+            card.innerHTML = `
+                <div class="stat-card-label">
+                    <span class="stat-badge"></span>
+                    <span>${escapeHtml(type)}</span>
+                </div>
+                <div class="stat-card-value">${cnt}</div>
+            `;
+            statsContent.appendChild(card);
+        }
+    }
+
+    // Toggle statistics panel
+    const statsToggle = document.getElementById("statsToggle");
+    const statsContent = document.getElementById("statsContent");
+    const statsArrow = document.getElementById("statsArrow");
+
+    if (statsToggle && statsContent && statsArrow) {
+        statsToggle.addEventListener("click", () => {
+            statsContent.classList.toggle("open");
+            statsArrow.classList.toggle("open");
+        });
+    }
+
+    // Override renderKPIs to update both mini stats and stats panel
+    const originalRenderKPIs = renderKPIs;
+    renderKPIs = function(rows) {
+        // Update mini stats bar
+        updateMiniStats(rows);
+
+        // Update statistics panel
+        updateStatsPanel(rows);
+
+        // Don't call original renderKPIs since we're replacing it
+        document.getElementById("deviceCountLabel").textContent = `${rows.length} devices`;
+    };
+
+
   </script>
 <script>
     window.addEventListener('DOMContentLoaded', () => {
