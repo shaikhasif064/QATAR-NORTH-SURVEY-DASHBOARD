@@ -1705,49 +1705,52 @@
           view.ui.add(layersExpand, "top-left");
 
 
-// ===================== DEVICE ICONS (ONLY FOR SELECTED GFCODEs) =====================
-// If your PNGs are in the SAME folder as this HTML, keep as "./RNDNAIDC.png"
-// If your PNGs are inside an "icons" folder, change to "./icons/RNDNAIDC.png"
-const ICONS_BY_GFCODE = {
-  "RNDNAIDC": "./RNDNAIDC.png",
-  "RNDNCCTV": "./RNDNCCTV.png",
-  "RNDNDYMS": "./RNDNDYMS.png",
-  "RNDNFIXC": "./RNDNFIXC.png",
-  "RNDNLCS":  "./RNDNLCS.png",
-  "RNDNPRD":  "./RNDNPRD.png",
-  "RNDNMAP":  "./RNDNMAP.png",
-  "RNDNMDS":  "./RNDNMDS.png",
-  "RNDNPTZC": "./RNDNPTZC.png",
-  "RNDNRVDE": "./RNDNRVDE.png",
-  "RNDNSDMS": "./RNDNSDMS.png",
-  "RNDNVIVD": "./RNDNVIVD.png"
-};
+          // ===================== ICON MARKERS (12 TYPES) =====================
+          // PNGs are in the repo root (same folder as this HTML) per your screenshot.
+          // If you move them into /icons later, change "./RNDNAIDC.png" -> "./icons/RNDNAIDC.png" etc.
+          const ICONS_BY_GFCODE = {
+            "RNDNAIDC": "./RNDNAIDC.png",
+            "RNDNCCTV": "./RNDNCCTV.png",
+            "RNDNDYMS": "./RNDNDYMS.png",
+            "RNDNFIXC": "./RNDNFIXC.png",
+            "RNDNLCS": "./RNDNLCS.png",
+            "RNDNPRD": "./RNDNPRD.png",
+            "RNDNMAP": "./RNDNMAP.png",
+            "RNDNMDS": "./RNDNMDS.png",
+            "RNDNPTZC": "./RNDNPTZC.png",
+            "RNDNRVDE": "./RNDNRVDE.png",
+            "RNDNSDMS": "./RNDNSDMS.png",
+            "RNDNVIVD": "./RNDNVIVD.png",
+          };
 
-function markerSymbol(type, selected=false){
-  const key = String(type || "").trim();
-  const iconUrl = ICONS_BY_GFCODE[key];
+          function normalizeGfcode(v){
+            return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+          }
 
-  // ✅ Use icon only for the 12 uploaded types
-  if (iconUrl){
-    const size = selected ? 30 : 24; // tweak if you want bigger/smaller
-    return {
-      type: "picture-marker",
-      url: iconUrl,
-      width: `${size}px`,
-      height: `${size}px`,
-      yoffset: `${Math.round(size/2)}px`
-    };
-  }
-
-  // ✅ Everything else stays as normal pin (your existing style)
-  return {
-    type: "simple-marker",
-    style: "circle",
-    color: "#38bdf8",
-    size: selected ? 14 : 11,
-    outline: { color: "#ffffff", width: selected ? 2.5 : 1.5 }
-  };
-}
+          function markerSymbol(type, selected=false){
+            const raw = String(type || "");
+            const key = normalizeGfcode(raw);
+            // Match both: "RNDNAIDC" and also "AIDC" (will map to "RNDNAIDC")
+            const iconUrl = ICONS_BY_GFCODE[key] || ICONS_BY_GFCODE["RNDN" + key];
+            if (iconUrl){
+              const size = selected ? 30 : 24;
+              return {
+                type: "picture-marker",
+                url: iconUrl,
+                width: `${size}px`,
+                height: `${size}px`,
+                yoffset: `${Math.round(size/2)}px`
+              };
+            }
+            // Fallback = original blue pin
+            return {
+              type: "simple-marker",
+              style: "circle",
+              color: "#38bdf8",
+              size: selected ? 14 : 11,
+              outline: { color: "#ffffff", width: selected ? 2.5 : 1.5 }
+            };
+          }
 
           function clearSelection(){
             if (selectedGraphic){
