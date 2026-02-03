@@ -1710,18 +1710,18 @@
           // We build absolute URLs using document.baseURI so it works whether you open:
           //   .../ITS_TEAMSS.html  OR  .../ITS_TEAMSS  (GitHub Pages)
           const ICON_FILES = {
-            "RNDNAIDC": "RNDNAIDC.png",
-            "RNDNCCTV": "RNDNCCTV.png",
-            "RNDNDYMS": "RNDNDYMS.png",
-            "RNDNFIXC": "RNDNFIXC.png",
-            "RNDNLCS":  "RNDNLCS.png",
-            "RNDNLPRD": "RNDNLPRD.png",
-            "RNDNMMAP": "RNDNMMAP.png",
-            "RNDNMMDS": "RNDNMMDS.png",
-            "RNDNPTZC": "RNDNPTZC.png",
-            "RNDNRVDE": "RNDNRVDE.png",
-            "RNDNSDMS": "RNDNSDMS.png",
-            "RNDNVIVD": "RNDNVIVD.png"
+            "RDNDAIDC": "RDNDAIDC.png",
+            "RDNDCCTV": "RDNDCCTV.png",
+            "RDNDDYMS": "RDNDDYMS.png",
+            "RDNDFIXC": "RDNDFIXC.png",
+            "RDNDLCS":  "RDNDLCS.png",
+            "RDNDLPRD": "RDNDLPRD.png",
+            "RDNDMMAP": "RDNDMMAP.png",
+            "RDNDMMDS": "RDNDMMDS.png",
+            "RDNDPTZC": "RDNDPTZC.png",
+            "RDNDRVDE": "RDNDRVDE.png",
+            "RDNDSDMS": "RDNDSDMS.png",
+            "RDNDVIVD": "RDNDVIVD.png"
           };
 
           // Absolute repo base (icons are stored in repo root)
@@ -1730,19 +1730,19 @@
 
           // Also accept some alternate GFCODE variants found in sheets
           const ICON_ALIASES = {
-            "RNDNPRD": "RNDNLPRD",
-            "RNDNMAP": "RNDNMMAP",
-            "RNDNMDS": "RNDNMMDS",
-            "PRD": "RNDNLPRD",
-            "MAP": "RNDNMMAP",
-            "MDS": "RNDNMMDS"
+            "RNDNPRD": "RDNDLPRD",
+            "RNDNMAP": "RDNDMMAP",
+            "RNDNMDS": "RDNDMMDS",
+            "PRD": "RDNDLPRD",
+            "MAP": "RDNDMMAP",
+            "MDS": "RDNDMMDS"
           };
 
           function resolveIconUrl(gfcode){
             const k = normalizeGfcode(gfcode);
             const key = ICON_FILES[k]
               ? k
-              : (ICON_ALIASES[k] || (ICON_FILES["RNDN"+k] ? ("RNDN"+k) : null));
+              : (ICON_ALIASES[k] || (ICON_FILES["RDND"+k] ? ("RDND"+k) : null));
             if (!key) return null;
             const file = ICON_FILES[key];
 
@@ -1764,7 +1764,7 @@
           function markerSymbol(type, selected=false){
             const raw = String(type || "");
             const key = normalizeGfcode(raw);
-            // Match both: "RNDNAIDC" and also "AIDC" (will map to "RNDNAIDC")
+            // Match both: "RDNDAIDC" and also "AIDC" (will map to "RDNDAIDC")
             const iconUrl = resolveIconUrl(raw);
             if (iconUrl){
               const size = selected ? 30 : 24;
