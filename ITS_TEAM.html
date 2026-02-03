@@ -1705,8 +1705,78 @@
           view.ui.add(layersExpand, "top-left");
 
 
+          // ===================== ICON MARKERS (12 TYPES) =====================
+          // Icons are in the SAME folder as this HTML (repo root in your screenshot).
+          // We build absolute URLs using document.baseURI so it works whether you open:
+          //   .../ITS_TEAMSS.html  OR  .../ITS_TEAMSS  (GitHub Pages)
+          const ICON_FILES = {
+            "RDNDAIDC": "RDNDAIDC.png",
+            "RDNDCCTV": "RDNDCCTV.png",
+            "RDNDDYMS": "RDNDDYMS.png",
+            "RDNDFIXC": "RDNDFIXC.png",
+            "RDNDLCS":  "RDNDLCS.png",
+            "RDNDLPRD": "RDNDLPRD.png",
+            "RDNDMMAP": "RDNDMMAP.png",
+            "RDNDMMDS": "RDNDMMDS.png",
+            "RDNDPTZC": "RDNDPTZC.png",
+            "RDNDRVDE": "RDNDRVDE.png",
+            "RDNDSDMS": "RDNDSDMS.png",
+            "RDNDVIVD": "RDNDVIVD.png"
+          };
+
+          // Absolute repo base (icons are stored in repo root)
+          const REPO_BASE = `${location.origin}/QATAR-NORTH-SURVEY-DASHBOARD/`;
+
+
+          // Also accept some alternate GFCODE variants found in sheets
+          const ICON_ALIASES = {
+            "RDNDPRD": "RDNDLPRD",
+            "RDNDMAP": "RDNDMMAP",
+            "RDNDMDS": "RDNDMMDS",
+            "PRD": "RDNDLPRD",
+            "MAP": "RDNDMMAP",
+            "MDS": "RDNDMMDS"
+          };
+
+          function resolveIconUrl(gfcode){
+            const k = normalizeGfcode(gfcode);
+            const key = ICON_FILES[k]
+              ? k
+              : (ICON_ALIASES[k] || (ICON_FILES["RDND"+k] ? ("RDND"+k) : null));
+            if (!key) return null;
+            const file = ICON_FILES[key];
+
+            // Primary: repo root absolute (works even if this page is opened as /ITS_TEAMSS or from subfolders)
+            const abs = new URL(file, REPO_BASE).href;
+
+            // Secondary: same-folder relative (useful if you later move icons next to the HTML)
+            const rel = new URL(file, new URL('.', window.location.href)).href;
+
+            // Return both so browser can try; ArcGIS will use the first, but we keep rel for debugging.
+            return abs || rel;
+          }
+
+          function normalizeGfcode(v){
+
+            return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+          }
+
           function markerSymbol(type, selected=false){
-            // Single, consistent symbol for all devices (to avoid confusion)
+            const raw = String(type || "");
+            const key = normalizeGfcode(raw);
+            // Match both: "RDNDAIDC" and also "AIDC" (will map to "RDNDAIDC")
+            const iconUrl = resolveIconUrl(raw);
+            if (iconUrl){
+              const size = selected ? 30 : 24;
+              return {
+                type: "picture-marker",
+                url: iconUrl,
+                width: size,
+                height: size,
+                yoffset: Math.round(size/2)
+              };
+            }
+            // Fallback = original blue pin
             return {
               type: "simple-marker",
               style: "circle",
