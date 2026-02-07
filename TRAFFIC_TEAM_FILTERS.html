@@ -697,7 +697,7 @@
     }
 
 
-    /* ===== FILTER BAR (PILL STYLE) – Traffic (copied from Traffic Survey dashboard logic) ===== */
+    /* ===== FILTER BAR (PILL STYLE) – Traffic (replaces Global Search + GFCODE filter) ===== */
     .filters-card{
       display:flex;
       flex-direction:column;
@@ -715,10 +715,10 @@
     }
     .filters{
       display:flex;
-      flex-wrap:nowrap;           /* force a straight line on desktop */
+      flex-wrap:nowrap;           /* straight line */
       gap:8px;
       align-items:flex-end;
-      overflow-x:auto;            /* if screen is smaller, allow scroll instead of wrapping */
+      overflow-x:auto;            /* small screens: scroll instead of wrap */
       padding-bottom:2px;
       -webkit-overflow-scrolling:touch;
     }
@@ -1449,10 +1449,9 @@
       const zoneSel    = $("zoneFilter");
       const surveySel  = $("surveyFilter");
       const remarksSel = $("remarksFilter");
-      const noteEl     = $("filtersNote");
 
       if (!rawRows.length){
-        if (noteEl) noteEl.textContent = "No filters applied.";
+        updateFiltersNote();
         return;
       }
 
@@ -1633,10 +1632,8 @@
 
       if (!rawRows.length){
         filteredRows = [];
-        renderKPIs([]);
-        renderTable([]);
+        renderAll();
         refreshMapGraphics([]);
-        updateFiltersNote();
         return;
       }
 
@@ -1662,10 +1659,8 @@
         return true;
       });
 
-      renderKPIs(filteredRows);
-      renderTable(filteredRows);
+      renderAll();
       refreshMapGraphics(filteredRows);
-      updateFiltersNote();
     }
 
       const gfcKey = getFirstKey(rawRows[0], ["GFCODE","gfcode","Gfcode"]);
@@ -2274,29 +2269,22 @@
 
     // ===================== EVENTS =====================
     function bindEvents(){
-      // Filters
+      $("locateBtn").addEventListener("click", locateMe);
+
+      // Traffic filters (dropdowns)
       ["regionFilter","areaFilter","zoneFilter","surveyFilter","remarksFilter"].forEach(id=>{
         const el = $(id);
         if (el) el.addEventListener("change", applyFilters);
       });
-
-      $("locateBtn").addEventListener("click", locateMe);
-
-      $("clearBtn").addEventListener("click", ()=>{
-        ["regionFilter","areaFilter","zoneFilter","surveyFilter","remarksFilter"].forEach(id=>{
-          const el = $(id);
-          if (el) el.value = "__ALL__";
-        });
+$("clearBtn").addEventListener("click", () => {
+        ["regionFilter","areaFilter","zoneFilter","surveyFilter","remarksFilter"].forEach(id=>{ const el=$(id); if(el) el.value="__ALL__"; });
+$("globalSearch").value = "";
+        $("typeFilter").value = "__ALL__";
         applyFilters();
-        if (window.__GIS) window.__GIS.clearSelection?.();
+        if (window.__GIS) window.__GIS.clearSelection();
       });
 
       $("reloadBtn").addEventListener("click", loadCSV);
-
-      // Tracking/auth buttons (keep existing behavior)
-      if ($("trackBtn")) $("trackBtn").addEventListener("click", startTracking);
-      if ($("stopTrackBtn")) $("stopTrackBtn").addEventListener("click", stopTracking);
-      if ($("logoutBtn")) $("logoutBtn").addEventListener("click", logout);
 
       $("exportCsvBtn").addEventListener("click", exportCSV);
       $("exportPdfBtn").addEventListener("click", exportPDF);
