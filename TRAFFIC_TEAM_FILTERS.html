@@ -369,7 +369,77 @@
     body[data-theme="light"] .popup-details summary{background:rgba(243,244,246,.75);color:rgba(55,65,81,.85)}
     .popup-details .inner{padding:8px 10px}
 
-    @media (max-width:980px){
+    
+    /* ===================== FILTERS PANEL (REGION / AREA / ZONE / SURVEY / REMARKS) ===================== */
+    .filters-panel{
+      margin-top: 8px;
+      padding: 14px 16px 12px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at top left, rgba(248,250,252,.10), transparent 45%),
+        linear-gradient(145deg, var(--glass2), var(--glass));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+    }
+    .filters-title{
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 10px;
+    }
+    .filters-row{
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .filter-item{
+      flex: 1 1 180px;
+      min-width: 160px;
+    }
+    .filter-label{
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin: 0 0 8px 6px;
+    }
+    .filters-panel select{
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.7);
+      font-size: 12px;
+      background: rgba(15,23,42,.96);
+      color: var(--text1);
+      outline: none;
+      transition: border-color var(--trans), box-shadow var(--trans), transform var(--trans);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    body[data-theme="light"] .filters-panel select{
+      background: rgba(255,255,255,.96);
+      color: var(--text1);
+      border-color: rgba(148,163,184,.85);
+    }
+    .filters-panel select:focus{
+      border-color: rgba(56,189,248,.9);
+      box-shadow: 0 0 0 1px rgba(56,189,248,.55);
+      transform: translateY(-1px);
+    }
+    .filters-note{
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text3);
+      padding-left: 6px;
+    }
+
+@media (max-width:980px){
       header{flex-wrap:wrap;padding:10px 14px}
       .header-center{text-align:left}
       .map-box{height:440px}
@@ -696,79 +766,6 @@
         }
     }
 
-
-    /* ===== FILTER BAR (PILL STYLE) – Traffic (replaces Global Search + GFCODE filter) ===== */
-    .filters-card{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      flex: 1 1 auto;
-      min-width: 760px;
-    }
-    .filters-row-title{
-      font-size:11px;
-      font-weight:600;
-      color:var(--text2);
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      margin-bottom:2px;
-    }
-    .filters{
-      display:flex;
-      flex-wrap:nowrap;
-      gap:8px;
-      align-items:flex-end;
-      overflow-x:auto;
-      padding-bottom:2px;
-      -webkit-overflow-scrolling:touch;
-    }
-    .filters label{
-      font-size:10px;
-      color:var(--text2);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width: 140px;
-      flex: 0 0 auto;
-    }
-    .filters select{
-      padding:10px 14px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.7);
-      font-size:12px;
-      background:
-        radial-gradient(circle at 0 0, rgba(248,250,252,.06), transparent 60%),
-        rgba(15,23,42,.96);
-      color:var(--text1);
-      outline:none;
-      transition:border-color var(--trans), box-shadow var(--trans), transform var(--trans);
-      appearance:none;
-      -webkit-appearance:none;
-      width: 100%;
-    }
-    body[data-theme="light"] .filters select{
-      background: rgba(255,255,255,.96);
-      color: var(--text1);
-      border-color: rgba(148,163,184,.85);
-    }
-    .filters select:focus{
-      border-color:rgba(56,189,248,.9);
-      box-shadow:0 0 0 1px rgba(56,189,248,.55);
-      transform:translateY(-1px);
-    }
-    .filters-note{
-      font-size:11px;
-      color:var(--text3);
-    }
-
-    @media (max-width: 980px){
-      .filters-card{ min-width: 100%; }
-      .filters{ flex-wrap:wrap; overflow-x:visible; }
-      .filters label{ min-width: 160px; flex: 1 1 160px; }
-    }
-
 </style>
 
   <!-- Firebase (App + Auth + Firestore) -->
@@ -863,7 +860,7 @@
       <!-- Mini Stats Bar (One-line summary) -->
       <div class="mini-stats-bar" id="miniStatsBar">
         <div class="mini-stat-item">
-          <span>Total:</span>
+          <span>Total Junctions:</span>
           <span class="mini-stat-value" id="miniTotal">0</span>
         </div>
 <div class="mini-stat-item">
@@ -875,58 +872,69 @@
 <div class="glass-card">
         <div class="kpi-wrap" id="kpiWrap"></div>
 
-        <div class="controls-bar">
-          <div class="filters-card">
-            <div class="filters-row-title">FILTERS</div>
-            <div class="filters">
-              <label>REGION
-                <select id="regionFilter">
-                  <option value="__ALL__">All</option>
-                </select>
-              </label>
-
-              <label>AREA
-                <select id="areaFilter">
-                  <option value="__ALL__">All</option>
-                </select>
-              </label>
-
-              <label>ZONE
-                <select id="zoneFilter">
-                  <option value="__ALL__">All</option>
-                </select>
-              </label>
-
-              <label>SURVEY
-                <select id="surveyFilter">
-                  <option value="__ALL__">All</option>
-                </select>
-              </label>
-
-              <label>REMARKS
-                <select id="remarksFilter">
-                  <option value="__ALL__">All</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="filters-note" id="filtersNote">No filters applied.</div>
+              <!-- Filters Panel -->
+      <div class="filters-panel" id="filtersPanel">
+        <div class="filters-title">FILTERS</div>
+        <div class="filters-row">
+          <div class="filter-item">
+            <div class="filter-label">REGION</div>
+            <select id="regionFilter">
+              <option value="__ALL__">All</option>
+            </select>
           </div>
 
-          <button class="btn" id="locateBtn" type="button">Locate Me</button>
-          <button class="btn warn" id="trackBtn" type="button" title="Share your live location to the Team map">Start Tracking</button>
-          <button class="btn secondary" id="stopTrackBtn" type="button" title="Stop sharing your live location" disabled>Stop</button>
-          <button class="btn secondary" id="logoutBtn" type="button" title="Sign out" style="display:none;">Logout</button>
-          <button class="btn secondary" id="clearBtn" type="button">Clear</button>
-          <button class="btn secondary" id="reloadBtn" type="button">Reload</button>
+          <div class="filter-item">
+            <div class="filter-label">AREA</div>
+            <select id="areaFilter">
+              <option value="__ALL__">All</option>
+            </select>
+          </div>
 
-          <div class="export-group">
-            <button class="btn" id="exportCsvBtn" type="button">CSV</button>
-            <button class="btn" id="exportPdfBtn" type="button">PDF</button>
+          <div class="filter-item">
+            <div class="filter-label">ZONE</div>
+            <select id="zoneFilter">
+              <option value="__ALL__">All</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <div class="filter-label">SURVEY</div>
+            <select id="surveyFilter">
+              <option value="__ALL__">All</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <div class="filter-label">REMARKS</div>
+            <select id="remarksFilter">
+              <option value="__ALL__">All</option>
+            </select>
           </div>
         </div>
 
-        <div class="small-muted" style="margin-top:6px;" id="hintText">
+        <div class="filters-note" id="filtersNote">No filters applied.</div>
+      </div>
+
+      <!-- Actions / Search -->
+      <div class="controls-bar" id="actionsBar">
+        <div class="search">
+          <input id="globalSearch" type="text" placeholder="Global search (any field)..." />
+        </div>
+
+        <button class="btn" id="locateBtn" type="button">Locate Me</button>
+        <button class="btn warn" id="trackBtn" type="button" title="Share your live location to the Team map">Start Tracking</button>
+        <button class="btn secondary" id="stopTrackBtn" type="button" title="Stop sharing your live location" disabled>Stop</button>
+        <button class="btn secondary" id="logoutBtn" type="button" title="Sign out" style="display:none;">Logout</button>
+        <button class="btn secondary" id="clearBtn" type="button">Clear</button>
+        <button class="btn secondary" id="reloadBtn" type="button">Reload</button>
+
+        <div class="export-group">
+          <button class="btn" id="exportCsvBtn" type="button">CSV</button>
+          <button class="btn" id="exportPdfBtn" type="button">PDF</button>
+        </div>
+      </div>
+
+      <div class="small-muted" style="margin-top:6px;" id="hintText">
           Tip: Use the Layers button on the map to toggle boundaries/areas. Click a marker (or a table row) for navigation options (Google Maps / Waze).
         </div>
       </div>
@@ -934,7 +942,7 @@
       <div class="glass-card map-card" style="margin-top:12px;">
         <div class="map-header">
           <div class="map-title"><span class="dot"></span><span>ESRI MAP (SATELLITE) — LOCKED TO QATAR</span></div>
-          <div class="small-muted" id="deviceCountLabel">0 devices</div>
+          <div class="small-muted" id="deviceCountLabel">0 junctions</div>
         </div>
 
         <div class="map-box">
@@ -1010,9 +1018,7 @@
       "DESCRIPTION","Description","description",
       "Camera ID","CAMERA ID","camera id",
       "User","USER","username","Username",
-      "Password","PASSWORD","pass","Pass",
-      "GFCODE","gfcode","Gfcode",
-      "Type","TYPE","Device Type","DEVICE TYPE",
+      "Password","PASSWORD","pass","Pass",      "Type","TYPE","Device Type","DEVICE TYPE",
       "Latitude WGS84","Longitude WGS84","Latitude","Longitude"
     ];
 
@@ -1328,12 +1334,10 @@
       const idKey = getFirstKey(row, ["ID","Id","id"]);
       const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
       const mxKey = getFirstKey(row, ["MXASSETNUM","MxAssetNum","mxassetnum"]);
-      const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
       return [
         sanitize(idKey ? row[idKey] : ""),
         sanitize(tagKey ? row[tagKey] : ""),
-        sanitize(mxKey ? row[mxKey] : ""),
-        sanitize(gfcKey ? row[gfcKey] : "")
+        sanitize(mxKey ? row[mxKey] : "")
       ].join("||");
     }
     function googleMapsUrl(lat, lon){ return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`; }
@@ -1442,72 +1446,50 @@
     }
 
     // ===================== RENDER (FILTER / KPI / LEGEND / TABLE) =====================
-    function populateTrafficFilters(){
-      const regionSel  = $("regionFilter");
-      const areaSel    = $("areaFilter");
-      const zoneSel    = $("zoneFilter");
-      const surveySel  = $("surveyFilter");
-      const remarksSel = $("remarksFilter");
-
-      if (!rawRows.length){
-        updateFiltersNote();
-        return;
+        function headerKeyCI(candidates){
+      // Find a header key from the sheet (case-insensitive)
+      const lower = new Map(headers.map(h => [String(h||"").trim().toLowerCase(), h]));
+      for (const c of candidates){
+        const k = lower.get(String(c||"").trim().toLowerCase());
+        if (k) return k;
       }
+      return null;
+    }
 
-      const regionKey  = getFirstKey(rawRows[0], ["Region","REGION","region"]);
-      const areaKey    = getFirstKey(rawRows[0], ["Area","AREA","area"]);
-      const zoneKey    = getFirstKey(rawRows[0], ["Zone","ZONE","Zone No","Zone No.","Zone No ","Zone_No","ZoneNo"]);
-      const surveyKey  = getFirstKey(rawRows[0], ["Survey","SURVEY","survey","Scope","SCOPE","Survey Status","Survey_Status"]);
-      const remarksKey = getFirstKey(rawRows[0], ["Remarks","REMARKS","remarks"]);
-
-      const prev = {
-        region:  regionSel  ? regionSel.value  : "__ALL__",
-        area:    areaSel    ? areaSel.value    : "__ALL__",
-        zone:    zoneSel    ? zoneSel.value    : "__ALL__",
-        survey:  surveySel  ? surveySel.value  : "__ALL__",
-        remarks: remarksSel ? remarksSel.value : "__ALL__",
-      };
-
-      function fill(sel, values){
-        if (!sel) return;
-        sel.innerHTML = `<option value="__ALL__">All</option>`;
-        [...values].sort((a,b)=>a.localeCompare(b)).forEach(v=>{
-          const opt = document.createElement("option");
-          opt.value = v;
-          opt.textContent = v;
-          sel.appendChild(opt);
-        });
+    function uniqueSorted(values){
+      const set = new Set();
+      for (const v of values){
+        const s = sanitize(v);
+        if (s === "N/A") continue;
+        if (s.toUpperCase() === "UNKNOWN") continue; // user requested
+        set.add(s);
       }
+      return [...set].sort((a,b)=>a.localeCompare(b));
+    }
 
-      const regions  = new Set();
-      const areas    = new Set();
-      const zones    = new Set();
-      const surveys  = new Set();
-      const remarksS = new Set();
+    function fillSelect(selectId, items, keepValue=true){
+      const sel = $(selectId);
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = `<option value="__ALL__">All</option>` + items.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+      if (keepValue && [...sel.options].some(o=>o.value===prev)) sel.value = prev;
+      if (!keepValue) sel.value = "__ALL__";
+    }
 
-      for (const r of rawRows){
-        if (regionKey)  regions.add(sanitize(r[regionKey]));
-        if (areaKey)    areas.add(sanitize(r[areaKey]));
-        if (zoneKey)    zones.add(sanitize(r[zoneKey]));
-        if (surveyKey)  surveys.add(sanitize(r[surveyKey]));
-        if (remarksKey) remarksS.add(sanitize(r[remarksKey]));
-      }
+    function renderFilters(){
+      if (!rawRows.length || !headers.length) return;
 
-      [regions, areas, zones, surveys, remarksS].forEach(set=>{
-        ["", "NA", "N/A", "null", "undefined"].forEach(bad=>set.delete(bad));
-      });
+      const regionKey  = headerKeyCI(["Region","REGION"]);
+      const areaKey    = headerKeyCI(["Area","AREA"]);
+      const zoneKey    = headerKeyCI(["Zone","ZONE"]);
+      const surveyKey  = headerKeyCI(["Survey","SURVEY"]);
+      const remarksKey = headerKeyCI(["Remarks","REMARKS"]);
 
-      fill(regionSel, regions);
-      fill(areaSel, areas);
-      fill(zoneSel, zones);
-      fill(surveySel, surveys);
-      fill(remarksSel, remarksS);
-
-      if (regionSel  && [...regionSel.options].some(o=>o.value===prev.region))   regionSel.value  = prev.region;
-      if (areaSel    && [...areaSel.options].some(o=>o.value===prev.area))       areaSel.value    = prev.area;
-      if (zoneSel    && [...zoneSel.options].some(o=>o.value===prev.zone))       zoneSel.value    = prev.zone;
-      if (surveySel  && [...surveySel.options].some(o=>o.value===prev.survey))   surveySel.value  = prev.survey;
-      if (remarksSel && [...remarksSel.options].some(o=>o.value===prev.remarks)) remarksSel.value = prev.remarks;
+      fillSelect("regionFilter",  uniqueSorted(rawRows.map(r => regionKey ? r[regionKey] : "")));
+      fillSelect("areaFilter",    uniqueSorted(rawRows.map(r => areaKey ? r[areaKey] : "")));
+      fillSelect("zoneFilter",    uniqueSorted(rawRows.map(r => zoneKey ? r[zoneKey] : "")));
+      fillSelect("surveyFilter",  uniqueSorted(rawRows.map(r => surveyKey ? r[surveyKey] : "")));
+      fillSelect("remarksFilter", uniqueSorted(rawRows.map(r => remarksKey ? r[remarksKey] : "")));
 
       updateFiltersNote();
     }
@@ -1516,69 +1498,28 @@
       const note = $("filtersNote");
       if (!note) return;
 
-      const pairs = [];
-      const add = (label, id)=>{
-        const el = $(id);
-        if (!el) return;
-        if (el.value !== "__ALL__") pairs.push(`${label}: ${sanitize(el.value)}`);
-      };
+      const pairs = [
+        ["Region", $("regionFilter")?.value],
+        ["Area", $("areaFilter")?.value],
+        ["Zone", $("zoneFilter")?.value],
+        ["Survey", $("surveyFilter")?.value],
+        ["Remarks", $("remarksFilter")?.value],
+      ].filter(([_,v]) => v && v !== "__ALL__");
 
-      add("Region", "regionFilter");
-      add("Area", "areaFilter");
-      add("Zone", "zoneFilter");
-      add("Survey", "surveyFilter");
-      add("Remarks", "remarksFilter");
-
-      note.textContent = pairs.length ? ("Filters: " + pairs.join(" • ")) : "No filters applied.";
-    }
-      [...types].sort((a,b)=>a.localeCompare(b)).forEach(t=>{
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        sel.appendChild(opt);
-      });
-
-      if ([...sel.options].some(o=>o.value===prev)) sel.value = prev;
+      if (!pairs.length){
+        note.textContent = "No filters applied.";
+      } else {
+        note.textContent = "Active: " + pairs.map(([k,v]) => `${k}: ${v}`).join(" • ");
+      }
     }
 
-    function renderKPIs(rows){
-      const wrap = $("kpiWrap");
-      wrap.innerHTML = "";
-
-      const totalCard = document.createElement("div");
-      totalCard.className = "kpi";
-      totalCard.innerHTML = `
-        <div class="kpi-label"><span class="kpi-badge" style="background:${"#38bdf8"}"></span> Total Junctions</div>
-        <div class="kpi-value">${rows.length}</div>
-      `;
-      wrap.appendChild(totalCard);
-
+        function renderKPIs(rows){
+      // KPI cards are intentionally minimized in this dashboard (per latest UI).
+      // Keep only the label above the map + the collapsible statistics panel.
       $("deviceCountLabel").textContent = `${rows.length} junctions`;
     }
 
-      const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
-      const counts = new Map();
-      for (const r of rows){
-        const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-        counts.set(t, (counts.get(t) || 0) + 1);
-      }
-      const sorted = [...counts.entries()].sort((a,b)=>b[1]-a[1]);
-      for (const [type,cnt] of sorted){
-        const { color } = symbolForType(type);
-        const card = document.createElement("div");
-        card.className = "kpi";
-        card.title = type;
-        card.innerHTML = `
-          <div class="kpi-label"><span class="kpi-badge" style="background:${color}"></span> ${escapeHtml(type)}</div>
-          <div class="kpi-value">${cnt}</div>
-        `;
-        wrap.appendChild(card);
-      }
-
-      $("deviceCountLabel").textContent = `${rows.length} devices`;
-    }
-
-      function renderTable(rows){
+    function renderTable(rows){(rows){
       const headRow = $("tableHeadRow");
       const body = $("tableBody");
       headRow.innerHTML = "";
@@ -1615,58 +1556,42 @@
     }
 
     function renderAll(){
-      populateTrafficFilters();
+      renderFilters();
       renderKPIs(filteredRows.length ? filteredRows : rawRows);
       renderTable(filteredRows.length ? filteredRows : rawRows);
     }
 
-    function applyFilters(){
-      const regionVal  = $("regionFilter")  ? $("regionFilter").value  : "__ALL__";
-      const areaVal    = $("areaFilter")    ? $("areaFilter").value    : "__ALL__";
-      const zoneVal    = $("zoneFilter")    ? $("zoneFilter").value    : "__ALL__";
-      const surveyVal  = $("surveyFilter")  ? $("surveyFilter").value  : "__ALL__";
-      const remarksVal = $("remarksFilter") ? $("remarksFilter").value : "__ALL__";
+        function applyFilters(){
+      const search = $("globalSearch").value.trim().toLowerCase();
 
       if (!rawRows.length){
         filteredRows = [];
-        renderAll();
+        renderKPIs([]);
+        renderTable([]);
         refreshMapGraphics([]);
         updateFiltersNote();
         return;
       }
 
-      const regionKey  = getFirstKey(rawRows[0], ["Region","REGION","region"]);
-      const areaKey    = getFirstKey(rawRows[0], ["Area","AREA","area"]);
-      const zoneKey    = getFirstKey(rawRows[0], ["Zone","ZONE","Zone No","Zone No.","Zone No ","Zone_No","ZoneNo"]);
-      const surveyKey  = getFirstKey(rawRows[0], ["Survey","SURVEY","survey","Scope","SCOPE","Survey Status","Survey_Status"]);
-      const remarksKey = getFirstKey(rawRows[0], ["Remarks","REMARKS","remarks"]);
+      const regionKey  = headerKeyCI(["Region","REGION"]);
+      const areaKey    = headerKeyCI(["Area","AREA"]);
+      const zoneKey    = headerKeyCI(["Zone","ZONE"]);
+      const surveyKey  = headerKeyCI(["Survey","SURVEY"]);
+      const remarksKey = headerKeyCI(["Remarks","REMARKS"]);
+
+      const regionVal  = $("regionFilter")?.value || "__ALL__";
+      const areaVal    = $("areaFilter")?.value || "__ALL__";
+      const zoneVal    = $("zoneFilter")?.value || "__ALL__";
+      const surveyVal  = $("surveyFilter")?.value || "__ALL__";
+      const remarksVal = $("remarksFilter")?.value || "__ALL__";
 
       filteredRows = rawRows.filter(r=>{
-        const region  = sanitize(regionKey  ? r[regionKey]  : "");
-        const area    = sanitize(areaKey    ? r[areaKey]    : "");
-        const zone    = sanitize(zoneKey    ? r[zoneKey]    : "");
-        const survey  = sanitize(surveyKey  ? r[surveyKey]  : "");
-        const remarks = sanitize(remarksKey ? r[remarksKey] : "");
+        if (regionVal !== "__ALL__"  && sanitize(regionKey ? r[regionKey] : "") !== regionVal) return false;
+        if (areaVal !== "__ALL__"    && sanitize(areaKey ? r[areaKey] : "") !== areaVal) return false;
+        if (zoneVal !== "__ALL__"    && sanitize(zoneKey ? r[zoneKey] : "") !== zoneVal) return false;
+        if (surveyVal !== "__ALL__"  && sanitize(surveyKey ? r[surveyKey] : "") !== surveyVal) return false;
+        if (remarksVal !== "__ALL__" && sanitize(remarksKey ? r[remarksKey] : "") !== remarksVal) return false;
 
-        if (regionVal  !== "__ALL__" && region  !== regionVal)  return false;
-        if (areaVal    !== "__ALL__" && area    !== areaVal)    return false;
-        if (zoneVal    !== "__ALL__" && zone    !== zoneVal)    return false;
-        if (surveyVal  !== "__ALL__" && survey  !== surveyVal)  return false;
-        if (remarksVal !== "__ALL__" && remarks !== remarksVal) return false;
-
-        return true;
-      });
-
-      renderAll();
-      refreshMapGraphics(filteredRows);
-      updateFiltersNote();
-    }
-
-      const gfcKey = getFirstKey(rawRows[0], ["GFCODE","gfcode","Gfcode"]);
-
-      filteredRows = rawRows.filter(r=>{
-        const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-        if (typeVal !== "__ALL__" && t !== typeVal) return false;
         if (search && !(r.__blob || "").includes(search)) return false;
         return true;
       });
@@ -1674,9 +1599,10 @@
       renderKPIs(filteredRows);
       renderTable(filteredRows);
       refreshMapGraphics(filteredRows);
+      updateFiltersNote();
     }
 
-    function debounce(fn, ms){
+    function debounce(fn, ms){(fn, ms){
       let t = null;
       return (...args)=>{
         clearTimeout(t);
@@ -1704,7 +1630,6 @@
 
   const idKey  = getFirstKey(row, ["ID","Id","id"]);
   const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
-  const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
 
   const title = sanitize(idKey ? row[idKey] : "") !== "N/A"
     ? sanitize(row[idKey])
@@ -1741,9 +1666,6 @@
   return `
     <div style="font-size:12px;line-height:1.35;">
       <div style="font-weight:800;font-size:13px;margin-bottom:6px;">${escapeHtml(title)}</div>
-      <div style="color:rgba(156,163,175,.95);font-size:12px;margin-bottom:6px;">
-        <strong>GFCODE:</strong> ${escapeHtml(sanitize(gfcKey ? row[gfcKey] : "UNKNOWN"))}
-      </div>
 
       <div class="popup-kv">
         <table>
@@ -1966,22 +1888,14 @@
             return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
           }
 
-          function markerSymbol(type, selected=false){
-            const size = selected ? 32 : 26;
+                    function markerSymbol(_type, selected=false){
+            const size = selected ? 34 : 28;
             return {
               type: "picture-marker",
               url: "TRAFFICSIGN.png",
               width: size,
-              height: size
-            };
-          }
-            // Fallback = original blue pin
-            return {
-              type: "simple-marker",
-              style: "circle",
-              color: "#38bdf8",
-              size: selected ? 14 : 11,
-              outline: { color: "#ffffff", width: selected ? 2.5 : 1.5 }
+              height: size,
+              yoffset: Math.round(size/2)
             };
           }
 
@@ -2261,28 +2175,30 @@
     }
 
     // ===================== EVENTS =====================
-    function bindEvents(){
-      $("locateBtn").addEventListener("click", locateMe);
+        function bindEvents(){
+      $("globalSearch").addEventListener("input", debounce(applyFilters, 120));
 
-      // Traffic filters
       ["regionFilter","areaFilter","zoneFilter","surveyFilter","remarksFilter"].forEach(id=>{
         const el = $(id);
         if (el) el.addEventListener("change", applyFilters);
       });
-$("clearBtn").addEventListener("click", () => {
-        ["regionFilter","areaFilter","zoneFilter","surveyFilter","remarksFilter"].forEach(id=>{ const el=$(id); if(el) el.value="__ALL__"; });
-applyFilters();
+
+      $("locateBtn").addEventListener("click", locateMe);
+
+      $("clearBtn").addEventListener("click", ()=>{
+        $("globalSearch").value = "";
+        ["regionFilter","areaFilter","zoneFilter","surveyFilter","remarksFilter"].forEach(id=>{
+          const el = $(id);
+          if (el) el.value = "__ALL__";
+        });
+        applyFilters();
         if (window.__GIS) window.__GIS.clearSelection();
       });
 
-      $("reloadBtn").addEventListener("click", loadCSV);
-
-      $("exportCsvBtn").addEventListener("click", exportCSV);
-      $("exportPdfBtn").addEventListener("click", exportPDF);
-    }
-
-    // ===================== CLOCK =====================
-    function initClock(){
+      $("reloadBtn").addEventListener("click", ()=>{
+        loadCSV();
+      });
+    }function initClock(){
       const el = $("currentDateTime");
       const tick = ()=> el.textContent = nowString();
       tick();
@@ -2333,65 +2249,67 @@ applyFilters();
       loadCSV();
     })();
     // ========== MINI STATS BAR & STATISTICS PANEL ==========
-    function updateMiniStats(rows) {
+        function updateMiniStats(rows) {
         const total = rows.length;
 
-        // Count unique device types (GFCODE)
-        const gfcKey = getFirstKey(rows[0] || {}, ["GFCODE","gfcode","Gfcode"]);
-        const types = new Set();
+        const zoneKey = headerKeyCI(["Zone","ZONE"]);
+        const zones = new Set();
         for (const r of rows) {
-            const type = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-            types.add(type);
+            const z = sanitize(zoneKey ? r[zoneKey] : "N/A");
+            if (z === "N/A" || z.toUpperCase() === "UNKNOWN") continue;
+            zones.add(z);
         }
 
         // Update mini stats bar
         const miniTotal = document.getElementById("miniTotal");
         const miniTypes = document.getElementById("miniTypes");
         if (miniTotal) miniTotal.textContent = total;
-        if (miniTypes) miniTypes.textContent = types.size;
+        if (miniTypes) miniTypes.textContent = zones.size;
     }
 
-    function updateStatsPanel(rows) {
+        function updateStatsPanel(rows) {
         const statsContent = document.getElementById("statsContent");
         if (!statsContent) return;
 
         statsContent.innerHTML = "";
-
         if (!rows.length) return;
 
-        const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
+        const regionKey  = headerKeyCI(["Region","REGION"]);
+        const areaKey    = headerKeyCI(["Area","AREA"]);
+        const zoneKey    = headerKeyCI(["Zone","ZONE"]);
+        const surveyKey  = headerKeyCI(["Survey","SURVEY"]);
+        const remarksKey = headerKeyCI(["Remarks","REMARKS"]);
 
-        // Total card
-        const totalCard = document.createElement("div");
-        totalCard.className = "stat-card";
-        totalCard.innerHTML = `
+        const uniq = (key) => {
+          const s = new Set();
+          for (const r of rows){
+            const v = sanitize(key ? r[key] : "N/A");
+            if (v === "N/A" || v.toUpperCase() === "UNKNOWN") continue;
+            s.add(v);
+          }
+          return s.size;
+        };
+
+        const cards = [
+          ["Total Junctions", rows.length],
+          ["Regions",  uniq(regionKey)],
+          ["Areas",    uniq(areaKey)],
+          ["Zones",    uniq(zoneKey)],
+          ["Survey",   uniq(surveyKey)],
+          ["Remarks",  uniq(remarksKey)],
+        ];
+
+        for (const [label, value] of cards){
+          const card = document.createElement("div");
+          card.className = "stat-card";
+          card.innerHTML = `
             <div class="stat-card-label">
-                <span class="stat-badge"></span>
-                <span>Total Devices</span>
+              <span class="stat-badge"></span>
+              <span>${escapeHtml(label)}</span>
             </div>
-            <div class="stat-card-value">${rows.length}</div>
-        `;
-        statsContent.appendChild(totalCard);
-
-        // Count by type
-        const counts = new Map();
-        for (const r of rows) {
-            const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-            counts.set(t, (counts.get(t) || 0) + 1);
-        }
-
-        const sorted = [...counts.entries()].sort((a,b) => b[1] - a[1]);
-        for (const [type, cnt] of sorted) {
-            const card = document.createElement("div");
-            card.className = "stat-card";
-            card.innerHTML = `
-                <div class="stat-card-label">
-                    <span class="stat-badge"></span>
-                    <span>${escapeHtml(type)}</span>
-                </div>
-                <div class="stat-card-value">${cnt}</div>
-            `;
-            statsContent.appendChild(card);
+            <div class="stat-card-value">${value}</div>
+          `;
+          statsContent.appendChild(card);
         }
     }
 
@@ -2417,7 +2335,7 @@ applyFilters();
         updateStatsPanel(rows);
 
         // Don't call original renderKPIs since we're replacing it
-        document.getElementById("deviceCountLabel").textContent = `${rows.length} devices`;
+        document.getElementById("deviceCountLabel").textContent = `${rows.length} junctions`;
     };
 
 
