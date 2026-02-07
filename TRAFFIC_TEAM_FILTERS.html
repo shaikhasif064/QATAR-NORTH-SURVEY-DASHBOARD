@@ -837,13 +837,15 @@
 
         <div class="header-center">
           <div class="header-title">TRAFFIC FIELD OPERATIONS DASHBOARD</div>
-          <div class="header-subtitle">Live from Google Sheet — Map + Full Data Table + Global Search + Type Filter + My Location</div>
+          <div class="header-subtitle">Live from Google Sheet — Map + Full Data Table + Filters + My Location</div>
           <div class="header-meta"><span id="currentDateTime"></span></div>
         </div>
 
         <div class="header-right">
           <img src="MRTC-AKTOR JV.png" alt="MRTC-AKTOR JV" class="header-logo header-logo-small" />
-        </div>
+        
+          <button class="btn secondary" id="logoutBtnTop" type="button" title="Sign out" style="display:none;">Logout</button>
+</div>
       </header>
 
       <div class="top-row">
@@ -864,7 +866,7 @@
       <!-- Mini Stats Bar (One-line summary) -->
       <div class="mini-stats-bar" id="miniStatsBar">
         <div class="mini-stat-item">
-          <span>Total:</span>
+          <span>Total Junctions:</span>
           <span class="mini-stat-value" id="miniTotal">0</span>
         </div>
 <div class="mini-stat-item">
@@ -951,7 +953,7 @@
       <div class="glass-card table-card" style="margin-top:4px;">
         <div class="table-title">
           <div>All Data (from Excel/CSV)</div>
-          <div class="table-hint">Click a row to zoom to the device and open navigation options.</div>
+          <div class="table-hint">Click a row to zoom to the junction and open navigation options.</div>
         </div>
         <div class="table-wrap">
           <table id="dataTable">
@@ -1109,9 +1111,13 @@
       });
 
       $("logoutBtn")?.addEventListener("click", async () => {
-        try{
+try{
           await signOut(auth);
         } catch(_){}
+      });
+
+      $("logoutBtnTop")?.addEventListener("click", async () => {
+        try{ await signOut(auth); }catch(_){ }
       });
 
       $("trackBtn")?.addEventListener("click", async () => {
@@ -1125,6 +1131,7 @@
       onAuthStateChanged(auth, (u) => {
         authUser = u || null;
         $("logoutBtn") && ($("logoutBtn").style.display = authUser ? "" : "none");
+        $("logoutBtnTop") && ($("logoutBtnTop").style.display = authUser ? "" : "none");
         showAuthOverlay(!authUser);
         if (!authUser){
           stopTracking(true);
@@ -1532,15 +1539,6 @@
 
       note.textContent = pairs.length ? ("Filters: " + pairs.join(" • ")) : "No filters applied.";
     }
-      [...types].sort((a,b)=>a.localeCompare(b)).forEach(t=>{
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        sel.appendChild(opt);
-      });
-
-      if ([...sel.options].some(o=>o.value===prev)) sel.value = prev;
-    }
 
     function renderKPIs(rows){
       const wrap = $("kpiWrap");
@@ -1549,39 +1547,15 @@
       const totalCard = document.createElement("div");
       totalCard.className = "kpi";
       totalCard.innerHTML = `
-        <div class="kpi-label"><span class="kpi-badge" style="background:${"#38bdf8"}"></span> Total Devices</div>
+        <div class="kpi-label"><span class="kpi-badge" style="background:${"#38bdf8"}"></span> Total Junctions</div>
         <div class="kpi-value">${rows.length}</div>
       `;
       wrap.appendChild(totalCard);
 
-      if (!rows.length) {
-        $("deviceCountLabel").textContent = "0 devices";
-        return;
-      }
-
-      const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
-      const counts = new Map();
-      for (const r of rows){
-        const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-        counts.set(t, (counts.get(t) || 0) + 1);
-      }
-      const sorted = [...counts.entries()].sort((a,b)=>b[1]-a[1]);
-      for (const [type,cnt] of sorted){
-        const { color } = symbolForType(type);
-        const card = document.createElement("div");
-        card.className = "kpi";
-        card.title = type;
-        card.innerHTML = `
-          <div class="kpi-label"><span class="kpi-badge" style="background:${color}"></span> ${escapeHtml(type)}</div>
-          <div class="kpi-value">${cnt}</div>
-        `;
-        wrap.appendChild(card);
-      }
-
-      $("deviceCountLabel").textContent = `${rows.length} devices`;
+      $("deviceCountLabel").textContent = `${rows.length} junctions`;
     }
 
-      function renderTable(rows){
+    function renderTable(rows){
       const headRow = $("tableHeadRow");
       const body = $("tableBody");
       headRow.innerHTML = "";
@@ -1968,19 +1942,15 @@
           }
 
           function markerSymbol(type, selected=false){
-            const raw = String(type || "");
-            const key = normalizeGfcode(raw);
-            // Match both: "RDNDAIDC" and also "AIDC" (will map to "RDNDAIDC")
-            const iconUrl = resolveIconUrl(raw);
-            if (iconUrl){
-              const size = selected ? 30 : 24;
-              return {
-                type: "picture-marker",
-                url: iconUrl,
-                width: size,
-                height: size,
-                yoffset: Math.round(size/2)
-              };
+            // Traffic: always use the same icon for junctions
+            const size = selected ? 32 : 26;
+            return {
+              type: "picture-marker",
+              url: "TRAFFICSIGN.png",
+              width: size,
+              height: size
+            };
+          };
             }
             // Fallback = original blue pin
             return {
@@ -2365,43 +2335,18 @@ $("globalSearch").value = "";
         if (!statsContent) return;
 
         statsContent.innerHTML = "";
+        if (!rows || !rows.length) return;
 
-        if (!rows.length) return;
-
-        const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
-
-        // Total card
         const totalCard = document.createElement("div");
         totalCard.className = "stat-card";
         totalCard.innerHTML = `
             <div class="stat-card-label">
                 <span class="stat-badge"></span>
-                <span>Total Devices</span>
+                <span>Total Junctions</span>
             </div>
             <div class="stat-card-value">${rows.length}</div>
         `;
         statsContent.appendChild(totalCard);
-
-        // Count by type
-        const counts = new Map();
-        for (const r of rows) {
-            const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-            counts.set(t, (counts.get(t) || 0) + 1);
-        }
-
-        const sorted = [...counts.entries()].sort((a,b) => b[1] - a[1]);
-        for (const [type, cnt] of sorted) {
-            const card = document.createElement("div");
-            card.className = "stat-card";
-            card.innerHTML = `
-                <div class="stat-card-label">
-                    <span class="stat-badge"></span>
-                    <span>${escapeHtml(type)}</span>
-                </div>
-                <div class="stat-card-value">${cnt}</div>
-            `;
-            statsContent.appendChild(card);
-        }
     }
 
     // Toggle statistics panel
