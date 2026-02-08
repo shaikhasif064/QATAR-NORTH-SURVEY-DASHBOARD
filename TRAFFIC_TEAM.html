@@ -1458,9 +1458,18 @@
         return;
       }
 
-      const regionKey = getFirstKey(rawRows[0], ["REGION","Region","region"]);
-      const areaKey = getFirstKey(rawRows[0], ["AREA","Area","area"]);
-      const zoneKey = getFirstKey(rawRows[0], ["ZONE","Zone","zone"]);
+      let regionKey = getFirstKey(rawRows[0], ["REGION","Region","region"]);
+      if (!regionKey && headers && headers.length) {
+        regionKey = headers.find(h => String(h || "").toLowerCase().includes("region"));
+      }
+      let areaKey = getFirstKey(rawRows[0], ["AREA","Area","area"]);
+      if (!areaKey && headers && headers.length) {
+        areaKey = headers.find(h => String(h || "").toLowerCase().includes("area"));
+      }
+      let zoneKey = getFirstKey(rawRows[0], ["ZONE","Zone","zone","Zone No","ZONE NO","Zone No.","Zone no"]);
+      if (!zoneKey && headers && headers.length) {
+        zoneKey = headers.find(h => String(h || "").toLowerCase().includes("zone"));
+      }
 
       filteredRows = rawRows.filter(r=>{
         const reg = sanitize(regionKey ? r[regionKey] : "UNKNOWN");
@@ -1567,7 +1576,10 @@
     const prev = sel.value;
     sel.innerHTML = `<option value="__ALL__">All Regions</option>`;
     if (!rawRows.length) return;
-    const regionKey = getFirstKey(rawRows[0], ["REGION","Region","region"]);
+    let regionKey = getFirstKey(rawRows[0], ["REGION","Region","region"]);
+    if (!regionKey && headers && headers.length) {
+      regionKey = headers.find(h => String(h || "").toLowerCase().includes("region"));
+    }
     const vals = new Set();
     for (const r of rawRows){
       const v = sanitize(regionKey ? r[regionKey] : "");
@@ -1588,7 +1600,10 @@
     const prev = sel.value;
     sel.innerHTML = `<option value="__ALL__">All Areas</option>`;
     if (!rawRows.length) return;
-    const areaKey = getFirstKey(rawRows[0], ["AREA","Area","area","# Area","# area"]);
+    let areaKey = getFirstKey(rawRows[0], ["AREA","Area","area","# Area","# area"]);
+    if (!areaKey && headers && headers.length) {
+      areaKey = headers.find(h => String(h || "").toLowerCase().includes("area"));
+    }
     const vals = new Set();
     for (const r of rawRows){
       const v = sanitize(areaKey ? r[areaKey] : "");
@@ -1608,7 +1623,11 @@
     const prev = sel.value;
     sel.innerHTML = `<option value="__ALL__">All Zones</option>`;
     if (!rawRows.length) return;
-    const zoneKey = getFirstKey(rawRows[0], ["ZONE","Zone","zone","Zone No","ZONE NO","Zone No.","Zone no"]);
+    // Attempt to find the correct zone column. Try exact matches first, then fallback to any header containing "zone".
+    let zoneKey = getFirstKey(rawRows[0], ["ZONE","Zone","zone","Zone No","ZONE NO","Zone No.","Zone no"]);
+    if (!zoneKey && headers && headers.length) {
+      zoneKey = headers.find(h => String(h || "").toLowerCase().includes("zone"));
+    }
     const vals = new Set();
     for (const r of rawRows){
       const v = sanitize(zoneKey ? r[zoneKey] : "");
