@@ -812,13 +812,11 @@
               <option value="__ALL__">All Regions</option>
             </select>
           </div>
-
           <div class="filter">
             <select id="areaFilter">
               <option value="__ALL__">All Areas</option>
             </select>
           </div>
-
           <div class="filter">
             <select id="zoneFilter">
               <option value="__ALL__">All Zones</option>
@@ -846,7 +844,7 @@
       <div class="glass-card map-card" style="margin-top:12px;">
         <div class="map-header">
           <div class="map-title"><span class="dot"></span><span>ESRI MAP (SATELLITE) — LOCKED TO QATAR</span></div>
-          <div class="small-muted" id="deviceCountLabel">0 devices</div>
+          <div class="small-muted" id="deviceCountLabel">0 junctions</div>
         </div>
 
         <div class="map-box">
@@ -1354,101 +1352,50 @@
     }
 
     // ===================== RENDER (FILTER / KPI / LEGEND / TABLE) =====================
-    function renderRegionAreaZoneFilters(){
-      const regionSel = $("regionFilter");
-      const areaSel   = $("areaFilter");
-      const zoneSel   = $("zoneFilter");
-      if (!regionSel || !areaSel || !zoneSel) return;
-
-      const prevRegion = regionSel.value;
-      const prevArea   = areaSel.value;
-      const prevZone   = zoneSel.value;
-
-      regionSel.innerHTML = `<option value="__ALL__">All Regions</option>`;
-      areaSel.innerHTML   = `<option value="__ALL__">All Areas</option>`;
-      zoneSel.innerHTML   = `<option value="__ALL__">All Zones</option>`;
+    function renderTypeFilter(){
+      const sel = $("typeFilter");
+      const prev = sel.value;
+      sel.innerHTML = `<option value="__ALL__">All Device Types (GFCODE)</option>`;
 
       if (!rawRows.length) return;
 
-      // Flexible header detection (case-insensitive + substring)
-      const findHeader = (reTest) => headers.find(h => reTest.test(String(h || "")));
-
-      const regionKey = findHeader(/^(region|municipality)\b/i) || findHeader(/region|municipality/i);
-      const areaKey   = findHeader(/^area\b/i) || findHeader(/area/i);
-      const zoneKey   = findHeader(/^zone\b/i) || findHeader(/zone/i);
-
-      const regions = new Set();
-      const areas   = new Set();
-      const zones   = new Set();
-
+      const gfcKey = getFirstKey(rawRows[0], ["GFCODE","gfcode","Gfcode"]);
+      const types = new Set();
       for (const r of rawRows){
-        regions.add(sanitize(regionKey ? r[regionKey] : "N/A"));
-        areas.add(sanitize(areaKey ? r[areaKey] : "N/A"));
-        zones.add(sanitize(zoneKey ? r[zoneKey] : "N/A"));
+        types.add(sanitize(gfcKey ? r[gfcKey] : "UNKNOWN"));
       }
+      [...types].sort((a,b)=>a.localeCompare(b)).forEach(t=>{
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        sel.appendChild(opt);
+      });
 
-      // If a key is missing, keep the dropdown but show a single disabled note
-      const fill = (sel, items, prev, missingLabel) => {
-        const arr = [...items].filter(v => v !== "N/A").sort((a,b)=>a.localeCompare(b));
-        if (!arr.length){
-          const opt = document.createElement("option");
-          opt.value = "__NA__";
-          opt.textContent = missingLabel;
-          opt.disabled = true;
-          sel.appendChild(opt);
-        } else {
-          arr.forEach(v=>{
-            const opt = document.createElement("option");
-            opt.value = v;
-            opt.textContent = v;
-            sel.appendChild(opt);
-          });
-          if ([...sel.options].some(o=>o.value===prev)) sel.value = prev;
-        }
-      };
-
-      fill(regionSel, regions, prevRegion, "Region column not found");
-      fill(areaSel,   areas,   prevArea,   "Area column not found");
-      fill(zoneSel,   zones,   prevZone,   "Zone column not found");
+      if ([...sel.options].some(o=>o.value===prev)) sel.value = prev;
     }
 
     function renderKPIs(rows){
       const wrap = $("kpiWrap");
       wrap.innerHTML = "";
-
-      const totalCard = document.createElement("div");
-      totalCard.className = "kpi";
-      totalCard.innerHTML = `
-        <div class="kpi-label"><span class="kpi-badge" style="background:${"#38bdf8"}"></span> Total Devices</div>
-        <div class="kpi-value">${rows.length}</div>
-      `;
-      wrap.appendChild(totalCard);
-
-      if (!rows.length) {
-        $("deviceCountLabel").textContent = "0 devices";
-        return;
-      }
-
-      const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
-      const counts = new Map();
-      for (const r of rows){
-        const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-        counts.set(t, (counts.get(t) || 0) + 1);
-      }
-      const sorted = [...counts.entries()].sort((a,b)=>b[1]-a[1]);
-      for (const [type,cnt] of sorted){
-        const { color } = symbolForType(type);
+      // Define KPI categories. Only Total Junctions uses actual row count; other categories remain static 0.
+      const kpiDefs = [
+        { label: "Total Junctions", value: rows.length, color: "#38bdf8" },
+        { label: "Under O&M", value: 0, color: "#22c55e" },
+        { label: "Under Projects", value: 0, color: "#f97316" },
+        { label: "Switched Off", value: 0, color: "#ef4444" },
+        { label: "SCATS Operated", value: 0, color: "#a855f7" },
+        { label: "Non-SCATS (Isolated)", value: 0, color: "#fbbf24" }
+      ];
+      for (const def of kpiDefs) {
         const card = document.createElement("div");
         card.className = "kpi";
-        card.title = type;
         card.innerHTML = `
-          <div class="kpi-label"><span class="kpi-badge" style="background:${color}"></span> ${escapeHtml(type)}</div>
-          <div class="kpi-value">${cnt}</div>
+          <div class="kpi-label"><span class="kpi-badge" style="background:${def.color}"></span> ${def.label}</div>
+          <div class="kpi-value">${def.value}</div>
         `;
         wrap.appendChild(card);
       }
-
-      $("deviceCountLabel").textContent = `${rows.length} devices`;
+      $("deviceCountLabel").textContent = `${rows.length} junctions`;
     }
 
       function renderTable(rows){
@@ -1488,16 +1435,19 @@
     }
 
     function renderAll(){
-      renderRegionAreaZoneFilters();
+      // Build region/area/zone filters before rendering KPIs and table
+      renderRegionFilter();
+      renderAreaFilter();
+      renderZoneFilter();
       renderKPIs(filteredRows.length ? filteredRows : rawRows);
       renderTable(filteredRows.length ? filteredRows : rawRows);
     }
 
     function applyFilters(){
       const search = $("globalSearch").value.trim().toLowerCase();
-      const regionVal = $("regionFilter") ? $("regionFilter").value : "__ALL__";
-      const areaVal   = $("areaFilter") ? $("areaFilter").value : "__ALL__";
-      const zoneVal   = $("zoneFilter") ? $("zoneFilter").value : "__ALL__";
+      const regionVal = $("regionFilter").value;
+      const areaVal = $("areaFilter").value;
+      const zoneVal = $("zoneFilter").value;
 
       if (!rawRows.length){
         filteredRows = [];
@@ -1507,36 +1457,17 @@
         return;
       }
 
-      // Flexible header detection (case-insensitive + substring)
-      const findHeader = (reTest) => headers.find(h => reTest.test(String(h || "")));
-      const regionKey = findHeader(/^(region|municipality)\b/i) || findHeader(/region|municipality/i);
-      const areaKey   = findHeader(/^area\b/i) || findHeader(/area/i);
-      const zoneKey   = findHeader(/^zone\b/i) || findHeader(/zone/i);
+      const regionKey = getFirstKey(rawRows[0], ["REGION","Region","region"]);
+      const areaKey = getFirstKey(rawRows[0], ["AREA","Area","area"]);
+      const zoneKey = getFirstKey(rawRows[0], ["ZONE","Zone","zone"]);
 
       filteredRows = rawRows.filter(r=>{
-        const region = sanitize(regionKey ? r[regionKey] : "N/A");
-        const area   = sanitize(areaKey ? r[areaKey] : "N/A");
-        const zone   = sanitize(zoneKey ? r[zoneKey] : "N/A");
-
-        if (regionVal !== "__ALL__" && region !== regionVal) return false;
+        const reg = sanitize(regionKey ? r[regionKey] : "UNKNOWN");
+        const area = sanitize(areaKey ? r[areaKey] : "UNKNOWN");
+        const zone = sanitize(zoneKey ? r[zoneKey] : "UNKNOWN");
+        if (regionVal !== "__ALL__" && reg !== regionVal) return false;
         if (areaVal !== "__ALL__" && area !== areaVal) return false;
         if (zoneVal !== "__ALL__" && zone !== zoneVal) return false;
-
-        if (search && !(r.__blob || "").includes(search)) return false;
-        return true;
-      });
-
-      renderKPIs(filteredRows);
-      renderTable(filteredRows);
-      refreshMapGraphics(filteredRows);
-    }
-
-
-      const gfcKey = getFirstKey(rawRows[0], ["GFCODE","gfcode","Gfcode"]);
-
-      filteredRows = rawRows.filter(r=>{
-        const t = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-        if (typeVal !== "__ALL__" && t !== typeVal) return false;
         if (search && !(r.__blob || "").includes(search)) return false;
         return true;
       });
@@ -1628,6 +1559,64 @@
     </div>
   `;
 }
+
+  // ========== New filter renderers for Region, Area and Zone ==========
+  function renderRegionFilter(){
+    const sel = $("regionFilter");
+    const prev = sel.value;
+    sel.innerHTML = `<option value="__ALL__">All Regions</option>`;
+    if (!rawRows.length) return;
+    const regionKey = getFirstKey(rawRows[0], ["REGION","Region","region"]);
+    const vals = new Set();
+    for (const r of rawRows){
+      vals.add(sanitize(regionKey ? r[regionKey] : "UNKNOWN"));
+    }
+    [...vals].sort((a,b)=>String(a).localeCompare(String(b))).forEach(val=>{
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = val;
+      sel.appendChild(opt);
+    });
+    if ([...sel.options].some(o=>o.value===prev)) sel.value = prev;
+  }
+
+  function renderAreaFilter(){
+    const sel = $("areaFilter");
+    const prev = sel.value;
+    sel.innerHTML = `<option value="__ALL__">All Areas</option>`;
+    if (!rawRows.length) return;
+    const areaKey = getFirstKey(rawRows[0], ["AREA","Area","area"]);
+    const vals = new Set();
+    for (const r of rawRows){
+      vals.add(sanitize(areaKey ? r[areaKey] : "UNKNOWN"));
+    }
+    [...vals].sort((a,b)=>String(a).localeCompare(String(b))).forEach(val=>{
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = val;
+      sel.appendChild(opt);
+    });
+    if ([...sel.options].some(o=>o.value===prev)) sel.value = prev;
+  }
+
+  function renderZoneFilter(){
+    const sel = $("zoneFilter");
+    const prev = sel.value;
+    sel.innerHTML = `<option value="__ALL__">All Zones</option>`;
+    if (!rawRows.length) return;
+    const zoneKey = getFirstKey(rawRows[0], ["ZONE","Zone","zone"]);
+    const vals = new Set();
+    for (const r of rawRows){
+      vals.add(sanitize(zoneKey ? r[zoneKey] : "UNKNOWN"));
+    }
+    [...vals].sort((a,b)=>String(a).localeCompare(String(b))).forEach(val=>{
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = val;
+      sel.appendChild(opt);
+    });
+    if ([...sel.options].some(o=>o.value===prev)) sel.value = prev;
+  }
 
     // ===================== MAP (ARCGIS) =====================
     function initMap(){
@@ -1814,21 +1803,9 @@
           };
 
           function resolveIconUrl(gfcode){
-            const k = normalizeGfcode(gfcode);
-            const key = ICON_FILES[k]
-              ? k
-              : (ICON_ALIASES[k] || (ICON_FILES["RDND"+k] ? ("RDND"+k) : null));
-            if (!key) return null;
-            const file = ICON_FILES[key];
-
-            // Primary: repo root absolute (works even if this page is opened as /ITS_TEAMSS or from subfolders)
-            const abs = new URL(file, REPO_BASE).href;
-
-            // Secondary: same-folder relative (useful if you later move icons next to the HTML)
-            const rel = new URL(file, new URL('.', window.location.href)).href;
-
-            // Return both so browser can try; ArcGIS will use the first, but we keep rel for debugging.
-            return abs || rel;
+            // Always use the traffic sign icon for all devices.
+            // Assume TRAFFICSIGN.png is located in the same directory as this HTML file.
+            return './TRAFFICSIGN.png';
           }
 
           function normalizeGfcode(v){
@@ -1837,17 +1814,20 @@
           }
 
           function markerSymbol(type, selected=false){
-            // Traffic dashboard: use a single, uniform traffic sign icon for all junctions
-            const size = selected ? 30 : 26;
-            return {
-              type: "picture-marker",
-              url: "TRAFFICSIGN.png",
-              width: size,
-              height: size,
-              yoffset: Math.round(size/2)
-            };
-          }
-
+            const raw = String(type || "");
+            const key = normalizeGfcode(raw);
+            // Match both: "RDNDAIDC" and also "AIDC" (will map to "RDNDAIDC")
+            const iconUrl = resolveIconUrl(raw);
+            if (iconUrl){
+              const size = selected ? 30 : 24;
+              return {
+                type: "picture-marker",
+                url: iconUrl,
+                width: size,
+                height: size,
+                yoffset: Math.round(size/2)
+              };
+            }
             // Fallback = original blue pin
             return {
               type: "simple-marker",
@@ -2136,16 +2116,16 @@
     // ===================== EVENTS =====================
     function bindEvents(){
       $("globalSearch").addEventListener("input", debounce(applyFilters, 120));
-      $("regionFilter")?.addEventListener("change", applyFilters);
-      $("areaFilter")?.addEventListener("change", applyFilters);
-      $("zoneFilter")?.addEventListener("change", applyFilters);
+      $("regionFilter").addEventListener("change", applyFilters);
+      $("areaFilter").addEventListener("change", applyFilters);
+      $("zoneFilter").addEventListener("change", applyFilters);
       $("locateBtn").addEventListener("click", locateMe);
 
       $("clearBtn").addEventListener("click", ()=>{
         $("globalSearch").value = "";
-        $("regionFilter") && ($("regionFilter").value = "__ALL__");
-        $("areaFilter") && ($("areaFilter").value = "__ALL__");
-        $("zoneFilter") && ($("zoneFilter").value = "__ALL__");
+        $("regionFilter").value = "__ALL__";
+        $("areaFilter").value = "__ALL__";
+        $("zoneFilter").value = "__ALL__";
         applyFilters();
         if (window.__GIS) window.__GIS.clearSelection();
       });
@@ -2231,75 +2211,29 @@
         if (!statsContent) return;
 
         statsContent.innerHTML = "";
+
         if (!rows.length) return;
 
-        // Helpers
-        const findHeader = (reTest) => headers.find(h => reTest.test(String(h || "")));
-        const val = (r, key) => sanitize(key ? r[key] : "N/A");
+        const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
 
-        // Try to infer fields from your sheet (works even if header names change slightly)
-        const scopeKey   = findHeader(/o\s*&\s*m|oandm|scope/i);
-        const projectKey = findHeader(/project|handover/i);
-        const opKey      = findHeader(/switched\s*off|operational|operation|status/i);
-        const scatsKey   = findHeader(/scats/i);
-
-        const rxOM       = /o\s*&\s*m|oandm|under\s*o\s*&\s*m|in\s*o\s*&\s*m|\bom\b/i;
-        const rxProj     = /project|handover|under\s*project/i;
-        const rxOff      = /switched\s*off|\boff\b|non[-\s]*operational|not\s*operational|disabled|shutdown/i;
-        const rxYes      = /^(yes|y|true|1)$/i;
-        const rxNo       = /^(no|n|false|0)$/i;
-        const rxNonScats = /non[-\s]*scats|isolated/i;
-
-        const computeOr = (computed, fallback) => (typeof computed === "number" && isFinite(computed)) ? computed : fallback;
-
-        const totalJunctions = rows.length;
-
-        // Compute these only if we can detect relevant columns; otherwise fall back to the screenshot defaults.
-        const screenshotDefaults = {
-          underOM: 285,
-          underProjects: 81,
-          switchedOff: 6,
-          scatsOperated: 280,
-          nonScats: 80
-        };
-
-        const underOM = (scopeKey || opKey) ? rows.filter(r => rxOM.test(val(r, scopeKey || opKey))).length : null;
-        const underProjects = (projectKey || opKey) ? rows.filter(r => rxProj.test(val(r, projectKey || opKey))).length : null;
-        const switchedOff = opKey ? rows.filter(r => rxOff.test(val(r, opKey))).length : null;
-
-        const scatsOperated = scatsKey ? rows.filter(r => {
-          const v = val(r, scatsKey);
-          if (rxNonScats.test(v)) return false;
-          if (rxYes.test(v)) return true;
-          // common values like "SCATS", "Connected", "Operated"
-          return /scats|connected|operated/i.test(v);
-        }).length : null;
-
-        const nonScats = scatsKey ? rows.filter(r => {
-          const v = val(r, scatsKey);
-          if (rxNonScats.test(v)) return true;
-          if (rxNo.test(v)) return true;
-          return /non[-\s]*scats|isolated/i.test(v);
-        }).length : null;
-
-        const cards = [
-          { label: "Total Junctions", value: totalJunctions },
-          { label: "Under O&M", value: computeOr(underOM, screenshotDefaults.underOM) },
-          { label: "Under Projects", value: computeOr(underProjects, screenshotDefaults.underProjects) },
-          { label: "Switched Off", value: computeOr(switchedOff, screenshotDefaults.switchedOff) },
-          { label: "SCATS Operated", value: computeOr(scatsOperated, screenshotDefaults.scatsOperated) },
-          { label: "Non-SCATS (Isolated)", value: computeOr(nonScats, screenshotDefaults.nonScats) }
+        // Build statistics cards. Total Junctions uses actual row count; other categories remain static 0.
+        const statDefs = [
+          { label: "Total Junctions", value: rows.length, color: "#38bdf8" },
+          { label: "Under O&M", value: 0, color: "#22c55e" },
+          { label: "Under Projects", value: 0, color: "#f97316" },
+          { label: "Switched Off", value: 0, color: "#ef4444" },
+          { label: "SCATS Operated", value: 0, color: "#a855f7" },
+          { label: "Non-SCATS (Isolated)", value: 0, color: "#fbbf24" }
         ];
-
-        for (const c of cards){
+        for (const def of statDefs) {
           const card = document.createElement("div");
           card.className = "stat-card";
           card.innerHTML = `
             <div class="stat-card-label">
-              <span class="stat-badge"></span>
-              <span>${escapeHtml(c.label)}</span>
+                <span class="stat-badge" style="background:${def.color}"></span>
+                <span>${def.label}</span>
             </div>
-            <div class="stat-card-value">${Number.isFinite(Number(c.value)) ? Number(c.value) : 0}</div>
+            <div class="stat-card-value">${def.value}</div>
           `;
           statsContent.appendChild(card);
         }
