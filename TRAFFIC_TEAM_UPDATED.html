@@ -1459,7 +1459,7 @@
       }
 
       $("deviceCountLabel").textContent = `${rows.length} devices`;
-	  }
+    }
 
       function renderTable(rows){
       const headRow = $("tableHeadRow");
@@ -1497,7 +1497,22 @@
       });
     }
 
-    function renderAll(){
+    
+    function renderTypeFilter() {
+      const sel = $("typeFilter");
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = '<option value="__ALL__">All Types</option>';
+      const gfcKey = getFirstKey(rawRows[0], ["GFCODE","gfcode","Gfcode"]);
+      const types = new Set();
+      for (const r of rawRows) types.add(sanitize(gfcKey ? r[gfcKey] : "UNKNOWN"));
+      [...types].sort().forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t; opt.textContent = t; sel.appendChild(opt);
+      });
+      sel.value = prev;
+    }
+function renderAll(){
       renderRegionAreaZoneFilters();
       renderKPIs(filteredRows.length ? filteredRows : rawRows);
       renderTable(filteredRows.length ? filteredRows : rawRows);
@@ -2243,11 +2258,9 @@
         statsContent.innerHTML = "";
         if (!rows.length) return;
 
-        // Helpers
         const findHeader = (reTest) => headers.find(h => reTest.test(String(h || "")));
         const val = (r, key) => sanitize(key ? r[key] : "N/A");
 
-        // Try to infer fields from your sheet (works even if header names change slightly)
         const scopeKey   = findHeader(/o\s*&\s*m|oandm|scope/i);
         const projectKey = findHeader(/project|handover/i);
         const opKey      = findHeader(/switched\s*off|operational|operation|status/i);
@@ -2257,48 +2270,17 @@
         const rxProj     = /project|handover|under\s*project/i;
         const rxOff      = /switched\s*off|\boff\b|non[-\s]*operational|not\s*operational|disabled|shutdown/i;
         const rxYes      = /^(yes|y|true|1)$/i;
-        const rxNo       = /^(no|n|false|0)$/i;
-        const rxNonScats = /non[-\s]*scats|isolated/i;
-
-        const computeOr = (computed, fallback) => (typeof computed === "number" && isFinite(computed)) ? computed : fallback;
 
         const totalJunctions = rows.length;
-
-        // Compute these only if we can detect relevant columns; otherwise fall back to the screenshot defaults.
-        const screenshotDefaults = {
-          underOM: 285,
-          underProjects: 81,
-          switchedOff: 6,
-          scatsOperated: 280,
-          nonScats: 80
-        };
-
-        const underOM = (scopeKey || opKey) ? rows.filter(r => rxOM.test(val(r, scopeKey || opKey))).length : null;
-        const underProjects = (projectKey || opKey) ? rows.filter(r => rxProj.test(val(r, projectKey || opKey))).length : null;
-        const switchedOff = opKey ? rows.filter(r => rxOff.test(val(r, opKey))).length : null;
-
-        const scatsOperated = scatsKey ? rows.filter(r => {
-          const v = val(r, scatsKey);
-          if (rxNonScats.test(v)) return false;
-          if (rxYes.test(v)) return true;
-          // common values like "SCATS", "Connected", "Operated"
-          return /scats|connected|operated/i.test(v);
-        }).length : null;
-
-        const nonScats = scatsKey ? rows.filter(r => {
-          const v = val(r, scatsKey);
-          if (rxNonScats.test(v)) return true;
-          if (rxNo.test(v)) return true;
-          return /non[-\s]*scats|isolated/i.test(v);
-        }).length : null;
+        const underOM = (scopeKey || opKey) ? rows.filter(r => rxOM.test(val(r, scopeKey || opKey))).length : 0;
+        const underProjects = (projectKey || opKey) ? rows.filter(r => rxProj.test(val(r, projectKey || opKey))).length : 0;
+        const switchedOff = opKey ? rows.filter(r => rxOff.test(val(r, opKey))).length : 0;
 
         const cards = [
           { label: "Total Junctions", value: totalJunctions },
-          { label: "Under O&M", value: computeOr(underOM, screenshotDefaults.underOM) },
-          { label: "Under Projects", value: computeOr(underProjects, screenshotDefaults.underProjects) },
-          { label: "Switched Off", value: computeOr(switchedOff, screenshotDefaults.switchedOff) },
-          { label: "SCATS Operated", value: computeOr(scatsOperated, screenshotDefaults.scatsOperated) },
-          { label: "Non-SCATS (Isolated)", value: computeOr(nonScats, screenshotDefaults.nonScats) }
+          { label: "Under O&M", value: underOM },
+          { label: "Under Projects", value: underProjects },
+          { label: "Switched Off", value: switchedOff }
         ];
 
         for (const c of cards){
@@ -2309,25 +2291,9 @@
               <span class="stat-badge"></span>
               <span>${escapeHtml(c.label)}</span>
             </div>
-            <div class="stat-card-value">${Number.isFinite(Number(c.value)) ? Number(c.value) : 0}</div>
+            <div class="stat-card-value">${c.value}</div>
           `;
           statsContent.appendChild(card);
-        }
-    }
-
-
-        const sorted = [...counts.entries()].sort((a,b) => b[1] - a[1]);
-        for (const [type, cnt] of sorted) {
-            const card = document.createElement("div");
-            card.className = "stat-card";
-            card.innerHTML = `
-                <div class="stat-card-label">
-                    <span class="stat-badge"></span>
-                    <span>${escapeHtml(type)}</span>
-                </div>
-                <div class="stat-card-value">${cnt}</div>
-            `;
-            statsContent.appendChild(card);
         }
     }
 
