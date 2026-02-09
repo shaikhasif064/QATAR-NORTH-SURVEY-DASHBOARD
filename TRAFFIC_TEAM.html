@@ -1419,6 +1419,11 @@
       for (const r of rows){
         const tr = document.createElement("tr");
         tr.dataset.key = buildDeviceKey(r);
+        // Store latitude and longitude on the row for fallback map focusing
+        const latK = getFirstKey(r, ["Latitude WGS84","Latitude_WGS84","Latitude","LATITUDE","lat"]);
+        const lonK = getFirstKey(r, ["Longitude WGS84","Longitude_WGS84","Longitude","LONGITUDE","lon","LON"]);
+        tr.dataset.lat = latK ? sanitize(r[latK]) : "";
+        tr.dataset.lon = lonK ? sanitize(r[lonK]) : "";
         for (const h of headers){
           const td = document.createElement("td");
           td.textContent = sanitize(r[h]);
@@ -1432,7 +1437,16 @@
         tr.addEventListener("click", ()=>{
           const key = tr.dataset.key;
           const g = deviceGraphicsByKey.get(key);
-          if (g) focusGraphic(g, true);
+          if (g) {
+            focusGraphic(g, true);
+          } else {
+            // Fallback: use stored coordinates to center the map if the graphic isn't found
+            const lat = parseFloat(tr.dataset.lat);
+            const lon = parseFloat(tr.dataset.lon);
+            if (!isNaN(lat) && !isNaN(lon) && view){
+              view.goTo({ target: { latitude: lat, longitude: lon }, zoom: Math.max(view.zoom, 15) }, { duration: 450 });
+            }
+          }
         });
       });
     }
@@ -1548,32 +1562,16 @@
     title = "Traffic Asset";
   }
 
-  // Build ONE table only: priority fields first, then the remaining fields (no duplicates).
-  const existingKeys = new Set(headers);
-  const used = new Set();
+  // Build the table rows in the same order as the All Data table.  Skip the
+  // junction number column since it's displayed separately above.  Do not
+  // reorder or group fields; preserve the dataset header order.
   let rowsHTML = "";
-
-  const addRowByKey = (k) => {
-    if (!k || !existingKeys.has(k) || used.has(k)) return;
-    used.add(k);
-    rowsHTML += buildPopupRow(k, row[k]);
-  };
-
-  // Priority fields (case-insensitive match to current headers)
-  for (const want of POPUP_PRIORITY){
-    const k = headers.find(h => String(h).trim().toLowerCase() === String(want).trim().toLowerCase());
-    addRowByKey(k);
-  }
-
-  // Always include coordinates row (once)
-  if (!used.has("Coordinates")){
-    used.add("Coordinates");
-    rowsHTML += buildPopupRow("Coordinates", (latS === "N/A" || lonS === "N/A") ? "N/A" : `${latS}, ${lonS}`);
-  }
-
-  // Remaining fields (in original sheet order)
   for (const h of headers){
-    if (!used.has(h)) addRowByKey(h);
+    // Skip undefined or empty headers
+    if (!h) continue;
+    // Skip the junction number column to avoid redundancy
+    if (h === junctKey) continue;
+    rowsHTML += buildPopupRow(h, row[h]);
   }
 
   return `
