@@ -845,7 +845,7 @@
 
       <div class="glass-card map-card" style="margin-top:12px;">
         <div class="map-header">
-          <div class="map-title"><span class="dot"></span><span>ESRI MAP (HYBRID) — LOCKED TO QATAR</span></div>
+          <div class="map-title"><span class="dot"></span><span>ESRI MAP (SATELLITE) — LOCKED TO QATAR</span></div>
           <div class="small-muted" id="deviceCountLabel">0 junctions</div>
         </div>
 
@@ -1519,9 +1519,30 @@
   const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
   const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
 
-  const title = sanitize(idKey ? row[idKey] : "") !== "N/A"
-    ? sanitize(row[idKey])
-    : (sanitize(tagKey ? row[tagKey] : "") !== "N/A" ? sanitize(row[tagKey]) : "Traffic Asset");
+  // Attempt to find a junction number field to display in the popup.  The
+  // Traffic dataset uses a variety of column names for junction numbers,
+  // so try several possible variations.  If found and usable, we'll use
+  // this value for the popup title and the line below instead of
+  // displaying an unknown GFCODE.  If not found, the original title
+  // fallback logic remains.
+  const junctKey = getFirstKey(row, [
+    "JUNCT NO","Junct No","Junction No","junction no",
+    "JUNCTION NO","Junction","junction","JUNCTNO","JunctNo"
+  ]);
+  const junctVal = junctKey ? sanitize(row[junctKey]) : null;
+
+  // Determine the popup title.  Prefer to show the junction number if it exists
+  // and is meaningful.  Otherwise fall back to ID, asset tag or a default label.
+  let title;
+  if (junctVal && junctVal !== "N/A" && junctVal !== "UNKNOWN" && junctVal !== "Unknown") {
+    title = `Junct No: ${junctVal}`;
+  } else if (sanitize(idKey ? row[idKey] : "") !== "N/A") {
+    title = sanitize(row[idKey]);
+  } else if (sanitize(tagKey ? row[tagKey] : "") !== "N/A") {
+    title = sanitize(row[tagKey]);
+  } else {
+    title = "Traffic Asset";
+  }
 
   // Build ONE table only: priority fields first, then the remaining fields (no duplicates).
   const existingKeys = new Set(headers);
@@ -1555,7 +1576,7 @@
     <div style="font-size:12px;line-height:1.35;">
       <div style="font-weight:800;font-size:13px;margin-bottom:6px;">${escapeHtml(title)}</div>
       <div style="color:rgba(156,163,175,.95);font-size:12px;margin-bottom:6px;">
-        <strong>GFCODE:</strong> ${escapeHtml(sanitize(gfcKey ? row[gfcKey] : "UNKNOWN"))}
+        <strong>Junct No:</strong> ${escapeHtml(junctVal && junctVal !== "N/A" && junctVal !== "UNKNOWN" && junctVal !== "Unknown" ? junctVal : sanitize(gfcKey ? row[gfcKey] : "UNKNOWN"))}
       </div>
 
       <div class="popup-kv">
@@ -1713,7 +1734,7 @@
           const qatarPoly = Polygon.fromExtent(qatarExtent);
 
 
-          const map = new Map({ basemap: "hybrid" });
+          const map = new Map({ basemap: "satellite" });
 
           // Expose Graphic class for Team Live layer
           window.__ESRI_GRAPHIC__ = Graphic;
