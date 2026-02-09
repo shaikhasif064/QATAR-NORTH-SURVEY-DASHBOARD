@@ -932,6 +932,47 @@
 let view, devicesGroup, boundariesGroup, teamLayer, myLayer;
 // Leaflet map instance (used instead of ArcGIS view)
 let map;
+
+    // ===================== ICON DEFINITIONS (GLOBAL) =====================
+    // These definitions map device types (GFCODE) to image filenames. The images live in the
+    // repository root. We expose them globally so both the Leaflet and legacy code can
+    // resolve marker icons correctly.
+    const ICON_FILES = {
+      "RDNDAIDC": "RDNDAIDC.png",
+      "RDNDCCTV": "RDNDCCTV.png",
+      "RDNDDYMS": "RDNDDYMS.png",
+      "RDNDFIXC": "RDNDFIXC.png",
+      "RDNDLCS":  "RDNDLCS.png",
+      "RDNDLPRD": "RDNDLPRD.png",
+      "RDNDMMAP": "RDNDMMAP.png",
+      "RDNDMMDS": "RDNDMMDS.png",
+      "RDNDPTZC": "RDNDPTZC.png",
+      "RDNDRVDE": "RDNDRVDE.png",
+      "RDNDSDMS": "RDNDSDMS.png",
+      "RDNDVIVD": "RDNDVIVD.png"
+    };
+    // Base URL for icons when hosted on GitHub Pages. Adjust if hosting path changes.
+    const REPO_BASE = `${location.origin}/QATAR-NORTH-SURVEY-DASHBOARD/`;
+    const ICON_ALIASES = {
+      "RDNDPRD": "RDNDLPRD",
+      "RDNDMAP": "RDNDMMAP",
+      "RDNDMDS": "RDNDMMDS",
+      "PRD": "RDNDLPRD",
+      "MAP": "RDNDMMAP",
+      "MDS": "RDNDMMDS"
+    };
+    function normalizeGfcode(v){
+      return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    }
+    function resolveIconUrl(gfcode){
+      const k = normalizeGfcode(gfcode);
+      const key = ICON_FILES[k] ? k : (ICON_ALIASES[k] || (ICON_FILES[`RDND${k}`] ? `RDND${k}` : null));
+      if (!key) return null;
+      const file = ICON_FILES[key];
+      // Resolve to absolute URL based off the repo root
+      const abs = new URL(file, REPO_BASE).href;
+      return abs || file;
+    }
     const deviceTypeLayers = new Map();
     const deviceGraphicsByKey = new Map();
     let selectedGraphic = null;
