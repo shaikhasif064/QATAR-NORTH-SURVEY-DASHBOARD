@@ -1236,33 +1236,48 @@
       }
       return null;
     }
+    /**
+     * Build a unique key for each junction row.  In the raw data many rows
+     * lack an ID, asset tag or GFCODE (these often sanitize to "N/A").  If
+     * keys are based solely on those fields then multiple rows collapse to
+     * the same lookup key which causes the table click handler to always
+     * return the last graphic inserted (e.g. junction 7504).  To ensure
+     * one‑to‑one mapping between table rows and map graphics, build the
+     * key from fields that are guaranteed unique in the dataset.  The
+     * spreadsheet always contains a serial number (e.g. "Sr.No" or similar)
+     * and a junction number (e.g. "Junct No", "Junction No").  These
+     * values uniquely identify each record, so use them here.  Fallbacks
+     * preserve the original behaviour if those fields are missing.
+     */
     function buildDeviceKey(row){
-      // Use stable columns (Sr No and Junct No) to build a unique key.  Fallback to
-      // ID/AssetTag/MXASSETNUM/GFCODE if those are not present, but the primary
-      // key will be Sr No and Junct No which are unique per row.
+      // Find the serial number column.  Accept a variety of header names.
       const srKey = getFirstKey(row, [
-        "Sr No.","SR NO","SrNo","SrNo.","Serial No.","Serial Number","Sr No","SR NO.","Sr_No"
+        "Sr. No", "Sr.No", "Sr No", "SR.NO", "SR NO", "Sr", "SrNo", "Sr_Number", "Sr_Number" // various
       ]);
+      // Find the junction number column.  Accept common variations.
       const junctKey = getFirstKey(row, [
-        "JUNCT NO","Junct No","Junction No","junction no",
-        "JUNCTION NO","Junction","junction","JUNCTNO","JunctNo"
+        "JUNCT NO", "Junct No", "Junction No", "junction no", "JUNCTION NO", "Junction", "junction",
+        "JUNCTNO", "JunctNo", "JunctNo." , "JUNCT_NO"
       ]);
-      const srVal = srKey ? row[srKey] : null;
-      const jVal = junctKey ? row[junctKey] : null;
-      if (srVal !== null && jVal !== null) {
-        return [sanitize(srVal), sanitize(jVal)].join("||");
+      // Build key parts.  Use sanitize() to normalise blanks but avoid
+      // converting null/undefined to "N/A" so that empty fields still
+      // contribute an empty string (ensuring constant delimiter count).
+      const srVal = srKey ? sanitize(row[srKey]) : "";
+      const jnVal = junctKey ? sanitize(row[junctKey]) : "";
+      // If both fields are absent fall back to the original ID/tag/mx/gfcode logic.
+      if (!srVal && !jnVal){
+        const idKey = getFirstKey(row, ["ID","Id","id"]);
+        const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
+        const mxKey = getFirstKey(row, ["MXASSETNUM","MxAssetNum","mxassetnum"]);
+        const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
+        return [
+          sanitize(idKey ? row[idKey] : ""),
+          sanitize(tagKey ? row[tagKey] : ""),
+          sanitize(mxKey ? row[mxKey] : ""),
+          sanitize(gfcKey ? row[gfcKey] : "")
+        ].join("||");
       }
-      // Fallback to original composite key
-      const idKey = getFirstKey(row, ["ID","Id","id"]);
-      const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
-      const mxKey = getFirstKey(row, ["MXASSETNUM","MxAssetNum","mxassetnum"]);
-      const gfcKey = getFirstKey(row, ["GFCODE","gfcode","Gfcode"]);
-      return [
-        sanitize(idKey ? row[idKey] : ""),
-        sanitize(tagKey ? row[tagKey] : ""),
-        sanitize(mxKey ? row[mxKey] : ""),
-        sanitize(gfcKey ? row[gfcKey] : "")
-      ].join("||");
+      return [srVal, jnVal].join("||");
     }
     function googleMapsUrl(lat, lon){ return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`; }
     function wazeUrl(lat, lon){ return `https://waze.com/ul?ll=${lat},${lon}&navigate=yes`; }
@@ -1453,16 +1468,11 @@
         tr.addEventListener("click", ()=>{
           const key = tr.dataset.key;
           const g = deviceGraphicsByKey.get(key);
+          // When a graphic exists for this key, focus and open its popup.
           if (g) {
             focusGraphic(g, true);
-          } else {
-            // Fallback: use stored coordinates to center the map if the graphic isn't found
-            const lat = parseFloat(tr.dataset.lat);
-            const lon = parseFloat(tr.dataset.lon);
-            if (!isNaN(lat) && !isNaN(lon) && view){
-              view.goTo({ target: { latitude: lat, longitude: lon }, zoom: Math.max(view.zoom, 15) }, { duration: 450 });
-            }
           }
+          // If no graphic exists (e.g. missing coords), the click does nothing.
         });
       });
     }
@@ -2086,9 +2096,13 @@
 
           let lyr = deviceTypeLayers.get(type);
           if (!lyr){
-            // Rename the layer title from "UNKNOWN" to "Junctions" for clarity in the layer list
-            const layerTitle = (type && type.toUpperCase() === "UNKNOWN") ? "Junctions" : type;
-            lyr = new GraphicsLayer({ id: `dev_${type}`, title: layerTitle, visible: true });
+            // Give the layer a friendly name.  The dataset includes a
+            // "GFCODE" field which is often missing or empty.  When
+            // type sanitizes to "UNKNOWN" we interpret it as a generic
+            // junction layer rather than an unknown device type.  Title
+            // determines the label in the LayerList widget.
+            const title = type === "UNKNOWN" ? "Junctions" : type;
+            lyr = new GraphicsLayer({ id: `dev_${type}`, title, visible: true });
             deviceTypeLayers.set(type, lyr);
             devicesGroup.layers.add(lyr);
           }
