@@ -5,14 +5,9 @@
   <title>ITS Field Operations Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Leaflet CSS & JS for interactive maps -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  ></script>
+  <!-- ArcGIS JS (Esri Map) -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
+  <script src="https://js.arcgis.com/4.29/"></script>
 
   <style>
     :root{
@@ -834,13 +829,13 @@
         </div>
 
         <div class="small-muted" style="margin-top:6px;" id="hintText">
-          Tip: Use the basemap buttons to switch between Road, Satellite and Hybrid views. Click a marker (or a table row) for navigation options (Google Maps / Waze).
+          Tip: Use the Layers button on the map to toggle boundaries/areas. Click a marker (or a table row) for navigation options (Google Maps / Waze).
         </div>
       </div>
 
       <div class="glass-card map-card" style="margin-top:12px;">
         <div class="map-header">
-          <div class="map-title"><span class="dot"></span><span>MAP (ROAD/SATELLITE/HYBRID) — LOCKED TO QATAR</span></div>
+          <div class="map-title"><span class="dot"></span><span>ESRI MAP (HYBRID) — LOCKED TO QATAR</span></div>
           <div class="small-muted" id="deviceCountLabel">0 devices</div>
         </div>
 
@@ -929,50 +924,7 @@
     let filteredRows = [];
     let skippedNoCoords = 0;
 
-let view, devicesGroup, boundariesGroup, teamLayer, myLayer;
-// Leaflet map instance (used instead of ArcGIS view)
-let map;
-
-    // ===================== ICON DEFINITIONS (GLOBAL) =====================
-    // These definitions map device types (GFCODE) to image filenames. The images live in the
-    // repository root. We expose them globally so both the Leaflet and legacy code can
-    // resolve marker icons correctly.
-    const ICON_FILES = {
-      "RDNDAIDC": "RDNDAIDC.png",
-      "RDNDCCTV": "RDNDCCTV.png",
-      "RDNDDYMS": "RDNDDYMS.png",
-      "RDNDFIXC": "RDNDFIXC.png",
-      "RDNDLCS":  "RDNDLCS.png",
-      "RDNDLPRD": "RDNDLPRD.png",
-      "RDNDMMAP": "RDNDMMAP.png",
-      "RDNDMMDS": "RDNDMMDS.png",
-      "RDNDPTZC": "RDNDPTZC.png",
-      "RDNDRVDE": "RDNDRVDE.png",
-      "RDNDSDMS": "RDNDSDMS.png",
-      "RDNDVIVD": "RDNDVIVD.png"
-    };
-    // Base URL for icons when hosted on GitHub Pages. Adjust if hosting path changes.
-    const REPO_BASE = `${location.origin}/QATAR-NORTH-SURVEY-DASHBOARD/`;
-    const ICON_ALIASES = {
-      "RDNDPRD": "RDNDLPRD",
-      "RDNDMAP": "RDNDMMAP",
-      "RDNDMDS": "RDNDMMDS",
-      "PRD": "RDNDLPRD",
-      "MAP": "RDNDMMAP",
-      "MDS": "RDNDMMDS"
-    };
-    function normalizeGfcode(v){
-      return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-    }
-    function resolveIconUrl(gfcode){
-      const k = normalizeGfcode(gfcode);
-      const key = ICON_FILES[k] ? k : (ICON_ALIASES[k] || (ICON_FILES[`RDND${k}`] ? `RDND${k}` : null));
-      if (!key) return null;
-      const file = ICON_FILES[key];
-      // Resolve to absolute URL based off the repo root
-      const abs = new URL(file, REPO_BASE).href;
-      return abs || file;
-    }
+    let view, devicesGroup, boundariesGroup, teamLayer, myLayer;
     const deviceTypeLayers = new Map();
     const deviceGraphicsByKey = new Map();
     let selectedGraphic = null;
@@ -1375,7 +1327,7 @@ let map;
 
         setStatus(true, "Loaded");
         $("lastSync").textContent = nowString();
-        $("hintText").textContent = "Tip: Use the basemap buttons to switch between Road, Satellite and Hybrid views. Click a marker (or a table row) for navigation options (Google Maps / Waze).";
+        $("hintText").textContent = "Tip: Use the Layers button on the map to toggle boundaries/areas. Click a marker (or a table row) for navigation options (Google Maps / Waze).";
 
         renderAll();
         applyFilters();
@@ -1638,7 +1590,7 @@ let map;
           const qatarPoly = Polygon.fromExtent(qatarExtent);
 
 
-          const map = new Map({ basemap: "satellite" });
+          const map = new Map({ basemap: "hybrid" });
 
           // Expose Graphic class for Team Live layer
           window.__ESRI_GRAPHIC__ = Graphic;
@@ -1916,61 +1868,65 @@ let map;
       });
     }
 
-function refreshMapGraphics(rows){
-      // Ensure map and GIS helper are ready
-      if (!map || !window.__GIS__) return;
+    function refreshMapGraphics(rows){
+      if (!devicesGroup || !window.__GIS__) return;
 
-      // Remove all existing per-device layers from the map
-      for (const layer of deviceTypeLayers.values()){
-        if (map.hasLayer(layer)) map.removeLayer(layer);
-      }
+      // Rebuild per-device-type layers under Devices group (for LayerList toggles)
+      devicesGroup.layers.removeAll();
       deviceTypeLayers.clear();
+
       deviceGraphicsByKey.clear();
       window.__GIS__.clearSelection();
       skippedNoCoords = 0;
 
       if (!rows.length){
-        $("mapFooterLeft").textContent = "Map is constrained to Qatar extent. Use the basemap buttons (Road, Satellite, Hybrid) to switch the background. Use “Locate Me” to center on your current position.";
+        $("mapFooterLeft").textContent = "Map is constrained to Qatar extent. Use “Layers” to toggle boundaries/areas. Use “Locate Me” to center on current position.";
         return;
       }
 
-      // Determine keys for latitude, longitude and device type (GFCODE)
+      // Best-match keys for coords/types based on actual headers present
       const latKey = getFirstKey(rows[0], ["Latitude WGS84","Latitude_WGS84","Latitude","LATITUDE","lat"]);
       const lonKey = getFirstKey(rows[0], ["Longitude WGS84","Longitude_WGS84","Longitude","LONGITUDE","lon","LON"]);
       const gfcKey = getFirstKey(rows[0], ["GFCODE","gfcode","Gfcode"]);
 
-      for (const r of rows){
-        const lat = toNumberMaybe(latKey ? r[latKey] : null);
-        const lon = toNumberMaybe(lonKey ? r[lonKey] : null);
-        if (lat === null || lon === null){
-          skippedNoCoords++;
-          continue;
+      require(["esri/Graphic","esri/geometry/Point","esri/PopupTemplate","esri/layers/GraphicsLayer"], (Graphic, Point, PopupTemplate, GraphicsLayer)=>{
+        for (const r of rows){
+          const lat = toNumberMaybe(latKey ? r[latKey] : null);
+          const lon = toNumberMaybe(lonKey ? r[lonKey] : null);
+          if (lat === null || lon === null){
+            skippedNoCoords++;
+            continue;
+          }
+
+          const type = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
+          const pt = new Point({ latitude: lat, longitude: lon, spatialReference: { wkid: 4326 } });
+
+          const g = new Graphic({
+            geometry: pt,
+            symbol: window.__GIS__.markerSymbol(type, false),
+            attributes: { __key: buildDeviceKey(r), __type: type },
+            popupTemplate: new PopupTemplate({
+              title: "{__type}",
+              content: () => buildPopupHTML(r)
+            })
+          });
+
+          let lyr = deviceTypeLayers.get(type);
+          if (!lyr){
+            lyr = new GraphicsLayer({ id: `dev_${type}`, title: type, visible: true });
+            deviceTypeLayers.set(type, lyr);
+            devicesGroup.layers.add(lyr);
+          }
+          lyr.add(g);
+          // Note: duplicates overwrite the lookup map, but graphics still display
+          deviceGraphicsByKey.set(buildDeviceKey(r), g);
         }
-        const type = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
-        const key = buildDeviceKey(r);
-        const marker = L.marker([lat, lon], {
-          icon: window.__GIS__.markerSymbol(type, false)
-        });
-        marker.type = type;
-        marker.__key = key;
-        marker.on('click', () => {
-          window.__GIS__.focusGraphicInternal(marker, true);
-        });
-        // Bind popup for details
-        marker.bindPopup(buildPopupHTML(r), { autoClose: true, closeButton: true });
-        // Obtain or create layer group for this device type
-        let lyr = deviceTypeLayers.get(type);
-        if (!lyr){
-          lyr = L.layerGroup().addTo(map);
-          deviceTypeLayers.set(type, lyr);
-        }
-        lyr.addLayer(marker);
-        deviceGraphicsByKey.set(key, marker);
-      }
-      $("mapFooterLeft").textContent =
-        skippedNoCoords > 0
-          ? `Map is constrained to Qatar extent. Skipped ${skippedNoCoords} row(s) with missing/invalid coordinates.`
-          : "Map is constrained to Qatar extent. Use the basemap buttons (Road, Satellite, Hybrid) to switch the background. Use “Locate Me” to center on your current position.";
+
+        $("mapFooterLeft").textContent =
+          skippedNoCoords > 0
+            ? `Map is constrained to Qatar extent. Skipped ${skippedNoCoords} row(s) with missing/invalid coordinates.`
+            : "Map is constrained to Qatar extent. Use “Layers” to toggle boundaries/areas. Use “Locate Me” to center on current position.";
+      });
     }
 
     function focusGraphic(g, openPopup){
@@ -1993,10 +1949,8 @@ function refreshMapGraphics(rows){
           if (window.__GIS__ && typeof window.__GIS__.setMyLocation === "function"){
             window.__GIS__.setMyLocation(lat, lon, acc);
           }
-          if (map){
-            const currentZoom = map.getZoom();
-            const targetZoom = currentZoom < 15 ? 15 : currentZoom;
-            map.setView([lat, lon], targetZoom, { animate: true, duration: 0.5 });
+          if (view){
+            view.goTo({ center:[lon,lat], zoom: Math.max(view.zoom, 15) }, { duration: 450 });
           }
         },
         ()=>{
@@ -2030,147 +1984,6 @@ function refreshMapGraphics(rows){
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    }
-
-    // ===================== MAP (LEAFLET) =====================
-    // Override the default ArcGIS-based initMap. This Leaflet implementation
-    // initializes a map constrained to the Qatar extent and provides road,
-    // satellite and hybrid basemaps along with custom marker handling.
-    async function initMap(){
-      // Create Leaflet map in the #mapView container
-      map = L.map("mapView", {
-        zoomControl: true,
-        attributionControl: false
-      });
-      // Define bounding box from QATAR_EXTENT_WGS84 constant
-      const bounds = L.latLngBounds(
-        [QATAR_EXTENT_WGS84.ymin, QATAR_EXTENT_WGS84.xmin],
-        [QATAR_EXTENT_WGS84.ymax, QATAR_EXTENT_WGS84.xmax]
-      );
-      map.fitBounds(bounds);
-      map.setMaxBounds(bounds);
-      // Set sensible zoom limits
-      map.setMinZoom(7);
-      map.setMaxZoom(19);
-      // Define base layers
-      const roadLayer = L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        { attribution: '&copy; OpenStreetMap contributors' }
-      );
-      const satLayer = L.tileLayer(
-        "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        { attribution: 'Tiles &copy; Esri' }
-      );
-      const labelsLayer = L.tileLayer(
-        "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-        { attribution: '' }
-      );
-      const hybridLayer = L.layerGroup([satLayer, labelsLayer]);
-      // Add default layer
-      roadLayer.addTo(map);
-      // Create custom basemap buttons using existing button styles
-      const typeControl = L.control({ position: "topright" });
-      typeControl.onAdd = function(){
-        const div = L.DomUtil.create("div", "map-type-control");
-        div.innerHTML = `
-          <div style="display:flex;gap:6px;">
-            <button id="btnRoad" class="btn secondary" style="padding:6px 10px;font-size:10px;">Road</button>
-            <button id="btnSat" class="btn secondary" style="padding:6px 10px;font-size:10px;">Satellite</button>
-            <button id="btnHybrid" class="btn secondary" style="padding:6px 10px;font-size:10px;">Hybrid</button>
-          </div>
-        `;
-        // Prevent map drag when clicking buttons
-        L.DomEvent.disableClickPropagation(div);
-        return div;
-      };
-      typeControl.addTo(map);
-      function setBasemap(type){
-        // Remove all base layers
-        map.removeLayer(roadLayer);
-        map.removeLayer(satLayer);
-        map.removeLayer(labelsLayer);
-        map.removeLayer(hybridLayer);
-        if (type === 'road') roadLayer.addTo(map);
-        if (type === 'sat') satLayer.addTo(map);
-        if (type === 'hybrid') hybridLayer.addTo(map);
-      }
-      document.addEventListener('click', (e) => {
-        const id = e.target && e.target.id;
-        if (id === 'btnRoad') setBasemap('road');
-        if (id === 'btnSat') setBasemap('sat');
-        if (id === 'btnHybrid') setBasemap('hybrid');
-      });
-      // Initialize device layers storage and helper objects
-      deviceTypeLayers.clear();
-      deviceGraphicsByKey.clear();
-      // Selected marker and my-location visuals
-      let selectedMarker = null;
-      let myLocationMarker = null;
-      let myLocationCircle = null;
-      // GIS helper functions for Leaflet
-      window.__GIS__ = {
-        markerSymbol: (type, selected=false) => {
-          const iconUrl = resolveIconUrl(type);
-          const size = selected ? 34 : 26;
-          if (iconUrl){
-            return L.icon({
-              iconUrl,
-              iconSize: [size, size],
-              iconAnchor: [size/2, size],
-              popupAnchor: [0, -size/2]
-            });
-          }
-          // Fallback: draw a simple colored circle
-          const color = selected ? '#38bdf8' : '#ffffff';
-          const radius = selected ? 10 : 7;
-          return L.divIcon({
-            html: `<div style="width:${radius*2}px;height:${radius*2}px;background:${color};border:2px solid rgba(0,0,0,.3);border-radius:50%;box-shadow:0 0 6px rgba(0,0,0,.5);"></div>`,
-            className: '',
-            iconSize: [radius*2, radius*2],
-            iconAnchor: [radius, radius],
-            popupAnchor: [0, -radius]
-          });
-        },
-        focusGraphicInternal: (marker, openPopup) => {
-          if (!marker) return;
-          if (selectedMarker && selectedMarker !== marker){
-            const prevType = selectedMarker.type || '';
-            selectedMarker.setIcon(window.__GIS__.markerSymbol(prevType, false));
-          }
-          selectedMarker = marker;
-          const t = marker.type || '';
-          marker.setIcon(window.__GIS__.markerSymbol(t, true));
-          map.panTo(marker.getLatLng());
-          if (openPopup && marker.getPopup()){
-            marker.openPopup();
-          }
-        },
-        clearSelection: () => {
-          if (selectedMarker){
-            const t = selectedMarker.type || '';
-            selectedMarker.setIcon(window.__GIS__.markerSymbol(t, false));
-            selectedMarker = null;
-          }
-        },
-        setMyLocation: (lat, lon, acc) => {
-          if (myLocationMarker){ map.removeLayer(myLocationMarker); myLocationMarker = null; }
-          if (myLocationCircle){ map.removeLayer(myLocationCircle); myLocationCircle = null; }
-          const loc = L.latLng(lat, lon);
-          myLocationMarker = L.marker(loc, {
-            icon: L.divIcon({
-              html: '<div style="width:14px;height:14px;background:#38bdf8;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(56,189,248,.8);"></div>',
-              className: ''
-            })
-          }).addTo(map);
-          myLocationCircle = L.circle(loc, {
-            radius: acc,
-            color: '#38bdf8',
-            weight: 1,
-            fillColor: '#38bdf8',
-            fillOpacity: 0.15
-          }).addTo(map);
-        }
-      };
     }
     function loadScript(url){
       return new Promise((resolve, reject)=>{
