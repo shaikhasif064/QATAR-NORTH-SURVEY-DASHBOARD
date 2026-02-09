@@ -1531,11 +1531,15 @@
   ]);
   const junctVal = junctKey ? sanitize(row[junctKey]) : null;
 
+  // Subtitle always shows the asset category for traffic devices
+  const subTitle = "Traffic Asset";
+
   // Determine the popup title.  Prefer to show the junction number if it exists
   // and is meaningful.  Otherwise fall back to ID, asset tag or a default label.
   let title;
   if (junctVal && junctVal !== "N/A" && junctVal !== "UNKNOWN" && junctVal !== "Unknown") {
-    title = `Junct No: ${junctVal}`;
+    // Show only the junction number (without label) as the title
+    title = junctVal;
   } else if (sanitize(idKey ? row[idKey] : "") !== "N/A") {
     title = sanitize(row[idKey]);
   } else if (sanitize(tagKey ? row[tagKey] : "") !== "N/A") {
@@ -1575,6 +1579,9 @@
   return `
     <div style="font-size:12px;line-height:1.35;">
       <div style="font-weight:800;font-size:13px;margin-bottom:6px;">${escapeHtml(title)}</div>
+      <div style="color:rgba(156,163,175,.95);font-size:12px;margin-bottom:6px;">
+        ${escapeHtml(subTitle)}
+      </div>
       <div style="color:rgba(156,163,175,.95);font-size:12px;margin-bottom:6px;">
         <strong>Junct No:</strong> ${escapeHtml(junctVal && junctVal !== "N/A" && junctVal !== "UNKNOWN" && junctVal !== "Unknown" ? junctVal : sanitize(gfcKey ? row[gfcKey] : "UNKNOWN"))}
       </div>
@@ -1734,7 +1741,8 @@
           const qatarPoly = Polygon.fromExtent(qatarExtent);
 
 
-          const map = new Map({ basemap: "satellite" });
+          // Use the Esri "hybrid" basemap which combines satellite imagery with labels
+          const map = new Map({ basemap: "hybrid" });
 
           // Expose Graphic class for Team Live layer
           window.__ESRI_GRAPHIC__ = Graphic;
