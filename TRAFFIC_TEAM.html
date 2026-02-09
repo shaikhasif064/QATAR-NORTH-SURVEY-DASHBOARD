@@ -1237,6 +1237,22 @@
       return null;
     }
     function buildDeviceKey(row){
+      // Use stable columns (Sr No and Junct No) to build a unique key.  Fallback to
+      // ID/AssetTag/MXASSETNUM/GFCODE if those are not present, but the primary
+      // key will be Sr No and Junct No which are unique per row.
+      const srKey = getFirstKey(row, [
+        "Sr No.","SR NO","SrNo","SrNo.","Serial No.","Serial Number","Sr No","SR NO.","Sr_No"
+      ]);
+      const junctKey = getFirstKey(row, [
+        "JUNCT NO","Junct No","Junction No","junction no",
+        "JUNCTION NO","Junction","junction","JUNCTNO","JunctNo"
+      ]);
+      const srVal = srKey ? row[srKey] : null;
+      const jVal = junctKey ? row[junctKey] : null;
+      if (srVal !== null && jVal !== null) {
+        return [sanitize(srVal), sanitize(jVal)].join("||");
+      }
+      // Fallback to original composite key
       const idKey = getFirstKey(row, ["ID","Id","id"]);
       const tagKey = getFirstKey(row, ["ASSETTAG","AssetTag","asset tag","Asset Tag"]);
       const mxKey = getFirstKey(row, ["MXASSETNUM","MxAssetNum","mxassetnum"]);
@@ -2070,7 +2086,9 @@
 
           let lyr = deviceTypeLayers.get(type);
           if (!lyr){
-            lyr = new GraphicsLayer({ id: `dev_${type}`, title: type, visible: true });
+            // Rename the layer title from "UNKNOWN" to "Junctions" for clarity in the layer list
+            const layerTitle = (type && type.toUpperCase() === "UNKNOWN") ? "Junctions" : type;
+            lyr = new GraphicsLayer({ id: `dev_${type}`, title: layerTitle, visible: true });
             deviceTypeLayers.set(type, lyr);
             devicesGroup.layers.add(lyr);
           }
