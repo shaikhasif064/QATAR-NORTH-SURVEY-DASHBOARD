@@ -2039,14 +2039,33 @@
           }
 
           const type = sanitize(gfcKey ? r[gfcKey] : "UNKNOWN");
+          // Determine the junction number for popup title.  Try a variety of
+          // possible header names used in the dataset.  If none is found, the
+          // title will be empty so the ArcGIS popup does not display "Unknown".
+          const junctKey = getFirstKey(r, [
+            "JUNCT NO","Junct No","Junction No","junction no",
+            "JUNCTION NO","Junction","junction","JUNCTNO","JunctNo"
+          ]);
+          const junctValRaw = junctKey ? r[junctKey] : null;
+          let junctVal = null;
+          if (junctValRaw !== null && junctValRaw !== undefined){
+            junctVal = sanitize(junctValRaw);
+            if (junctVal === "N/A" || junctVal === "UNKNOWN" || junctVal === "Unknown" || junctVal === ""){
+              junctVal = null;
+            }
+          }
           const pt = new Point({ latitude: lat, longitude: lon, spatialReference: { wkid: 4326 } });
 
           const g = new Graphic({
             geometry: pt,
             symbol: window.__GIS__.markerSymbol(type, false),
-            attributes: { __key: buildDeviceKey(r), __type: type },
+            // Store the junction number in attributes if found so it can be used
+            // in popups or for debugging.  Also include __type for marker styling.
+            attributes: { __key: buildDeviceKey(r), __type: type, __title: junctVal || "" },
             popupTemplate: new PopupTemplate({
-              title: "{__type}",
+              // Use the junction number as the popup title if available.  If not,
+              // provide an empty string to avoid showing "Unknown".
+              title: junctVal ? junctVal : "",
               content: () => buildPopupHTML(r)
             })
           });
